@@ -146,7 +146,6 @@ Cả 3 máy chủ master chạy đối xứng (Symmetric) các thành phần K8s
 ### Tổng Kết
 Hệ thống là một cluster Kubernetes ở mức **Production-ready** dựa trên định dạng **RKE2** (phiên bản K8s mới), với kiến trúc High Availability (3 master / 3 worker). Cấu trúc cluster hiện đại khi sử dụng Cilium CNI, OpenStack Cinder dự phòng Storage, VIP Controller, và quản lý Database phân tán bằng các thư viện Operator như CloudNativePG/MySQL Operator. 
 
-Hiện Cluster đang hoạt động và đáp ứng đầy đủ tài nguyên cho các workloads quan trọng của hệ thống VNPOST như Cổng định danh IAM (Keycloak), logging & search (ELK), cùng quản lý tài sản (Snipe-IT). Hệ thống dư thừa hiệu năng trên Control Plane, tuy nhiên kiến trúc Worker Nodes đang bị mất cân bằng trầm trọng về khả năng rải tải (Load Balancing scheduling), cần rà soát lại chính sách Affinitiy/Anti-Affinity của các ứng dụng Core để đảm bảo an toàn chịu lỗi (Fault-Tolerance).
 
 <details>
 <summary>Logs: Chi tiết lệnh describe nodes (Bấm để mở rộng)</summary>
