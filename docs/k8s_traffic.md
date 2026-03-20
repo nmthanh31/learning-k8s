@@ -1,77 +1,55 @@
-# BÁO CÁO PHÂN TÍCH KIẾN TRÚC LƯU LƯỢNG MẠNG (NORTH–SOUTH & EAST–WEST)
+# BÁO CÁO PHÂN TÍCH KIẾN TRÚC LƯU LƯỢNG MẠNG (SOUTH–NORTH & EAST–WEST)
 
 ## 1. Tổng quan
 
-Trong kiến trúc hạ tầng hiện đại, đặc biệt là với Kubernetes (K8s) và Microservices, việc phân loại lưu lượng mạng (Traffic) thành hai trục North–South (Bắc–Nam) và East–West (Đông–Tây) là yếu tố tiên quyết để thiết kế hệ thống bảo mật, hiệu năng cao và có khả năng mở rộng.
+Trong kiến trúc Kubernetes hiện đại, lưu lượng mạng được chia thành hai trục chính: **South–North** (vào/ra cụm) và **East–West** (nội bộ giữa các dịch vụ). Việc hiểu rõ các lớp xử lý từ Load Balancer đến tận NIC và Pod thông qua eBPF là chìa khóa để tối ưu hiệu năng và bảo mật.
 
 ### Sơ đồ luồng lưu lượng (Traffic Flow)
+![traffic-flow](/imgs/traffic-flow.png)
 
+---
 
-
-## 2. Chi tiết về North–South Traffic (Lưu lượng Bắc–Nam)
+## 2. Chi tiết về South–North Traffic (Lưu lượng Nam–Bắc)
 
 ### 2.1. Định nghĩa
+Lưu lượng South–North đại diện cho các kết nối từ người dùng (User) bên ngoài đi vào cụm hoặc các yêu cầu quản trị hệ thống. Trong sơ đồ, luồng này di chuyển theo chiều dọc.
 
-Lưu lượng North–South đại diện cho các kết nối đi vào hoặc đi ra khỏi cụm (Cluster). Đây là cửa ngõ giao tiếp giữa người dùng cuối (End-users) hoặc các hệ thống bên ngoài với các dịch vụ bên trong nội bộ.
+### 2.2. Luồng di chuyển (Data Flow) theo sơ đồ:
+1.  **Người dùng (User)** kết nối tới điểm truy cập duy nhất.
+2.  **LB/VIP (Load Balancer/Virtual IP)**: Tiếp nhận request. Tại đây có hai nhánh:
+    -   **Quản trị**: `kubectl` kết nối trực tiếp tới **Control Plane**.
+    -   **Ứng dụng**: Traffic đi tới **Service/NodePort** của Worker Node.
+3.  **Bên trong Worker Node**:
+    -   **Ingress Controller**: Tiếp nhận traffic từ NodePort để định tuyến.
+    -   **Service/ClusterIP**: Phân phối request tới các Pod mục tiêu.
+    -   **Pod**: Nơi xử lý logic ứng dụng.
+    -   **Cilium/eBPF**: Lớp mạng hiệu năng cao xử lý traffic ngay tại kernel.
+    -   **NIC (Network Interface Card)**: Card mạng vật lý/ảo chuyển tiếp dữ liệu.
 
-### 2.2. Luồng di chuyển (Data Flow)
+### 2.3. Trọng tâm quản lý
+-   **Security**: WAF, SSL Termination tại Ingress.
+-   **Routing**: Điều hướng dựa trên Domain/Path tại Layer 7.
 
-Request: Người dùng → Internet → Cloud Load Balancer → Ingress Controller/API Gateway → Service → Pod.
-
-Response: Pod → Service → Ingress/LB → Internet → Người dùng.
-
-### 2.3. Các thành phần kỹ thuật chủ chốt
-
-API Gateway: Thực hiện Authentication, Rate Limiting, và Request Transformation.
-
-> [!NOTE]
-> **Phân biệt Load Balancer (L4 vs L7):**
-> - **Layer 4 (TCP/UDP):** Điều hướng dựa trên IP và Port. Hiệu suất cực cao, thường dùng cho External LB.
-> - **Layer 7 (HTTP/HTTPS):** Điều hướng dựa trên Content (Domain, Path, Header). Ingress Controller hoạt động ở lớp này.
-
-
-### 2.4. Trọng tâm quản lý
-
-Bảo mật: Triển khai WAF (Web Application Firewall), SSL/TLS Termination.
-
-Hiệu năng: Cấu hình Auto-scaling cho Ingress để tránh hiện tượng "nghẽn cổ chai" (Bottleneck).
+---
 
 ## 3. Chi tiết về East–West Traffic (Lưu lượng Đông–Tây)
 
 ### 3.1. Định nghĩa
+Lưu lượng East–West là giao tiếp giữa các Microservices bên trong cụm (Internal Cluster). Theo sơ đồ, đây là luồng di chuyển theo chiều ngang giữa các Worker Node.
 
-Lưu lượng East–West là các kết nối diễn ra hoàn toàn bên trong cụm (Internal Cluster). Đây là sự giao tiếp giữa các Microservices với nhau để hoàn tất một nghiệp vụ phức tạp.
+### 3.2. Luồng di chuyển (Data Flow):
+Khi một Pod ở Worker Node A cần giao tiếp với Pod ở Worker Node B:
+1.  **Pod (A)** → **Cilium/eBPF** (Xử lý định tuyến/chính sách bảo mật).
+2.  **NIC (Node A)** → Xuất traffic ra mạng nội bộ.
+3.  **NIC (Node B)** → Tiếp nhận traffic.
+4.  **Cilium/eBPF** (Kiểm tra chính sách/giải mã mTLS nếu có).
+5.  **Pod (B)** tiếp nhận dữ liệu.
 
-### 3.2. Đặc điểm vận hành
+### 3.3. Công nghệ chủ chốt: Cilium & eBPF
+-   **eBPF**: Cho phép lập trình trực tiếp vào Linux Kernel để xử lý gói tin mà không cần qua lớp `iptables` chậm chạp.
+-   **Cilium**: Cung cấp khả năng quan sát (Observability), bảo mật mạng (Network Policy) và cân bằng tải hiệu năng cao cho giao tiếp nội bộ.
 
-Tỷ trọng: Chiếm khoảng 80%–90% tổng lưu lượng trong các hệ thống Microservices hiện đại.
+---
 
-Độ phức tạp: Khó quan sát hơn North-South do số lượng kết nối cực lớn và diễn ra liên tục.
-
-### 3.3. Các thành phần kỹ thuật chủ chốt
-
-Kube-Proxy & CoreDNS: Chịu trách nhiệm Service Discovery (tìm kiếm dịch vụ theo tên).
-
-Service Mesh (Istio, Linkerd): Quản lý traffic thông qua các Sidecar Proxy (Envoy).
-
-Network Policies: Định nghĩa các quy tắc firewall nội bộ giữa các Namespace/Pod.
-
-### 3.4. Trọng tâm quản lý
-
-Độ trễ (Latency): Tối ưu hóa giao tiếp (sử dụng gRPC thay vì REST).
-
-Khả năng quan sát (Observability): Triển khai Distributed Tracing (Jaeger, Zipkin) để theo dõi luồng request qua nhiều service.
-
-Bảo mật nội bộ: Sử dụng mTLS (Mutual TLS) để đảm bảo các service tin tưởng lẫn nhau.
-
-## 4. So sánh và Đối chiếu
-
-| Tiêu chí | North–South (Bắc–Nam) | East–West (Đông–Tây) |
-| :--- | :--- | :--- |
-| **Hướng đi** | Ngoài cụm ↔ Trong cụm | Nội bộ giữa các Pod/Node |
-| **Đối tượng** | Khách hàng, API bên ngoài | Microservices, Databases |
-| **Giao thức** | HTTPS, HTTP, WebSockets | gRPC, REST, Message Queues |
-| **Công cụ chính** | Ingress, Load Balancer, Gateway | Service Mesh, ClusterIP, DNS |
-| **Rủi ro chính** | Tấn công xâm nhập (External Attack) | Tấn công leo thang (Lateral Movement) |
-
-Kết luận: North-South là điều kiện cần để hệ thống hoạt động, nhưng East-West là điều kiện đủ để hệ thống bền vững và an toàn. Việc hiểu rõ cả hai là bước đi quan trọng nhất để làm chủ kiến trúc Cloud Native.
+## 4. Kết luận
+Kiến trúc trong sơ đồ cho thấy sự kết hợp chặt chẽ giữa các thành phần truyền thống (LB, Ingress) và công nghệ hiện đại (Cilium/eBPF). Việc South-North traffic đi qua eBPF trước khi ra NIC đảm bảo rằng mọi chính sách bảo mật đều được áp dụng ngay tại tầng sâu nhất của hệ điều hành.
