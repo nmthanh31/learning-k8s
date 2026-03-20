@@ -15,16 +15,22 @@ Trong kiến trúc Kubernetes hiện đại, lưu lượng mạng được chia 
 Lưu lượng South–North đại diện cho các kết nối từ người dùng (User) bên ngoài đi vào cụm hoặc các yêu cầu quản trị hệ thống. Trong sơ đồ, luồng này di chuyển theo chiều dọc.
 
 ### 2.2. Luồng di chuyển (Data Flow) theo sơ đồ:
+**A. Incoming (Chiều vào):**
 1.  **Người dùng (User)** kết nối tới điểm truy cập duy nhất.
-2.  **LB/VIP (Load Balancer/Virtual IP)**: Tiếp nhận request. Tại đây có hai nhánh:
-    -   **Quản trị**: `kubectl` kết nối trực tiếp tới **Control Plane**.
+2.  **LB/VIP (Load Balancer/Virtual IP)**: Tiếp nhận request.
+    -   **Quản trị**: `kubectl` kết nối tới **Control Plane** (để quản lý cụm và các node).
     -   **Ứng dụng**: Traffic đi tới **Service/NodePort** của Worker Node.
-3.  **Bên trong Worker Node**:
-    -   **Ingress Controller**: Tiếp nhận traffic từ NodePort để định tuyến.
-    -   **Service/ClusterIP**: Phân phối request tới các Pod mục tiêu.
-    -   **Pod**: Nơi xử lý logic ứng dụng.
-    -   **Cilium/eBPF**: Lớp mạng hiệu năng cao xử lý traffic ngay tại kernel.
-    -   **NIC (Network Interface Card)**: Card mạng vật lý/ảo chuyển tiếp dữ liệu.
+3.  **Xử lý tại Worker Node**:
+    -   **Ingress**: Định tuyến dựa trên host/path.
+    -   **Service/ClusterIP**: Cân bằng tải nội bộ.
+    -   **Pod**: Xử lý logic nghiệp vụ.
+    -   **Cilium/eBPF**: Lớp mạng kernel-level xử lý gói tin với hiệu suất cực cao và áp dụng chính sách bảo mật (Network Policy).
+    -   **NIC (Network Interface Card)**: Chuyển gói tin ra/vào lớp vật lý.
+
+**B. Outgoing/Egress (Chiều ra):**
+1.  **Pod** → **Cilium/eBPF** → **NIC**.
+2.  **Gateway**: Tiếp nhận traffic từ các Worker Node.
+3.  **Internet**: Điểm đến cuối cùng của các yêu cầu ra bên ngoài.
 
 ### 2.3. Trọng tâm quản lý
 -   **Security**: WAF, SSL Termination tại Ingress.
@@ -39,14 +45,17 @@ Lưu lượng East–West là giao tiếp giữa các Microservices bên trong c
 
 ### 3.2. Luồng di chuyển (Data Flow):
 Khi một Pod ở Worker Node A cần giao tiếp với Pod ở Worker Node B:
-1.  **Pod (A)** → **Cilium/eBPF** (Xử lý định tuyến/chính sách bảo mật).
-2.  **NIC (Node A)** → Xuất traffic ra mạng nội bộ.
-3.  **NIC (Node B)** → Tiếp nhận traffic.
-4.  **Cilium/eBPF** (Kiểm tra chính sách/giải mã mTLS nếu có).
+1.  **Pod (A)** → **Cilium/eBPF** (V-Switch kernel xử lý).
+2.  **NIC (Node A)** đóng gói gói tin vào **Overlay - VXLAN**.
+3.  Traffic di chuyển qua hạ tầng mạng vật lý tới **NIC (Node B)**.
+4.  **NIC (Node B)** giải mã VXLAN → **Cilium/eBPF** (Kiểm tra bảo mật/mTLS).
 5.  **Pod (B)** tiếp nhận dữ liệu.
 
-### 3.3. Công nghệ chủ chốt: Cilium & eBPF
--   **eBPF**: Cho phép lập trình trực tiếp vào Linux Kernel để xử lý gói tin mà không cần qua lớp `iptables` chậm chạp.
+### 3.3. Overlay Network (VXLAN)
+Trong sơ đồ, lớp **Overlay - VXLAN** bao phủ các NIC của các Worker Node, tạo ra một mạng phẳng ảo (Virtual Flat Network) giúp các Pod có thể giao tiếp với nhau dù nằm ở các máy chủ vật lý khác nhau mà không cần cấu hình phức tạp tại lớp mạng router/switch vật lý.
+
+### 3.4. Công nghệ chủ chốt: Cilium & eBPF
+-   **eBPF**: Cho phép lập trình trực tiếp vào Linux Kernel để xử lý gói tin mà không cần qua lớp `iptables` chậm chạp. Trong hình, Cilium/eBPF đóng vai trò là "cửa ngõ" kernel ngay trước khi traffic đi vào Pod hoặc ra NIC.
 -   **Cilium**: Cung cấp khả năng quan sát (Observability), bảo mật mạng (Network Policy) và cân bằng tải hiệu năng cao cho giao tiếp nội bộ.
 
 ---

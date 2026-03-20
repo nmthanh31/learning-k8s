@@ -1,6 +1,6 @@
-# 🚀 VNPOST Kubernetes (K8s) Learning Journey
+# 🚀 Learning Kubernetes
 
-Chào mừng đến với kho tài liệu nghiên cứu và triển khai **Kubernetes** tại **VNPost**. Đây là nơi hệ thống hóa toàn bộ kiến thức từ cơ bản đến nâng cao, tập trung vào kiến trúc thực tế, bảo mật mạng và khả năng sẵn sàng cao (High Availability).
+Chào mừng đến với kho tài liệu nghiên cứu và triển khai **Kubernetes**. Đây là nơi hệ thống hóa toàn bộ kiến thức từ cơ bản đến nâng cao, tập trung vào kiến trúc thực tế, bảo mật mạng và khả năng sẵn sàng cao (High Availability).
 
 ---
 
