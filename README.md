@@ -25,21 +25,4 @@ Chuỗi bài học hướng dẫn từng bước để làm chủ các thành ph
 5.  **[Concept 05: Service](./docs/k8s_basic/k8s_concept_05_service.md)** — Giải pháp Networking và Load Balancing nội bộ.
 
 ---
-
-## 🛠️ Công nghệ & Giải pháp (Tech Stack)
-
-Dự án tập trung vào các giải pháp hiện đại dành cho doanh nghiệp:
-- **Runtime**: RKE2 (Rancher Government)
-- **Networking**: Cilium (eBPF-based), Kube-vip.
-- **Observability**: Prometheus & Grafana (đang cập nhật).
-
----
-
-## 🎯 Mục tiêu Dự án
-
-- [x] Tài liệu hóa chuẩn hóa kiến thức K8s doanh nghiệp.
-- [x] Xây dựng bộ hướng dẫn triển khai HA (High Availability) thực tế.
-- [x] Tối ưu hóa bảo mật mạng (Zero Trust) thông qua Network Policies.
-
----
 *Ghi chú: Mọi tài liệu được biên soạn bằng Tiếng Việt nhằm hỗ trợ tối đa cho quá trình nghiên cứu và đào tạo nội bộ.*
