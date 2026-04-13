@@ -1,0 +1,104 @@
+# Triển khai Prometheus dưới dạng StatefulSet để đảm bảo tính ổn định và lưu trữ dữ liệu bền vững
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: prometheus
+  namespace: monitoring
+spec:
+  replicas: 2           # Chạy 2 bản sao (HA) trên 2 node khác nhau
+  serviceName: "prometheus"
+  selector:
+    matchLabels:
+      app: prometheus   # Các Pod được quản lý có nhãn app: prometheus
+
+  template:
+    metadata:
+      labels:
+        app: prometheus
+
+    spec:
+      # Sử dụng ServiceAccount đã được cấp quyền RBAC ở file prometheus-rbac.yaml
+      serviceAccountName: prometheus
+      
+      # Cấu hình bảo mật cấp Pod
+      securityContext:
+        fsGroup: 65534     # Gán quyền truy cập volume cho group nobody (UID/GID 65534 của Prometheus)
+
+      # Đảm bảo 2 Pod Prometheus không nằm chung trên cùng một Node vật lý
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchLabels:
+                  app: prometheus
+              topologyKey: "kubernetes.io/hostname"
+
+      containers:
+        - name: prometheus
+          image: prom/prometheus:v2.51.2 # Sử dụng image Prometheus phiên bản ổn định
+
+          # Cấu hình bảo mật cấp Container
+          securityContext:
+            runAsUser: 65534     # Chạy dưới user nobody
+            runAsGroup: 65534
+            runAsNonRoot: true   # Không cho phép chạy dưới quyền root
+
+          # Các tham số dòng lệnh khởi chạy Prometheus
+          args:
+            - "--config.file=/etc/prometheus/prometheus.yml" # File cấu hình từ ConfigMap
+            - "--storage.tsdb.path=/prometheus"              # Thư mục lưu cơ sở dữ liệu metrics
+            - "--storage.tsdb.retention.time=15d"            # Thời gian lưu trữ dữ liệu (15 ngày)
+            - "--web.enable-lifecycle"                       # Cho phép load lại config qua HTTP (/-/reload)
+            - "--web.enable-admin-api"                       # Bật API quản trị (xóa dữ liệu, quản lý snapshot...)
+
+          ports:
+            - name: web
+              containerPort: 9090 # Port mặc định của giao diện web Prometheus
+
+          # Kiểm tra Pod đã sẵn sàng nhận traffic chưa
+          readinessProbe:
+            httpGet:
+              path: /-/ready
+              port: 9090
+            initialDelaySeconds: 10
+            periodSeconds: 10
+
+          # Kiểm tra Pod còn sống hay đã bị treo (để Kubernetes restart)
+          livenessProbe:
+            httpGet:
+              path: /-/healthy
+              port: 9090
+            initialDelaySeconds: 30
+            periodSeconds: 15
+
+          # Tài nguyên CPU/RAM cấp phát cho Prometheus
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "512Mi"
+            limits:
+              cpu: "1"
+              memory: "1Gi"
+
+          # Gắn các ổ đĩa vào container
+          volumeMounts:
+            - name: config
+              mountPath: /etc/prometheus # Chứa file prometheus.yml từ ConfigMap
+            - name: prometheus-data
+              mountPath: /prometheus     # Chứa dữ liệu metrics tích lũy
+
+      volumes:
+        - name: config
+          configMap:
+            name: prometheus-config # Lấy dữ liệu từ ConfigMap prometheus-config
+
+  # Định nghĩa cấp phát ổ đĩa tự động (PVC) cho mỗi bản sao của StatefulSet
+  volumeClaimTemplates:
+    - metadata:
+        name: prometheus-data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        storageClassName: "monitoring-storage" # Class ổ đĩa lưu trữ (cần được định nghĩa trước)
+        resources:
+          requests:
+            storage: 10Gi # Dung lượng ổ đĩa cho mỗi bản sao (10GB)

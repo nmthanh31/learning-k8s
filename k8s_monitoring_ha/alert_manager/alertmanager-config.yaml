@@ -1,0 +1,27 @@
+# ConfigMap chứa cấu hình xử lý cảnh báo của Alertmanager
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: alertmanager-config
+  namespace: monitoring
+data:
+  alertmanager.yml: |
+    global:
+      # Thời gian chờ để coi một cảnh báo đã được xử lý (resolve) nếu không nhận được dữ liệu mới
+      resolve_timeout: 5m
+
+    # Cấu hình định tuyến (Routing) - Xác định cảnh báo nào gửi đi đâu
+    route:
+      # Receiver mặc định để gửi tất cả cảnh báo nếu không khớp với quy tắc nào khác
+      receiver: telegram
+
+    # Định nghĩa các nơi nhận cảnh báo (Receivers)
+    receivers:
+      - name: telegram
+        telegram_configs:
+          # Đọc Token của Bot Telegram từ file Secret đã mount (để đảm bảo bảo mật)
+          - bot_token_file: /etc/alertmanager/secrets/telegram_bot_token
+          # ID của Chat hoặc Group Telegram nhận tin nhắn
+            chat_id: 7524643345
+          # Gửi cả thông báo khi lỗi đã được khắc phục (Status: Resolved)
+            send_resolved: true

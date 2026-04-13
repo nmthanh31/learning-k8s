@@ -1,0 +1,13 @@
+# Service để Prometheus tìm thấy các Endpoint của kube-state-metrics
+apiVersion: v1
+kind: Service
+metadata:
+  name: kube-state-metrics
+  namespace: monitoring
+spec:
+  selector:
+    app: kube-state-metrics
+  ports:
+    - name: http-metrics     # Tên port phải khớp với 'Regex' filter trong prometheus-config.yaml
+      port: 8080
+      targetPort: 8080

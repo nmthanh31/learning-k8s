@@ -1,0 +1,78 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: grafana
+  namespace: monitoring
+spec:
+  replicas: 2
+  serviceName: "grafana"
+  selector:
+    matchLabels:
+      app: grafana
+  template:
+    metadata:
+      labels:
+        app: grafana
+    spec:
+      securityContext:
+        fsGroup: 472
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: app
+                      operator: In
+                      values:
+                        - grafana
+                topologyKey: "kubernetes.io/hostname"
+      containers:
+        - name: grafana
+          securityContext:
+            runAsUser: 472
+            runAsGroup: 472
+          image: grafana/grafana:10.0.0
+          ports:
+            - containerPort: 3000
+          env:
+            - name: GF_SECURITY_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: grafana-secret
+                  key: GF_SECURITY_ADMIN_PASSWORD
+            - name: GF_SECURITY_ADMIN_USER
+              value: "admin"
+            - name: GF_DATABASE_TYPE
+              value: "postgres"
+            - name: GF_DATABASE_HOST
+              value: "postgres-ha-rw:5432"
+            - name: GF_DATABASE_NAME
+              value: "grafana"
+            - name: GF_DATABASE_USER
+              value: "grafana"
+            - name: GF_DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: grafana-secret
+                  key: GF_DATABASE_PASSWORD
+          volumeMounts:
+            - name: grafana-storage
+              mountPath: /var/lib/grafana
+            - name: provisioning
+              mountPath: /etc/grafana/provisioning/datasources
+              readOnly: true
+      volumes:
+        - name: provisioning
+          configMap:
+            name: grafana-provisioning
+  volumeClaimTemplates:
+    - metadata:
+        name: grafana-storage
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        storageClassName: "monitoring-storage"
+        resources:
+          requests:
+            storage: 2Gi

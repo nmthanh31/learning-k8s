@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: alertmanager-config
+  namespace: monitoring
+data:
+  alertmanager.yml: |
+    global:
+      resolve_timeout: 5m
+
+    route:
+      receiver: telegram
+
+    receivers:
+      - name: telegram
+        telegram_configs:
+          - bot_token: "8715216441:AAFd_wEAn8reKnSEB3tJ_yc_4lqFskVcHaI"
+            chat_id: 7524643345
+            send_resolved: true

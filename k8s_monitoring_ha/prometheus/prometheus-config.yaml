@@ -1,0 +1,124 @@
+# ConfigMap chứa cấu hình chính cho Prometheus và Alert Rules
+apiVersion: v1
+kind: ConfigMap
+metadata: 
+  name: prometheus-config
+  namespace: monitoring # Namespace triển khai hệ thống giám sát
+data:
+  prometheus.yml: |
+    global:
+      scrape_interval: 15s     # Tần suất lấy dữ liệu từ targets (mặc định 15s)
+      evaluation_interval: 15s # Tần suất đánh giá các quy tắc cảnh báo (Alert Rules)
+
+    alerting:
+      alertmanagers:
+      - static_configs:
+        - targets:
+          # Địa chỉ Service của Alertmanager để Prometheus gửi cảnh báo khi có lỗi
+          - alertmanager.monitoring.svc.cluster.local:9093
+
+    rule_files:
+      # Đường dẫn nạp các file quy tắc cảnh báo vào Prometheus
+      - /etc/prometheus/alert.rules.yml
+
+    scrape_configs:
+      # Job tự giám sát chính Prometheus
+      - job_name: 'prometheus'
+        static_configs:
+          - targets: ['localhost:9090']
+
+      # Job giám sát tài nguyên phần cứng các Node (Node Exporter)
+      - job_name: 'node-exporter'
+        kubernetes_sd_configs:
+          - role: endpoints # Sử dụng Service Discovery qua Endpoint Kubernetes
+            namespaces:
+              names:
+                - monitoring
+
+        relabel_configs:
+          # Chỉ giữ lại các endpoint thuộc Service có tên 'node-exporter'
+          - source_labels: [__meta_kubernetes_service_name]
+            action: keep
+            regex: node-exporter
+
+          # Chỉ lấy port có tên là 'metrics' HOẶC port số 9100 (đề phòng headless service không có tên port)
+          - source_labels: [__meta_kubernetes_endpoint_port_name, __meta_kubernetes_pod_container_port_number]
+            action: keep
+            regex: (metrics;.*|.*;9100)
+
+          # Chuyển nhãn tên Node của Pod thành nhãn 'node' để dễ dàng query
+          - source_labels: [__meta_kubernetes_pod_node_name]
+            target_label: node
+
+          # Áp dụng tất cả các nhãn (labels) của Pod vào metric (bỏ tiền tố __meta_kubernetes_pod_label_)
+          - action: labelmap
+            regex: __meta_kubernetes_pod_label_(.+)
+
+      # Job giám sát trạng thái các đối tượng trong Cluster (Deployment, Pod, StatefulSet...)
+      - job_name: 'kube-state-metrics'
+        kubernetes_sd_configs:
+          - role: endpoints
+            namespaces:
+              names:
+                - monitoring
+
+        relabel_configs:
+          # Chỉ lấy service kube-state-metrics
+          - source_labels: [__meta_kubernetes_service_name]
+            action: keep
+            regex: kube-state-metrics
+
+          # Chỉ lấy port có tên http-metrics (port 8080)
+          - source_labels: [__meta_kubernetes_endpoint_port_name]
+            action: keep
+            regex: http-metrics
+
+      # Job giám sát Cilium (Networking & Security)
+      - job_name: cilium
+        kubernetes_sd_configs:
+          - role: pod # Duyệt trực tiếp qua danh sách Pod
+
+        relabel_configs:
+          # Chỉ lấy các Pod có nhãn k8s-app=cilium
+          - source_labels: [__meta_kubernetes_pod_label_k8s_app]
+            action: keep
+            regex: cilium
+
+          # Thay đổi địa chỉ metric thành IP của Pod và port 9962
+          - source_labels: [__meta_kubernetes_pod_ip]
+            separator: ;
+            regex: (.*)
+            target_label: __address__
+            replacement: ${1}:9962
+            action: replace
+
+          # Gán nhãn node để biết Pod cilium này đang chạy trên host nào
+          - source_labels: [__meta_kubernetes_pod_node_name]
+            target_label: node
+
+  # File định nghĩa các quy tắc để Prometheus kích hoạt cảnh báo
+  alert.rules.yml: |
+    groups:
+      # Nhóm cảnh báo dùng để kiểm tra hệ thống
+      - name: test-alerts
+        rules:
+          - alert: TestAlertAlwaysFiring
+            expr: vector(1) # Luôn luôn trả về giá trị 1 (luôn luôn kích hoạt)
+            for: 1s
+            labels:
+              severity: warning
+            annotations:
+              summary: "Cảnh báo thử nghiệm từ Prometheus"
+              description: "Nếu bạn nhận được tin nhắn này, cấu hình Telegram đã hoạt động!"
+
+      # Nhóm cảnh báo mẫu cho các instance bị sập
+      - name: example-alert
+        rules:
+          - alert: InstanceDown
+            expr: up == 0 # Kích hoạt nếu target không thể kết nối (up=0)
+            for: 5s
+            labels:
+              severity: critical
+            annotations:
+              summary: "Máy chủ {{ $labels.instance }} bị mất kết nối"
+              description: "Target {{ $labels.instance }} đã không phản hồi trong hơn 1 phút"

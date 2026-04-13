@@ -1,0 +1,18 @@
+# Service Headless để hỗ trợ việc giao tiếp Clustering giữa các Pod Alertmanager
+apiVersion: v1
+kind: Service
+metadata:
+  name: alertmanager-headless
+  namespace: monitoring
+  labels:
+    app: alertmanager
+spec:
+  # clusterIP: None định nghĩa đây là Service Headless (không có IP đại diện cho Cluster)
+  # Cho phép các bản sao tự tìm thấy IP của nhau qua DNS Record
+  clusterIP: None
+  selector:
+    app: alertmanager
+  ports:
+    - name: mesh        # Port dành cho việc giao tiếp gossip protocol trong cluster
+      port: 9094
+      targetPort: 9094

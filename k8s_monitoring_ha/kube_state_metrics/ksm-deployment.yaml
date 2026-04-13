@@ -1,0 +1,29 @@
+# Triển khai kube-state-metrics để chuyển đổi các đối tượng Kubernetes sang dạng metrics mà Prometheus có thể hiểu
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kube-state-metrics
+  namespace: monitoring
+spec:
+  replicas: 2           # Chạy 2 bản sao để đảm bảo tính sẵn sàng
+  selector:
+    matchLabels:
+      app: kube-state-metrics
+  template:
+    metadata:
+      labels:
+        app: kube-state-metrics
+    spec:
+      # Sử dụng ServiceAccount có quyền đọc thông tin tài nguyên cluster (định nghĩa trong ksm-rbac.yaml)
+      serviceAccountName: kube-state-metrics
+      containers:
+      - name: kube-state-metrics
+        image: registry.k8s.io/kube-state-metrics/kube-state-metrics:v2.10.0
+        args:
+          - "--port=8080"           # Port phục vụ metrics về trạng thái cluster
+          - "--telemetry-port=8081" # Port phục vụ metrics về nội tại của chính ksm
+        ports:
+        - containerPort: 8080        # Port chính cho Prometheus scrape
+          name: http-metrics
+        - containerPort: 8081        # Port phụ cho telemetry
+          name: telemetry

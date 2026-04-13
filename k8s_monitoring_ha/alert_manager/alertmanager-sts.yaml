@@ -1,0 +1,76 @@
+# Triển khai Alertmanager dưới dạng StatefulSet để hỗ trợ Clustering (HA) và lưu trữ dữ liệu
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: alertmanager
+  namespace: monitoring
+spec:
+  replicas: 3           # Chạy 3 bản sao để đảm bảo tính sẵn sàng cao (High Availability)
+  serviceName: "alertmanager-headless"
+  selector:
+    matchLabels:
+      app: alertmanager
+  template:
+    metadata:
+      labels:
+        app: alertmanager
+    spec:
+      # Cấu hình bảo mật để tránh lỗi 'permission denied' khi ghi vào ổ đĩa /alertmanager
+      securityContext:
+        fsGroup: 65534     # Gán quyền volume cho group nobody
+        runAsUser: 65534   # Chạy container dưới user nobody
+        runAsGroup: 65534
+        runAsNonRoot: true # Không chạy dưới quyền root
+
+      # Đảm bảo các Pod Alertmanager được phân tán trên các Node khác nhau
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values:
+                      - alertmanager
+              topologyKey: "kubernetes.io/hostname"
+
+      containers:
+        - name: alertmanager
+          image: prom/alertmanager:v0.27.0
+          args:
+            - "--config.file=/etc/alertmanager/alertmanager.yml" # Đường dẫn file cấu hình
+            - "--storage.path=/alertmanager"                    # Nơi lưu trữ database của Alertmanager
+            - "--cluster.listen-address=0.0.0.0:9094"            # Port để các bản sao Alertmanager trao đổi dữ liệu với nhau
+            # Danh sách các peers (bản sao khác) trong cluster để đồng bộ trạng thái alerts/silences
+            - "--cluster.peer=alertmanager-0.alertmanager-headless.monitoring.svc.cluster.local:9094"
+            - "--cluster.peer=alertmanager-1.alertmanager-headless.monitoring.svc.cluster.local:9094"
+            - "--cluster.peer=alertmanager-2.alertmanager-headless.monitoring.svc.cluster.local:9094"
+          ports:
+            - containerPort: 9093 # Port phục vụ giao diện web và nhận alert từ Prometheus
+            - containerPort: 9094 # Port đồng bộ cluster
+          volumeMounts:
+            - name: config
+              mountPath: /etc/alertmanager
+            - name: alertmanager-data
+              mountPath: /alertmanager
+            - name: alertmanager-secret
+              mountPath: /etc/alertmanager/secrets
+              readOnly: true
+      volumes:
+        - name: config
+          configMap:
+            name: alertmanager-config # Mount cấu hình từ ConfigMap
+        - name: alertmanager-secret
+          secret:
+            secretName: alertmanager-secret # Mount các thông tin nhạy cảm (Token Telegram) từ Secret
+
+  # Cấp phát ổ đĩa riêng biệt cho mỗi bản sao Alertmanager
+  volumeClaimTemplates:
+    - metadata:
+        name: alertmanager-data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        storageClassName: "monitoring-storage"
+        resources:
+          requests:
+            storage: 2Gi # Dung lượng ổ đĩa cho mỗi bản sao (2GB)

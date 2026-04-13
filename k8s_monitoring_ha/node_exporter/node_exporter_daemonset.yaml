@@ -1,0 +1,34 @@
+# DaemonSet đảm bảo mỗi Node trong Cluster đều chạy một Pod node-exporter để thu thập metrics phần cứng
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: node-exporter
+  namespace: monitoring
+spec:
+  selector:
+    matchLabels:
+      app: node-exporter
+  template:
+    metadata:
+      labels:
+        app: node-exporter
+    spec:
+      # Sử dụng network của host để node-exporter có thể truy cập trực tiếp các thông số mạng của Node
+      hostNetwork: true
+      containers:
+      - name: node-exporter
+        image: prom/node-exporter:v1.8.1
+        ports:
+          - name: metrics        # Đặt tên port là metrics để Prometheus tự động nhận diện
+            containerPort: 9100
+        args:
+          # Chỉ định đường dẫn rootfs của host nằm trong thư mục /host của container
+          - "--path.rootfs=/host"
+        volumeMounts:
+          - name: root
+            mountPath: /host     # Mount thư mục gốc của host vào container để lấy thông số ổ đĩa, CPU, RAM
+            readOnly: true
+      volumes:
+        - name: root
+          hostPath:
+            path: /              # Lấy trực tiếp từ thư mục gốc của Node vật lý

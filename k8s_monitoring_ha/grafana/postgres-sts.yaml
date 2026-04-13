@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres-monitoring
+  namespace: monitoring
+spec:
+  replicas: 1
+  serviceName: "postgres-monitoring"
+  selector:
+    matchLabels:
+      app: postgres-monitoring
+  template:
+    metadata:
+      labels:
+        app: postgres-monitoring
+    spec:
+      securityContext:
+        fsGroup: 999
+      containers:
+        - name: postgres
+          image: postgres:15
+          env:
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+            - name: POSTGRES_DB
+              value: "grafana"
+            - name: POSTGRES_USER
+              value: "grafana"
+            - name: POSTGRES_PASSWORD
+              value: "grafana_pwd123"
+          ports:
+            - containerPort: 5432
+          volumeMounts:
+            - name: postgres-data
+              mountPath: /var/lib/postgresql/data
+      volumes:
+  volumeClaimTemplates:
+  - metadata:
+      name: postgres-data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: "monitoring-storage"
+      resources:
+        requests:
+          storage: 5Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-monitoring
+  namespace: monitoring
+spec:
+  selector:
+    app: postgres-monitoring
+  ports:
+    - port: 5432
+      targetPort: 5432

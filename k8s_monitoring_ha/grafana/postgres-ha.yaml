@@ -1,0 +1,35 @@
+# 1. Secret chứa mật khẩu database
+apiVersion: v1
+kind: Secret
+metadata:
+  name: grafana-db-creds
+  namespace: monitoring
+type: kubernetes.io/basic-auth
+stringData:
+  username: grafana
+  password: grafana_pwd123
+---
+# 2. PostgreSQL HA Cluster (CloudNativePG)
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: postgres-ha
+  namespace: monitoring
+spec:
+  instances: 3
+
+  # Cấu hình lưu trữ
+  storage:
+    size: 5Gi
+    storageClass: monitoring-storage
+
+  # Khởi tạo Database & User
+  bootstrap:
+    initdb:
+      database: grafana
+      owner: grafana
+      secret:
+        name: grafana-db-creds
+  
+  monitoring:
+    enablePodMonitor: true

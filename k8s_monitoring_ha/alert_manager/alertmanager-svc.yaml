@@ -1,0 +1,12 @@
+# Service chính để Prometheus và người dùng truy cập giao diện Alertmanager
+apiVersion: v1
+kind: Service
+metadata:
+  name: alertmanager
+  namespace: monitoring
+spec:
+  selector:
+    app: alertmanager   # Điều hướng traffic đến các Pod có nhãn app: alertmanager
+  ports:
+    - port: 9093        # Port tiếp nhận alert từ Prometheus
+      targetPort: 9093  # Port container ứng dụng đang lắng nghe

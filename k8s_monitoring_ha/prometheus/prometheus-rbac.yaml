@@ -1,0 +1,49 @@
+# Tạo ServiceAccount cho Prometheus để nó có danh tính khi giao tiếp với Kubernetes API
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: prometheus
+  namespace: monitoring
+---
+# Định nghĩa các quyền hạn (ClusterRole) mà Prometheus cần trên phạm vi toàn Cluster
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: prometheus
+rules:
+# Quyền lấy thông tin về tài nguyên lõi (Nodes, Services, Endpoints, Pods) để tự động tìm targets
+- apiGroups: [""]
+  resources:
+  - nodes
+  - nodes/proxy
+  - services
+  - endpoints
+  - pods
+  verbs: ["get", "list", "watch"]
+# Quyền lấy thông tin về Deployments (thuộc nhóm mở rộng hoặc apps)
+- apiGroups: ["extensions", "apps"]
+  resources:
+  - deployments
+  verbs: ["get", "list", "watch"]
+# Quyền đọc cấu hình từ ConfigMaps (ví dụ để nạp lại rules)
+- apiGroups: [""]
+  resources:
+  - configmaps
+  verbs: ["get", "list", "watch"]
+# Quyền truy cập các đường dẫn metrics hệ thống không phải resource định nghĩa sẵn
+- nonResourceURLs: ["/metrics"]
+  verbs: ["get"]
+---
+# Liên kết ServiceAccount 'prometheus' với ClusterRole 'prometheus' để áp dụng các quyền trên
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: prometheus
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: prometheus
+subjects:
+- kind: ServiceAccount
+  name: prometheus
+  namespace: monitoring
