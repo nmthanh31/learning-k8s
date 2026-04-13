@@ -56,22 +56,9 @@ data:
 
       # Job giám sát trạng thái các đối tượng trong Cluster (Deployment, Pod, StatefulSet...)
       - job_name: 'kube-state-metrics'
-        kubernetes_sd_configs:
-          - role: endpoints
-            namespaces:
-              names:
-                - monitoring
-
-        relabel_configs:
-          # Chỉ lấy service kube-state-metrics
-          - source_labels: [__meta_kubernetes_service_name]
-            action: keep
-            regex: kube-state-metrics
-
-          # Chỉ lấy port có tên http-metrics (port 8080)
-          - source_labels: [__meta_kubernetes_endpoint_port_name]
-            action: keep
-            regex: http-metrics
+        static_configs: 
+          - targets:
+            - kube-state-metrics.monitoring.svc.cluster.local:8080
 
       # Job giám sát Cilium (Networking & Security)
       - job_name: cilium
@@ -99,26 +86,69 @@ data:
   # File định nghĩa các quy tắc để Prometheus kích hoạt cảnh báo
   alert.rules.yml: |
     groups:
-      # Nhóm cảnh báo dùng để kiểm tra hệ thống
-      - name: test-alerts
-        rules:
-          - alert: TestAlertAlwaysFiring
-            expr: vector(1) # Luôn luôn trả về giá trị 1 (luôn luôn kích hoạt)
-            for: 1s
-            labels:
-              severity: warning
-            annotations:
-              summary: "Cảnh báo thử nghiệm từ Prometheus"
-              description: "Nếu bạn nhận được tin nhắn này, cấu hình Telegram đã hoạt động!"
-
-      # Nhóm cảnh báo mẫu cho các instance bị sập
-      - name: example-alert
+      - name: node-alertsv
         rules:
           - alert: InstanceDown
-            expr: up == 0 # Kích hoạt nếu target không thể kết nối (up=0)
-            for: 5s
+            expr: up == 0
+            for: 1m
             labels:
               severity: critical
             annotations:
-              summary: "Máy chủ {{ $labels.instance }} bị mất kết nối"
-              description: "Target {{ $labels.instance }} đã không phản hồi trong hơn 1 phút"
+              summary: "Dịch vụ {{ $labels.instance }} bị ngừng hoạt động"
+              description: "Target {{ $labels.instance }} thuộc job {{ $labels.job }} đã mất kết nối trên 1 phút."
+
+          - alert: HighCpuLoad
+            expr: 100 - (avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 85
+            for: 5m
+            labels:
+              severity: warning
+            annotations:
+              summary: "CPU trên server {{ $labels.instance }} đang quá tải"
+              description: "Mức sử dụng CPU vượt ngưỡng 85% trong 5 phút qua."
+
+          - alert: HighMemoryUsage
+            expr: 100 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes * 100) > 90
+            for: 5m
+            labels:
+              severity: warning
+            annotations:
+              summary: "RAM trên server {{ $labels.instance }} gần cạn kiệt"
+              description: "Mức sử dụng RAM vượt ngưỡng 90% trong 5 phút qua."
+
+          - alert: HighDiskUsage
+            expr: 100 - (node_filesystem_avail_bytes{fstype=~"ext.*|xfs"} / node_filesystem_size_bytes{fstype=~"ext.*|xfs"} * 100) > 85
+            for: 5m
+            labels:
+              severity: warning
+            annotations:
+              summary: "Ổ cứng server {{ $labels.instance }} ({{ $labels.mountpoint }}) sắp đầy"
+              description: "Dung lượng phân vùng {{ $labels.mountpoint }} đã sử dụng trên 85% ."
+
+      - name: kubernetes-alerts
+        rules:
+          - alert: PodCrashLoopBackOff
+            expr: rate(kube_pod_container_status_restarts_total[10m]) * 60 * 10 > 0
+            for: 10m
+            labels:
+              severity: warning
+            annotations:
+              summary: "Pod {{ $labels.pod }} trong namespace {{ $labels.namespace }} restart liên tục"
+              description: "Pod {{ $labels.pod }} đang bị CrashLoopBackOff hoặc Restart liên tục trong 10 phút."
+
+          - alert: PodNotReady
+            expr: sum by (namespace, pod) (kube_pod_status_phase{phase=~"Pending|Unknown|Failed"}) > 0
+            for: 10m
+            labels:
+              severity: warning
+            annotations:
+              summary: "Pod {{ $labels.pod }} không ở trạng thái Running"
+              description: "Pod {{ $labels.pod }} trong namespace {{ $labels.namespace }} đang ở trạng thái không ổn định trong hơn 10 phút."
+
+          - alert: DeploymentReplicasMismatch
+            expr: kube_deployment_spec_replicas != kube_deployment_status_replicas_available
+            for: 10m
+            labels:
+              severity: warning
+            annotations:
+              summary: "Deployment {{ $labels.deployment }} thiếu Replicas"
+              description: "Deployment {{ $labels.deployment }} trong namespace {{ $labels.namespace }} hiện không có đủ số replicas yêu cầu trong 10 phút."
