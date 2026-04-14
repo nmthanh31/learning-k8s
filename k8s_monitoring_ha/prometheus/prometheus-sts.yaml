@@ -6,7 +6,7 @@ metadata:
   namespace: monitoring
 spec:
   replicas: 2           # Chạy 2 bản sao (HA) trên 2 node khác nhau
-  serviceName: "prometheus"
+  serviceName: "prometheus-headless"
   selector:
     matchLabels:
       app: prometheus   # Các Pod được quản lý có nhãn app: prometheus
