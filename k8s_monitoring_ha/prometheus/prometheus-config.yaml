@@ -94,8 +94,12 @@ data:
             labels:
               severity: critical
             annotations:
-              summary: "Dịch vụ {{ $labels.instance }} bị ngừng hoạt động"
-              description: "Target {{ $labels.instance }} thuộc job {{ $labels.job }} đã mất kết nối trên 1 phút."
+              summary: "[CRITICAL] Mất kết nối tới điểm giám sát"
+              description: |-
+                **DỊCH VỤ HOẶC MÁY CHỦ SẬP (DOWN)**
+                • **Target (Instance):** `{{ $labels.instance }}`
+                • **Nhóm giám sát (Job):** `{{ $labels.job }}`
+                • **Chi tiết:** Mất tín hiệu với dịch vụ này trong hơn 1 phút qua. Đề nghị kiểm tra hệ thống ngay!
 
           - alert: HighCpuLoad
             expr: 100 - (avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 85
@@ -103,8 +107,12 @@ data:
             labels:
               severity: warning
             annotations:
-              summary: "CPU trên server {{ $labels.instance }} đang quá tải"
-              description: "Mức sử dụng CPU vượt ngưỡng 85% trong 5 phút qua."
+              summary: "[WARNING] CPU bị quá tải trên Server"
+              description: |-
+                **TÀI NGUYÊN CPU ĐANG DÙNG QUÁ CAO**
+                • **Máy chủ (Instance):** `{{ $labels.instance }}`
+                • **Mức tiêu thụ hiện tại:** `{{ printf "%.1f" $value }}%`
+                • **Chi tiết:** Mức sử dụng CPU trung bình đã vượt ngưỡng 85% trong suốt 5 phút vừa qua. Vui lòng rà soát lại các tiến trình ngốn CPU.
 
           - alert: HighMemoryUsage
             expr: 100 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes * 100) > 90
@@ -112,8 +120,12 @@ data:
             labels:
               severity: warning
             annotations:
-              summary: "RAM trên server {{ $labels.instance }} gần cạn kiệt"
-              description: "Mức sử dụng RAM vượt ngưỡng 90% trong 5 phút qua."
+              summary: "[WARNING] Dung lượng RAM cực thấp"
+              description: |-
+                **TÀI NGUYÊN RAM GẦN CẠN KIỆT**
+                • **Máy chủ (Instance):** `{{ $labels.instance }}`
+                • **Mức chiếm dụng hiện tại:** `{{ printf "%.1f" $value }}%`
+                • **Chi tiết:** Server này đang quá tải RAM, luôn ở mức >90% suốt 5 phút qua. Cảnh báo nguy cơ dịch vụ tự động bị hệ thống kill (Out-Of-Memory) nếu không giải phóng kịp.
 
           - alert: HighDiskUsage
             expr: 100 - (node_filesystem_avail_bytes{fstype=~"ext.*|xfs"} / node_filesystem_size_bytes{fstype=~"ext.*|xfs"} * 100) > 85
@@ -121,8 +133,13 @@ data:
             labels:
               severity: warning
             annotations:
-              summary: "Ổ cứng server {{ $labels.instance }} ({{ $labels.mountpoint }}) sắp đầy"
-              description: "Dung lượng phân vùng {{ $labels.mountpoint }} đã sử dụng trên 85% ."
+              summary: "[WARNING] Ổ cứng sắp đầy"
+              description: |-
+                **THIẾU KHÔNG GIAN LƯU TRỮ TRÊN Ổ ĐĨA**
+                • **Máy chủ:** `{{ $labels.instance }}`
+                • **Phân vùng (Mountpoint):** `{{ $labels.mountpoint }}`
+                • **Mức chiếm dụng hiện tại:** `{{ printf "%.1f" $value }}%`
+                • **Chi tiết:** Phân vùng ổ đĩa này đang dùng gần hết, hãy chạy lệnh xóa các file thừa thãi, logs dọn rác hệ thống hoặc nâng cấp kích thước ổ!
 
       - name: kubernetes-alerts
         rules:
@@ -132,8 +149,12 @@ data:
             labels:
               severity: warning
             annotations:
-              summary: "Pod {{ $labels.pod }} trong namespace {{ $labels.namespace }} restart liên tục"
-              description: "Pod {{ $labels.pod }} đang bị CrashLoopBackOff hoặc Restart liên tục trong 10 phút."
+              summary: "[WARNING] Pod restart liên tục"
+              description: |-
+                **POD HỎNG VÀ KHỞI ĐỘNG LẶP LẠI (CrashLoopBackOff)**
+                • **Tên Pod:** `{{ $labels.pod }}`
+                • **Namespace:** `{{ $labels.namespace }}`
+                • **Chi tiết:** Container thuộc Pod bắt lỗi và tự khởi động lại liên tục trong 10 phút. Xem logs lỗi bằng cú pháp: `kubectl logs {{ $labels.pod }} -n {{ $labels.namespace }}`
 
           - alert: PodNotReady
             expr: sum by (namespace, pod) (kube_pod_status_phase{phase=~"Pending|Unknown|Failed"}) > 0
@@ -141,8 +162,12 @@ data:
             labels:
               severity: warning
             annotations:
-              summary: "Pod {{ $labels.pod }} không ở trạng thái Running"
-              description: "Pod {{ $labels.pod }} trong namespace {{ $labels.namespace }} đang ở trạng thái không ổn định trong hơn 10 phút."
+              summary: "[WARNING] Pod chưa sẵn sàng để phục vụ"
+              description: |-
+                **POD KẸT TRẠNG THÁI (Not Ready)**
+                • **Tên Pod:** `{{ $labels.pod }}`
+                • **Namespace:** `{{ $labels.namespace }}`
+                • **Chi tiết:** Pod đã ngưng trệ trên các trạng thái Pending/Unknown/Failed trên 10 phút. Kiểm tra xem node bị thiếu tài nguyên, lỗi kéo Images hay config lỗi gì khác.
 
           - alert: DeploymentReplicasMismatch
             expr: kube_deployment_spec_replicas != kube_deployment_status_replicas_available
@@ -150,5 +175,9 @@ data:
             labels:
               severity: warning
             annotations:
-              summary: "Deployment {{ $labels.deployment }} thiếu Replicas"
-              description: "Deployment {{ $labels.deployment }} trong namespace {{ $labels.namespace }} hiện không có đủ số replicas yêu cầu trong 10 phút."
+              summary: "[WARNING] Dịch vụ không đủ số POD mong muốn"
+              description: |-
+                **LỆCH SỐ LƯỢNG BẢN SAO CHO DEPLOYMENT**
+                • **Deployment:** `{{ $labels.deployment }}`
+                • **Namespace:** `{{ $labels.namespace }}`
+                • **Chi tiết:** Số lượng Pod sống phản hồi được trên hệ thống không bằng với cấu hình Replicas mong muốn. Khả năng chịu tải web hoặc chức năng hệ thống có thể bị yếu đi. Trục trặc này kéo liên tục 10 phút quá chưa khắc phục!
