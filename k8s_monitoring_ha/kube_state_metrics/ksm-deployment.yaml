@@ -27,3 +27,28 @@ spec:
           name: http-metrics
         - containerPort: 8081        # Port phụ cho telemetry
           name: telemetry
+
+        # Kiểm tra KSM đã sẵn sàng phục vụ metrics chưa
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 10
+
+        # Kiểm tra KSM còn hoạt động hay đã bị treo
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 15
+
+        # Tài nguyên CPU/RAM cấp phát
+        resources:
+          requests:
+            cpu: "50m"
+            memory: "64Mi"
+          limits:
+            cpu: "100m"
+            memory: "128Mi"

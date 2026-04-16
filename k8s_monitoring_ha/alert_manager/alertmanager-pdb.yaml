@@ -1,0 +1,12 @@
+# PodDisruptionBudget đảm bảo luôn có ít nhất 2 Pod Alertmanager hoạt động (trong tổng 3)
+# Giữ quorum clustering để không bị mất trạng thái silence/inhibit
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: alertmanager-pdb
+  namespace: monitoring
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: alertmanager

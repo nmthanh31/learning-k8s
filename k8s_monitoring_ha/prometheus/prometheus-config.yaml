@@ -50,6 +50,10 @@ data:
           - source_labels: [__meta_kubernetes_pod_node_name]
             target_label: node
 
+          # Đổi luôn nhãn 'instance' thành 'nodeName' (thay vì IP:Port mặc định) để Dashboard không tạo ra instance mới khi Pod restart đổi IP
+          - source_labels: [__meta_kubernetes_pod_node_name]
+            target_label: instance
+
           # Áp dụng tất cả các nhãn (labels) của Pod vào metric (bỏ tiền tố __meta_kubernetes_pod_label_)
           - action: labelmap
             regex: __meta_kubernetes_pod_label_(.+)
@@ -83,101 +87,151 @@ data:
           - source_labels: [__meta_kubernetes_pod_node_name]
             target_label: node
 
+          # Cố định luôn nhãn 'instance' bằng tên Node thay vì IP
+          - source_labels: [__meta_kubernetes_pod_node_name]
+            target_label: instance
+
+      # Job giám sát tài nguyên container từ cAdvisor (tích hợp sẵn trong kubelet)
+      # Thu thập: CPU, RAM, Network I/O, Disk I/O chi tiết cho từng container
+      - job_name: 'cadvisor'
+        scheme: https
+        tls_config:
+          ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+          insecure_skip_verify: true
+        bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+        kubernetes_sd_configs:
+          - role: node
+        relabel_configs:
+          # Chuyển đổi địa chỉ sang endpoint cAdvisor của kubelet
+          - action: labelmap
+            regex: __meta_kubernetes_node_label_(.+)
+          
+          # Cố định nhãn 'instance' là tên Node thay vì IP mặc định
+          - source_labels: [__meta_kubernetes_node_name]
+            target_label: instance
+
+          - target_label: __address__
+            replacement: kubernetes.default.svc:443
+          - source_labels: [__meta_kubernetes_node_name]
+            regex: (.+)
+            target_label: __metrics_path__
+            replacement: /api/v1/nodes/${1}/proxy/metrics/cadvisor
+
   # File định nghĩa các quy tắc để Prometheus kích hoạt cảnh báo
   alert.rules.yml: |
     groups:
-      - name: node-alertsv
+      - name: node-hardware-alerts
         rules:
-          - alert: InstanceDown
-            expr: up == 0
-            for: 1m
+          - alert: NodeDown
+            expr: up{job="node-exporter"} == 0
+            for: 3m
             labels:
               severity: critical
+              tier: infrastructure
             annotations:
-              summary: "[CRITICAL] Mất kết nối tới điểm giám sát"
-              description: |-
-                **DỊCH VỤ HOẶC MÁY CHỦ SẬP (DOWN)**
-                • **Target (Instance):** `{{ $labels.instance }}`
-                • **Nhóm giám sát (Job):** `{{ $labels.job }}`
-                • **Chi tiết:** Mất tín hiệu với dịch vụ này trong hơn 1 phút qua. Đề nghị kiểm tra hệ thống ngay!
+              summary: "[CRITICAL] Mất kết nối Node"
+              description: "Mất tín hiệu kết nối với Node Exporter trên máy chủ {{ $labels.instance }} quá 3 phút. Server có thể đã sập hoặc dịch vụ mạng gặp sự cố."
 
-          - alert: HighCpuLoad
+          - alert: NodeHighCpuLoad
             expr: 100 - (avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 85
             for: 5m
             labels:
               severity: warning
+              tier: infrastructure
             annotations:
-              summary: "[WARNING] CPU bị quá tải trên Server"
-              description: |-
-                **TÀI NGUYÊN CPU ĐANG DÙNG QUÁ CAO**
-                • **Máy chủ (Instance):** `{{ $labels.instance }}`
-                • **Mức tiêu thụ hiện tại:** `{{ printf "%.1f" $value }}%`
-                • **Chi tiết:** Mức sử dụng CPU trung bình đã vượt ngưỡng 85% trong suốt 5 phút vừa qua. Vui lòng rà soát lại các tiến trình ngốn CPU.
+              summary: "[WARNING] CPU Server quá tải"
+              description: "Máy chủ {{ $labels.instance }} đang tiêu thụ CPU ở mức {{ printf \"%.1f\" $value }}% liên tục trong 5 phút. Hãy kiểm tra các tiến trình (top/htop)."
 
-          - alert: HighMemoryUsage
+          - alert: NodeMemoryNearOOM
             expr: 100 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes * 100) > 90
             for: 5m
             labels:
               severity: warning
+              tier: infrastructure
             annotations:
-              summary: "[WARNING] Dung lượng RAM cực thấp"
-              description: |-
-                **TÀI NGUYÊN RAM GẦN CẠN KIỆT**
-                • **Máy chủ (Instance):** `{{ $labels.instance }}`
-                • **Mức chiếm dụng hiện tại:** `{{ printf "%.1f" $value }}%`
-                • **Chi tiết:** Server này đang quá tải RAM, luôn ở mức >90% suốt 5 phút qua. Cảnh báo nguy cơ dịch vụ tự động bị hệ thống kill (Out-Of-Memory) nếu không giải phóng kịp.
+              summary: "[WARNING] RAM Server nguy cơ OOM"
+              description: "Máy chủ {{ $labels.instance }} đang chiếm dụng RAM ở mức {{ printf \"%.1f\" $value }}% liên tục trong 5 phút."
 
-          - alert: HighDiskUsage
-            expr: 100 - (node_filesystem_avail_bytes{fstype=~"ext.*|xfs"} / node_filesystem_size_bytes{fstype=~"ext.*|xfs"} * 100) > 85
+          - alert: NodeDiskSpaceFillingUp
+            expr: (node_filesystem_avail_bytes{fstype=~"ext.*|xfs"} / node_filesystem_size_bytes{fstype=~"ext.*|xfs"} * 100) < 10
+            for: 5m
+            labels:
+              severity: critical
+              tier: infrastructure
+            annotations:
+              summary: "[CRITICAL] Ổ đĩa sắp đầy"
+              description: "Mountpoint {{ $labels.mountpoint }} trên máy chủ {{ $labels.instance }} chỉ còn {{ printf \"%.1f\" $value }}% dung lượng trống (<10%). Cần dọn rác ngay lập tức."
+
+          - alert: NodeDiskSpacePredictFill
+            expr: predict_linear(node_filesystem_avail_bytes{fstype=~"ext.*|xfs"}[1h], 24 * 3600) < 0
+            for: 15m
+            labels:
+              severity: warning
+              tier: infrastructure
+            annotations:
+              summary: "[WARNING] Cảnh báo sớm: Ổ đĩa đầy sau 24h"
+              description: "Dựa trên tốc độ ghi hiện tại, mountpoint {{ $labels.mountpoint }} trên máy chủ {{ $labels.instance }} sẽ đầy trong vòng 24 giờ tới."
+
+      - name: kubernetes-cluster-alerts
+        rules:
+          - alert: KubePodCrashLooping
+            expr: increase(kube_pod_container_status_restarts_total[15m]) > 3
             for: 5m
             labels:
               severity: warning
+              tier: kubernetes
             annotations:
-              summary: "[WARNING] Ổ cứng sắp đầy"
-              description: |-
-                **THIẾU KHÔNG GIAN LƯU TRỮ TRÊN Ổ ĐĨA**
-                • **Máy chủ:** `{{ $labels.instance }}`
-                • **Phân vùng (Mountpoint):** `{{ $labels.mountpoint }}`
-                • **Mức chiếm dụng hiện tại:** `{{ printf "%.1f" $value }}%`
-                • **Chi tiết:** Phân vùng ổ đĩa này đang dùng gần hết, hãy chạy lệnh xóa các file thừa thãi, logs dọn rác hệ thống hoặc nâng cấp kích thước ổ!
+              summary: "[WARNING] Pod restart liên tục (CrashLoop)"
+              description: "Pod `{{ $labels.pod }}` (Namespace: `{{ $labels.namespace }}`) đã restart hơn 3 lần trong 15 phút qua. Dùng lệnh `kubectl logs {{ $labels.pod }} -n {{ $labels.namespace }}` để xem nguyên nhân."
 
-      - name: kubernetes-alerts
-        rules:
-          - alert: PodCrashLoopBackOff
-            expr: rate(kube_pod_container_status_restarts_total[10m]) * 60 * 10 > 0
+          - alert: KubePodNotReady
+            expr: kube_pod_status_ready{condition="true"} == 0
             for: 10m
             labels:
               severity: warning
+              tier: kubernetes
             annotations:
-              summary: "[WARNING] Pod restart liên tục"
-              description: |-
-                **POD HỎNG VÀ KHỞI ĐỘNG LẶP LẠI (CrashLoopBackOff)**
-                • **Tên Pod:** `{{ $labels.pod }}`
-                • **Namespace:** `{{ $labels.namespace }}`
-                • **Chi tiết:** Container thuộc Pod bắt lỗi và tự khởi động lại liên tục trong 10 phút. Xem logs lỗi bằng cú pháp: `kubectl logs {{ $labels.pod }} -n {{ $labels.namespace }}`
+              summary: "[WARNING] Pod không Ready kéo dài"
+              description: "Pod `{{ $labels.pod }}` (Namespace: `{{ $labels.namespace }}`) đang ở trạng thái không lọt readiness probe hơn 10 phút."
 
-          - alert: PodNotReady
-            expr: sum by (namespace, pod) (kube_pod_status_phase{phase=~"Pending|Unknown|Failed"}) > 0
-            for: 10m
+          - alert: OOMKilled
+            expr: kube_pod_container_status_last_terminated_reason{reason="OOMKilled"} == 1
+            for: 1m
             labels:
-              severity: warning
+              severity: critical
+              tier: kubernetes
             annotations:
-              summary: "[WARNING] Pod chưa sẵn sàng để phục vụ"
-              description: |-
-                **POD KẸT TRẠNG THÁI (Not Ready)**
-                • **Tên Pod:** `{{ $labels.pod }}`
-                • **Namespace:** `{{ $labels.namespace }}`
-                • **Chi tiết:** Pod đã ngưng trệ trên các trạng thái Pending/Unknown/Failed trên 10 phút. Kiểm tra xem node bị thiếu tài nguyên, lỗi kéo Images hay config lỗi gì khác.
+              summary: "[CRITICAL] Pod bị kill do hết RAM"
+              description: "Container `{{ $labels.container }}` trong Pod `{{ $labels.pod }}` ở Namespace `{{ $labels.namespace }}` vừa bị tiêu diệt do Out-Of-Memory (OOMKilled). Cần cấp thêm RAM limit."
 
-          - alert: DeploymentReplicasMismatch
+          - alert: KubeDeploymentReplicasMismatch
             expr: kube_deployment_spec_replicas != kube_deployment_status_replicas_available
-            for: 10m
+            for: 15m
             labels:
               severity: warning
+              tier: kubernetes
             annotations:
-              summary: "[WARNING] Dịch vụ không đủ số POD mong muốn"
-              description: |-
-                **LỆCH SỐ LƯỢNG BẢN SAO CHO DEPLOYMENT**
-                • **Deployment:** `{{ $labels.deployment }}`
-                • **Namespace:** `{{ $labels.namespace }}`
-                • **Chi tiết:** Số lượng Pod sống phản hồi được trên hệ thống không bằng với cấu hình Replicas mong muốn. Khả năng chịu tải web hoặc chức năng hệ thống có thể bị yếu đi. Trục trặc này kéo liên tục 10 phút quá chưa khắc phục!
+              summary: "[WARNING] Hệ thống không đủ Replicas"
+              description: "Deployment `{{ $labels.deployment }}` (Namespace: `{{ $labels.namespace }}`) đang chạy thiếu bản sao mong muốn quá 15 phút. Khả năng chịu tải web có thể bị giảm."
+
+          - alert: KubePersistentVolumeError
+            expr: kube_persistentvolume_status_phase{phase=~"Failed|Pending"} > 0
+            for: 5m
+            labels:
+              severity: critical
+              tier: kubernetes
+            annotations:
+              summary: "[CRITICAL] Persistent Volume lỗi"
+              description: "PV `{{ $labels.persistentvolume }}` đang ở trạng thái Pending hoặc Failed, chặn các stateful workloads hoạt động."
+
+      - name: monitoring-system-alerts
+        rules:
+          - alert: PrometheusTargetMissing
+            expr: up == 0
+            for: 5m
+            labels:
+              severity: critical
+              tier: monitoring
+            annotations:
+              summary: "[CRITICAL] Điểm giám sát bị mất"
+              description: "Thành phần {{ $labels.job }} (Instance: {{ $labels.instance }}) đã ngừng hoạt động và không thể cung cấp metrics. Điều này gây hổng dữ liệu giám sát hệ thống."

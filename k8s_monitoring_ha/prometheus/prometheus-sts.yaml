@@ -49,7 +49,6 @@ spec:
             - "--storage.tsdb.path=/prometheus"              # Thư mục lưu cơ sở dữ liệu metrics
             - "--storage.tsdb.retention.time=15d"            # Thời gian lưu trữ dữ liệu (15 ngày)
             - "--web.enable-lifecycle"                       # Cho phép load lại config qua HTTP (/-/reload)
-            - "--web.enable-admin-api"                       # Bật API quản trị (xóa dữ liệu, quản lý snapshot...)
 
           ports:
             - name: web
@@ -101,4 +100,4 @@ spec:
         storageClassName: "monitoring-storage" # Class ổ đĩa lưu trữ (cần được định nghĩa trước)
         resources:
           requests:
-            storage: 10Gi # Dung lượng ổ đĩa cho mỗi bản sao (10GB)
+            storage: 1Gi 

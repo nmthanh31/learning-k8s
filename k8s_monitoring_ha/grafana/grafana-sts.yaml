@@ -57,6 +57,29 @@ spec:
                 secretKeyRef:
                   name: grafana-secret
                   key: GF_DATABASE_PASSWORD
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "150m"
+              memory: "200Mi"
+
+          # Kiểm tra Grafana đã sẵn sàng phục vụ chưa
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: 3000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+
+          # Kiểm tra Grafana còn hoạt động hay đã bị treo
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: 3000
+            initialDelaySeconds: 30
+            periodSeconds: 15
           volumeMounts:
             - name: grafana-storage
               mountPath: /var/lib/grafana
@@ -75,4 +98,4 @@ spec:
         storageClassName: "monitoring-storage"
         resources:
           requests:
-            storage: 2Gi
+            storage: 1Gi

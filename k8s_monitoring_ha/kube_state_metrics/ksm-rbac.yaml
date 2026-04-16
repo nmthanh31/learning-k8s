@@ -14,11 +14,42 @@ metadata:
 rules:
 # Quyền liệt kê và theo dõi các tài nguyên cốt lõi
 - apiGroups: [""]
-  resources: ["pods","nodes","namespaces"]
+  resources:
+    - pods
+    - nodes
+    - namespaces
+    - services
+    - endpoints
+    - configmaps
+    - secrets
+    - persistentvolumes
+    - persistentvolumeclaims
+    - resourcequotas
+    - limitranges
   verbs: ["list","watch"]
-# Quyền liệt kê và theo dõi các tài nguyên apps (Deployment, ReplicaSet)
+# Quyền liệt kê và theo dõi các tài nguyên apps (Deployment, StatefulSet, DaemonSet, ReplicaSet)
 - apiGroups: ["apps"]
-  resources: ["deployments","replicasets"]
+  resources:
+    - deployments
+    - replicasets
+    - statefulsets
+    - daemonsets
+  verbs: ["list","watch"]
+# Quyền liệt kê và theo dõi batch resources (Job, CronJob)
+- apiGroups: ["batch"]
+  resources:
+    - jobs
+    - cronjobs
+  verbs: ["list","watch"]
+# Quyền liệt kê và theo dõi Ingress
+- apiGroups: ["networking.k8s.io"]
+  resources:
+    - ingresses
+  verbs: ["list","watch"]
+# Quyền liệt kê và theo dõi HPA
+- apiGroups: ["autoscaling"]
+  resources:
+    - horizontalpodautoscalers
   verbs: ["list","watch"]
 ---
 # Liên kết ServiceAccount với ClusterRole tương ứng

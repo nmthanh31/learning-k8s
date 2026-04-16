@@ -15,6 +15,14 @@ spec:
     spec:
       # Sử dụng network của host để node-exporter có thể truy cập trực tiếp các thông số mạng của Node
       hostNetwork: true
+      # Cho phép chạy trên cả control-plane nodes (cp01, cp02, cp03)
+      tolerations:
+        - key: "node-role.kubernetes.io/control-plane"
+          operator: "Exists"
+          effect: "NoSchedule"
+        - key: "node-role.kubernetes.io/master"
+          operator: "Exists"
+          effect: "NoSchedule"
       containers:
       - name: node-exporter
         image: prom/node-exporter:v1.8.1
@@ -24,6 +32,34 @@ spec:
         args:
           # Chỉ định đường dẫn rootfs của host nằm trong thư mục /host của container
           - "--path.rootfs=/host"
+
+        # Kiểm tra Node Exporter đã sẵn sàng chưa
+        readinessProbe:
+          httpGet:
+            path: /metrics
+            port: 9100
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          timeoutSeconds: 5
+
+        # Kiểm tra Node Exporter còn hoạt động hay đã bị treo
+        livenessProbe:
+          httpGet:
+            path: /metrics
+            port: 9100
+          initialDelaySeconds: 10
+          periodSeconds: 15
+          timeoutSeconds: 5
+
+        # Tài nguyên CPU/RAM cấp phát
+        resources:
+          requests:
+            cpu: "50m"
+            memory: "32Mi"
+          limits:
+            cpu: "200m"
+            memory: "128Mi"
+
         volumeMounts:
           - name: root
             mountPath: /host     # Mount thư mục gốc của host vào container để lấy thông số ổ đĩa, CPU, RAM

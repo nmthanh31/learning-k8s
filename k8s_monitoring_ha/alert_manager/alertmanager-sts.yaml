@@ -48,6 +48,32 @@ spec:
           ports:
             - containerPort: 9093 # Port phục vụ giao diện web và nhận alert từ Prometheus
             - containerPort: 9094 # Port đồng bộ cluster
+
+          # Kiểm tra Alertmanager đã sẵn sàng nhận traffic chưa
+          readinessProbe:
+            httpGet:
+              path: /-/ready
+              port: 9093
+            initialDelaySeconds: 10
+            periodSeconds: 10
+
+          # Kiểm tra Alertmanager còn hoạt động hay đã bị treo
+          livenessProbe:
+            httpGet:
+              path: /-/healthy
+              port: 9093
+            initialDelaySeconds: 15
+            periodSeconds: 15
+
+          # Tài nguyên CPU/RAM cấp phát cho Alertmanager
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+            limits:
+              cpu: "100m"
+              memory: "128Mi"
+
           volumeMounts:
             - name: config
               mountPath: /etc/alertmanager
@@ -73,4 +99,4 @@ spec:
         storageClassName: "monitoring-storage"
         resources:
           requests:
-            storage: 2Gi # Dung lượng ổ đĩa cho mỗi bản sao (2GB)
+            storage: 1Gi # Dung lượng ổ đĩa cho mỗi bản sao (1GB)

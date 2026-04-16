@@ -1,0 +1,11 @@
+# PodDisruptionBudget đảm bảo luôn có ít nhất 1 Pod Prometheus hoạt động khi drain node
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: prometheus-pdb
+  namespace: monitoring
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: prometheus
