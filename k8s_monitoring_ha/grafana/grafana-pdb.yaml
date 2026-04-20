@@ -1,11 +1,12 @@
-# PodDisruptionBudget đảm bảo luôn có ít nhất 1 Pod Grafana hoạt động khi drain node
+# PodDisruptionBudget (PDB): Đảm bảo giao diện theo dõi không bao giờ bị gián đoạn.
+# K8s sẽ không cho phép hạ Pod Grafana cuối cùng xuống nếu không có Pod khác sẵn sàng thay thế.
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
   name: grafana-pdb
   namespace: monitoring
 spec:
-  minAvailable: 1
+  minAvailable: 1 # Đảm bảo tối thiểu 1 Pod Grafana luôn "Sống" để phục vụ việc quan sát
   selector:
     matchLabels:
-      app: grafana
+      app: grafana # Áp dụng cho các Pod có nhãn app: grafana

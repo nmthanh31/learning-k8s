@@ -1,12 +1,13 @@
-# PodDisruptionBudget đảm bảo luôn có ít nhất 2 Pod Alertmanager hoạt động (trong tổng 3)
-# Giữ quorum clustering để không bị mất trạng thái silence/inhibit
+# PodDisruptionBudget (PDB): Đảm bảo sự ổn định của Cluster Alertmanager.
+# Với hệ thống 3 bản sao, PDB ép buộc tối thiểu 2 Pod phải sống để giữ Quorum (Đa số).
+# Điều này bảo vệ cơ chế đồng bộ tránh bị "chia cắt não bộ" (split-brain) khi bảo trì Node.
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
   name: alertmanager-pdb
   namespace: monitoring
 spec:
-  minAvailable: 2
+  minAvailable: 2 # Luôn giữ ít nhất 2 bản sao để đảm bảo tính ổn định của cụm HA
   selector:
     matchLabels:
-      app: alertmanager
+      app: alertmanager # Áp dụng cho các Pod có nhãn app: alertmanager

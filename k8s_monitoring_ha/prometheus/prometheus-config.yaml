@@ -1,237 +1,226 @@
-# ConfigMap chứa cấu hình chính cho Prometheus và Alert Rules
 apiVersion: v1
 kind: ConfigMap
-metadata: 
+metadata:
   name: prometheus-config
-  namespace: monitoring # Namespace triển khai hệ thống giám sát
+  namespace: monitoring
 data:
   prometheus.yml: |
+    # Cấu hình chung cho Prometheus server
     global:
-      scrape_interval: 15s     # Tần suất lấy dữ liệu từ targets (mặc định 15s)
-      evaluation_interval: 15s # Tần suất đánh giá các quy tắc cảnh báo (Alert Rules)
+      scrape_interval: 30s        # Tần suất kéo dữ liệu (mặc định cho tất cả các job)
+      evaluation_interval: 15s     # Tần suất tính toán các luật (recording & alert rules)
 
-    alerting:
-      alertmanagers:
-      - static_configs:
-        - targets:
-          # Địa chỉ Service của Alertmanager để Prometheus gửi cảnh báo khi có lỗi
-          - alertmanager.monitoring.svc.cluster.local:9093
-
+    # Danh sách các tệp chứa luật tính toán và luật cảnh báo
     rule_files:
-      # Đường dẫn nạp các file quy tắc cảnh báo vào Prometheus
+      - /etc/prometheus/recording.rules.yml
       - /etc/prometheus/alert.rules.yml
 
+    # Cấu hình để Prometheus gửi tín hiệu lỗi đến Alertmanager
+    alerting:
+      alertmanagers:
+        - static_configs:
+            - targets:
+              # Địa chỉ DNS của Service Alertmanager trong Cluster K8s
+              - "alertmanager.monitoring.svc.cluster.local:9093"
+
+    # Định nghĩa các nguồn thu thập dữ liệu (Job)
     scrape_configs:
-      # Job tự giám sát chính Prometheus
-      - job_name: 'prometheus'
-        static_configs:
-          - targets: ['localhost:9090']
-
-      # Job giám sát tài nguyên phần cứng các Node (Node Exporter)
+      # 1. Thu thập từ các máy ảo (Node) thông qua Node Exporter
       - job_name: 'node-exporter'
-        kubernetes_sd_configs:
-          - role: endpoints # Sử dụng Service Discovery qua Endpoint Kubernetes
-            namespaces:
-              names:
-                - monitoring
-
+        # Sử dụng cơ chế tự động tìm kiếm Endpoint của Kubernetes
+        kubernetes_sd_configs: [{role: endpoints}]
         relabel_configs:
-          # Chỉ giữ lại các endpoint thuộc Service có tên 'node-exporter'
+          # Chỉ giữ lại các Endpoint có tên service là 'node-exporter'
           - source_labels: [__meta_kubernetes_service_name]
             action: keep
             regex: node-exporter
-
-          # Chỉ lấy port có tên là 'metrics' HOẶC port số 9100 (đề phòng headless service không có tên port)
-          - source_labels: [__meta_kubernetes_endpoint_port_name, __meta_kubernetes_pod_container_port_number]
-            action: keep
-            regex: (metrics;.*|.*;9100)
-
-          # Chuyển nhãn tên Node của Pod thành nhãn 'node' để dễ dàng query
-          - source_labels: [__meta_kubernetes_pod_node_name]
-            target_label: node
-
-          # Đổi luôn nhãn 'instance' thành 'nodeName' (thay vì IP:Port mặc định) để Dashboard không tạo ra instance mới khi Pod restart đổi IP
-          - source_labels: [__meta_kubernetes_pod_node_name]
+          # CHUẨN HÓA: Ép nhãn 'instance' thành tên Node thật thay vì IP:Port
+          - source_labels: [__meta_kubernetes_endpoint_node_name]
             target_label: instance
+            action: replace
+          # BỔ SUNG: Các nhãn metadata của K8s để Dashboard dễ lọc
+          - source_labels: [__meta_kubernetes_namespace]
+            target_label: namespace
+          - source_labels: [__meta_kubernetes_pod_name]
+            target_label: pod
+          - source_labels: [__meta_kubernetes_pod_container_name]
+            target_label: container
+          - source_labels: [__meta_kubernetes_pod_label_app]
+            target_label: app
+          - target_label: cluster
+            replacement: prod-cluster # Đánh dấu tên cụm Cluster cho mục đích đa cụm sau này
+        metric_relabel_configs:
+          # Chỉ giữ lại các Metric thực sự cần thiết
+          - source_labels: [__name__]
+            action: keep
+            regex: 'node_cpu_seconds_total|node_memory_MemAvailable_bytes|node_memory_MemTotal_bytes|node_filesystem_avail_bytes|node_filesystem_size_bytes|node_network_receive_bytes_total|node_network_transmit_bytes_total|node_disk_io_time_seconds_total|up|node:.*'
 
-          # Áp dụng tất cả các nhãn (labels) của Pod vào metric (bỏ tiền tố __meta_kubernetes_pod_label_)
-          - action: labelmap
-            regex: __meta_kubernetes_pod_label_(.+)
-
-      # Job giám sát trạng thái các đối tượng trong Cluster (Deployment, Pod, StatefulSet...)
+      # 2. Thu thập từ Kube-State-Metrics (Trạng thái logic K8s)
       - job_name: 'kube-state-metrics'
-        static_configs: 
-          - targets:
-            - kube-state-metrics.monitoring.svc.cluster.local:8080
+        static_configs:
+          - targets: ['kube-state-metrics.monitoring.svc.cluster.local:8080']
+            labels:
+              cluster: prod-cluster
+        metric_relabel_configs:
+          - source_labels: [__name__]
+            action: keep
+            # Tập trung vào số lượng Replicas, Restarts và Resources
+            regex: 'kube_pod_container_status_restarts_total|kube_deployment_status_replicas_available|kube_deployment_spec_replicas|kube_pod_container_resource_requests|kube_pod_container_resource_limits|kube_node_status_condition|kube_pod_status_phase|up|kube:.*'
 
-      # Job giám sát Cilium (Networking & Security)
-      - job_name: cilium
-        kubernetes_sd_configs:
-          - role: pod # Duyệt trực tiếp qua danh sách Pod
-
+      # 3. Thu thập từ Cilium Agent (Mạng lưới eBPF)
+      - job_name: 'cilium'
+        kubernetes_sd_configs: [{role: pod}]
         relabel_configs:
-          # Chỉ lấy các Pod có nhãn k8s-app=cilium
           - source_labels: [__meta_kubernetes_pod_label_k8s_app]
             action: keep
             regex: cilium
-
-          # Thay đổi địa chỉ metric thành IP của Pod và port 9962
           - source_labels: [__meta_kubernetes_pod_ip]
-            separator: ;
-            regex: (.*)
             target_label: __address__
             replacement: ${1}:9962
+          - source_labels: [__meta_kubernetes_pod_node_name]
+            target_label: instance
             action: replace
+          - source_labels: [__meta_kubernetes_namespace]
+            target_label: namespace
+          - source_labels: [__meta_kubernetes_pod_name]
+            target_label: pod
+          - source_labels: [__meta_kubernetes_pod_container_name]
+            target_label: container
+          - source_labels: [__meta_kubernetes_pod_label_app]
+            target_label: app
+          - target_label: cluster
+            replacement: prod-cluster
+        metric_relabel_configs:
+          - source_labels: [__name__]
+            action: keep
+            regex: 'cilium_drop_count_total|cilium_errors_warnings_total|up|cilium:.*'
 
-          # Gán nhãn node để biết Pod cilium này đang chạy trên host nào
-          - source_labels: [__meta_kubernetes_pod_node_name]
-            target_label: node
-
-          # Cố định luôn nhãn 'instance' bằng tên Node thay vì IP
-          - source_labels: [__meta_kubernetes_pod_node_name]
-            target_label: instance
-
-      # Job giám sát tài nguyên container từ cAdvisor (tích hợp sẵn trong kubelet)
-      # Thu thập: CPU, RAM, Network I/O, Disk I/O chi tiết cho từng container
-      - job_name: 'cadvisor'
-        scheme: https
-        tls_config:
-          ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
-          insecure_skip_verify: true
-        bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
-        kubernetes_sd_configs:
-          - role: node
+      # 4. Thu thập từ Hubble (Visibility luồng mạng)
+      - job_name: 'hubble-metrics'
+        kubernetes_sd_configs: [{role: pod}]
         relabel_configs:
-          # Chuyển đổi địa chỉ sang endpoint cAdvisor của kubelet
-          - action: labelmap
-            regex: __meta_kubernetes_node_label_(.+)
-          
-          # Cố định nhãn 'instance' là tên Node thay vì IP mặc định
-          - source_labels: [__meta_kubernetes_node_name]
+          - source_labels: [__meta_kubernetes_pod_label_k8s_app]
+            action: keep
+            regex: cilium
+          - source_labels: [__meta_kubernetes_pod_ip]
+            target_label: __address__
+            replacement: ${1}:9965 # Hubble Metrics chạy ở cổng chuyên dụng 9965
+          - source_labels: [__meta_kubernetes_pod_node_name]
             target_label: instance
+            action: replace
+          - source_labels: [__meta_kubernetes_namespace]
+            target_label: namespace
+          - source_labels: [__meta_kubernetes_pod_name]
+            target_label: pod
+          - source_labels: [__meta_kubernetes_pod_container_name]
+            target_label: container
+          - source_labels: [__meta_kubernetes_pod_label_app]
+            target_label: app
+          - target_label: cluster
+            replacement: prod-cluster
+        metric_relabel_configs:
+          - source_labels: [__name__]
+            action: keep
+            # Quan trọng nhất: Flow processed, Packet Drop và DNS Latency
+            regex: 'hubble_flows_processed_total|hubble_tcp_flags_total|hubble_dns_queries_total|hubble_drop_total|up'
 
+      # 5. Thu thập từ kubelet cAdvisor (Chi tiết Container)
+      - job_name: 'kubelet-cadvisor'
+        scheme: https
+        tls_config: {insecure_skip_verify: true}
+        bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+        kubernetes_sd_configs: [{role: node}]
+        relabel_configs:
           - target_label: __address__
             replacement: kubernetes.default.svc:443
           - source_labels: [__meta_kubernetes_node_name]
             regex: (.+)
             target_label: __metrics_path__
             replacement: /api/v1/nodes/${1}/proxy/metrics/cadvisor
+          - source_labels: [__meta_kubernetes_node_name]
+            target_label: instance
+            action: replace
+          - source_labels: [__meta_kubernetes_namespace]
+            target_label: namespace
+          - target_label: cluster
+            replacement: prod-cluster
+        metric_relabel_configs:
+          - source_labels: [__name__]
+            action: keep
+            # Thêm metric Throttling để theo dõi saturation
+            regex: 'container_cpu_usage_seconds_total|container_cpu_cfs_throttled_seconds_total|container_memory_working_set_bytes|container_fs_usage_bytes|container_fs_limit_bytes|up|pod:.*'
 
-  # File định nghĩa các quy tắc để Prometheus kích hoạt cảnh báo
+  # Các thuật toán tính toán trước để giảm tải cho Dashboard (Recording Rules)
+  recording.rules.yml: |
+    groups:
+      - name: sre-production-recording
+        rules:
+          # TÍNH TOÁN: % CPU đang sử dụng thực tế (Trừ đi thời gian idle)
+          - record: node:cpu_usage:rate5m
+            expr: 100 - (avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)
+          
+          # TÍNH TOÁN: % RAM đang sử dụng (Dựa trên dung lượng khả dụng)
+          - record: node:memory_usage:percent
+            expr: ((avg by(instance)(node_memory_MemTotal_bytes) - avg by(instance)(node_memory_MemAvailable_bytes)) / avg by(instance)(node_memory_MemTotal_bytes)) * 100
+          
+          # TÍNH TOÁN: % Ổ cứng đang dùng tại phân vùng root (/)
+          - record: node:disk_usage:percent
+            expr: (1 - (node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"})) * 100
+
+          # SRE SIGNAL: Theo dõi độ trễ hệ thống do bị "bóp" CPU (Throttling)
+          - record: pod:cpu_throttling:rate5m
+            expr: sum by (pod, namespace, instance) (rate(container_cpu_cfs_throttled_seconds_total{container!=""}[5m]))
+          
+          # SRE SIGNAL: Tỉ lệ sẵn sàng của Deployment (Avail / Spec)
+          - record: kube:deployment:availability
+            expr: sum by (deployment, namespace) (kube_deployment_status_replicas_available) / sum by (deployment, namespace) (kube_deployment_spec_replicas)
+          
+          # NETWORK: Toàn bộ lưu lượng flow xử lý mỗi giây
+          - record: network:hubble:flow_rate:5m
+            expr: sum(rate(hubble_flows_processed_total[5m]))
+          
+          # NETWORK: Phân tích lý do rớt gói tin (Policy, Connection error, etc)
+          - record: network:hubble:drop_rate:5m
+            expr: sum by (reason, protocol) (rate(hubble_drop_total[5m]))
+          
+          # NETWORK: Thời gian phản hồi DNS ở mức phân vị 99 (Chậm nhất)
+          - record: network:hubble:dns_latency:quantile99
+            expr: histogram_quantile(0.99, sum by (le) (rate(hubble_dns_queries_total_bucket[5m])))
+
+  # Định nghĩa các ngưỡng để bắn cảnh báo (Alerting Rules)
   alert.rules.yml: |
     groups:
-      - name: node-hardware-alerts
-        rules:
-          - alert: NodeDown
-            expr: up{job="node-exporter"} == 0
-            for: 3m
-            labels:
-              severity: critical
-              tier: infrastructure
-            annotations:
-              summary: "[CRITICAL] Mất kết nối Node"
-              description: "Mất tín hiệu kết nối với Node Exporter trên máy chủ {{ $labels.instance }} quá 3 phút. Server có thể đã sập hoặc dịch vụ mạng gặp sự cố."
+    - name: sre-alerts
+      rules:
+      # Cảnh báo ổ cứng sắp đầy (> 85%)
+      - alert: NodeDiskFull
+        expr: node:disk_usage:percent > 85
+        for: 5m
+        labels: {severity: critical}
+      
+      # Cảnh báo ứng dụng bị lag do CPU Limit quá thấp
+      - alert: CriticalCPUThrottling
+        expr: pod:cpu_throttling:rate5m > 0.5
+        for: 10m
+        labels: {severity: warning}
+      
+      # Cảnh báo ứng dụng liên tục khởi động lại (Lỗi code hoặc OOM)
+      - alert: PodCrashLooping
+        expr: topk(5, increase(kube_pod_container_status_restarts_total{container!=""}[15m])) > 3
+        for: 5m
+        labels: {severity: warning}
+      
+      # Cảnh báo Deployment không đủ số lượng Pod như thiết kế
+      - alert: DeploymentPartialOutage
+        expr: kube:deployment:availability < 1
+        for: 2m
+        labels: {severity: warning}
 
-          - alert: NodeHighCpuLoad
-            expr: 100 - (avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 85
-            for: 5m
-            labels:
-              severity: warning
-              tier: infrastructure
-            annotations:
-              summary: "[WARNING] CPU Server quá tải"
-              description: "Máy chủ {{ $labels.instance }} đang tiêu thụ CPU ở mức {{ printf \"%.1f\" $value }}% liên tục trong 5 phút. Hãy kiểm tra các tiến trình (top/htop)."
-
-          - alert: NodeMemoryNearOOM
-            expr: 100 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes * 100) > 90
-            for: 5m
-            labels:
-              severity: warning
-              tier: infrastructure
-            annotations:
-              summary: "[WARNING] RAM Server nguy cơ OOM"
-              description: "Máy chủ {{ $labels.instance }} đang chiếm dụng RAM ở mức {{ printf \"%.1f\" $value }}% liên tục trong 5 phút."
-
-          - alert: NodeDiskSpaceFillingUp
-            expr: (node_filesystem_avail_bytes{fstype=~"ext.*|xfs"} / node_filesystem_size_bytes{fstype=~"ext.*|xfs"} * 100) < 10
-            for: 5m
-            labels:
-              severity: critical
-              tier: infrastructure
-            annotations:
-              summary: "[CRITICAL] Ổ đĩa sắp đầy"
-              description: "Mountpoint {{ $labels.mountpoint }} trên máy chủ {{ $labels.instance }} chỉ còn {{ printf \"%.1f\" $value }}% dung lượng trống (<10%). Cần dọn rác ngay lập tức."
-
-          - alert: NodeDiskSpacePredictFill
-            expr: predict_linear(node_filesystem_avail_bytes{fstype=~"ext.*|xfs"}[1h], 24 * 3600) < 0
-            for: 15m
-            labels:
-              severity: warning
-              tier: infrastructure
-            annotations:
-              summary: "[WARNING] Cảnh báo sớm: Ổ đĩa đầy sau 24h"
-              description: "Dựa trên tốc độ ghi hiện tại, mountpoint {{ $labels.mountpoint }} trên máy chủ {{ $labels.instance }} sẽ đầy trong vòng 24 giờ tới."
-
-      - name: kubernetes-cluster-alerts
-        rules:
-          - alert: KubePodCrashLooping
-            expr: increase(kube_pod_container_status_restarts_total[15m]) > 3
-            for: 5m
-            labels:
-              severity: warning
-              tier: kubernetes
-            annotations:
-              summary: "[WARNING] Pod restart liên tục (CrashLoop)"
-              description: "Pod `{{ $labels.pod }}` (Namespace: `{{ $labels.namespace }}`) đã restart hơn 3 lần trong 15 phút qua. Dùng lệnh `kubectl logs {{ $labels.pod }} -n {{ $labels.namespace }}` để xem nguyên nhân."
-
-          - alert: KubePodNotReady
-            expr: kube_pod_status_ready{condition="true"} == 0
-            for: 10m
-            labels:
-              severity: warning
-              tier: kubernetes
-            annotations:
-              summary: "[WARNING] Pod không Ready kéo dài"
-              description: "Pod `{{ $labels.pod }}` (Namespace: `{{ $labels.namespace }}`) đang ở trạng thái không lọt readiness probe hơn 10 phút."
-
-          - alert: OOMKilled
-            expr: kube_pod_container_status_last_terminated_reason{reason="OOMKilled"} == 1
-            for: 1m
-            labels:
-              severity: critical
-              tier: kubernetes
-            annotations:
-              summary: "[CRITICAL] Pod bị kill do hết RAM"
-              description: "Container `{{ $labels.container }}` trong Pod `{{ $labels.pod }}` ở Namespace `{{ $labels.namespace }}` vừa bị tiêu diệt do Out-Of-Memory (OOMKilled). Cần cấp thêm RAM limit."
-
-          - alert: KubeDeploymentReplicasMismatch
-            expr: kube_deployment_spec_replicas != kube_deployment_status_replicas_available
-            for: 15m
-            labels:
-              severity: warning
-              tier: kubernetes
-            annotations:
-              summary: "[WARNING] Hệ thống không đủ Replicas"
-              description: "Deployment `{{ $labels.deployment }}` (Namespace: `{{ $labels.namespace }}`) đang chạy thiếu bản sao mong muốn quá 15 phút. Khả năng chịu tải web có thể bị giảm."
-
-          - alert: KubePersistentVolumeError
-            expr: kube_persistentvolume_status_phase{phase=~"Failed|Pending"} > 0
-            for: 5m
-            labels:
-              severity: critical
-              tier: kubernetes
-            annotations:
-              summary: "[CRITICAL] Persistent Volume lỗi"
-              description: "PV `{{ $labels.persistentvolume }}` đang ở trạng thái Pending hoặc Failed, chặn các stateful workloads hoạt động."
-
-      - name: monitoring-system-alerts
-        rules:
-          - alert: PrometheusTargetMissing
-            expr: up == 0
-            for: 5m
-            labels:
-              severity: critical
-              tier: monitoring
-            annotations:
-              summary: "[CRITICAL] Điểm giám sát bị mất"
-              description: "Thành phần {{ $labels.job }} (Instance: {{ $labels.instance }}) đã ngừng hoạt động và không thể cung cấp metrics. Điều này gây hổng dữ liệu giám sát hệ thống."
+      # TÍCH HỢP HUBBLE: Phát hiện lỗi mạng hoặc NetworkPolicy chặn nhầm
+      - alert: HighNetworkDropRate
+        expr: sum(network:hubble:drop_rate:5m) > 10
+        for: 5m
+        labels: {severity: critical}
+        annotations:
+          summary: "Phát hiện tỉ lệ rớt gói tin cao (Hubble)"
+          description: "Hệ thống đang ghi nhận > 10 gói tin bị rớt/giây. Có thể do lỗi kết nối hoặc Policy chặn."

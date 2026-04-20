@@ -1,4 +1,5 @@
-# Service chính để Prometheus và người dùng truy cập giao diện Alertmanager
+# Service ClusterIP: Tạo IP ảo làm đại diện duy nhất cho cụm Alertmanager.
+# Prometheus sẽ gửi các cảnh báo (firing alerts) đến địa chỉ 'alertmanager:9093'.
 apiVersion: v1
 kind: Service
 metadata:
@@ -6,7 +7,9 @@ metadata:
   namespace: monitoring
 spec:
   selector:
-    app: alertmanager   # Điều hướng traffic đến các Pod có nhãn app: alertmanager
+    app: alertmanager   # Lọc các Pod có nhãn 'app: alertmanager' để dẫn traffic vào
   ports:
-    - port: 9093        # Port tiếp nhận alert từ Prometheus
-      targetPort: 9093  # Port container ứng dụng đang lắng nghe
+    - name: web
+      port: 9093        # Port mà các service khác kết nối tới
+      targetPort: 9093  # Port thực tế trên Container
+      protocol: TCP

@@ -1,3 +1,6 @@
+# 1. Service Headless (ClusterIP: None)
+# Mục đích: Không cấp IP ảo (VIP), mà trả về IP trực tiếp của các Pod.
+# Cần thiết cho StatefulSet để các Pod có thể định danh DNS theo dạng: prometheus-0.prometheus-headless, prometheus-1.prometheus-headless
 apiVersion: v1
 kind: Service
 metadata:
@@ -6,16 +9,16 @@ metadata:
   labels:
     app: prometheus
 spec:
-  clusterIP: None
+  clusterIP: None # Chế độ Headless
   ports:
     - name: web
       port: 9090
       targetPort: 9090
   selector:
-    app: prometheus
+    app: prometheus # Liên kết với các Pod có nhãn app: prometheus
 ---
-# Service ClusterIP cho Prometheus — truy cập nội bộ trong cluster
-# Để truy cập từ bên ngoài, sử dụng: kubectl port-forward svc/prometheus 9090:9090 -n monitoring
+# 2. Service ClusterIP tiêu chuẩn
+# Mục đích: Tạo một điểm truy cập duy nhất (Virtual IP) cho các ứng dụng khác (như Grafana) kết nối tới Prometheus.
 apiVersion: v1
 kind: Service
 metadata:
@@ -23,9 +26,10 @@ metadata:
   namespace: monitoring
 spec:
   ports:
-    - port: 9090
+    - name: web
+      port: 9090
       protocol: TCP
-      targetPort: 9090
+      targetPort: 9090 # Chuyển traffic vào port 9090 của Pod
   selector:
     app: prometheus
-  type: ClusterIP
+  type: ClusterIP # Chỉ truy cập được từ bên trong Cluster

@@ -1,11 +1,12 @@
-# Triển khai kube-state-metrics để chuyển đổi các đối tượng Kubernetes sang dạng metrics mà Prometheus có thể hiểu
+# Kube-State-Metrics (KSM): Chuyên thu thập các chỉ số "Logic" của Cluster.
+# Ví dụ: Có bao nhiêu Deployment đang chạy, Pod nào đang quá hạn Replicas, Pod nào bị Restart...
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: kube-state-metrics
   namespace: monitoring
 spec:
-  replicas: 2           # Chạy 2 bản sao để đảm bảo tính sẵn sàng
+  replicas: 1 # KSM không cần dữ liệu bền vững (Stateless) nên chỉ cần chạy Deployment 1 bản sao.
   selector:
     matchLabels:
       app: kube-state-metrics
@@ -14,29 +15,26 @@ spec:
       labels:
         app: kube-state-metrics
     spec:
-      # Sử dụng ServiceAccount có quyền đọc thông tin tài nguyên cluster (định nghĩa trong ksm-rbac.yaml)
+      # Sử dụng ServiceAccount có quyền "Read-only" trên toàn Cluster để lấy thông tin trạng thái đối tượng.
       serviceAccountName: kube-state-metrics
       containers:
       - name: kube-state-metrics
-        image: registry.k8s.io/kube-state-metrics/kube-state-metrics:v2.10.0
-        args:
-          - "--port=8080"           # Port phục vụ metrics về trạng thái cluster
-          - "--telemetry-port=8081" # Port phục vụ metrics về nội tại của chính ksm
+        image: registry.k8s.io/kube-state-metrics/kube-state-metrics:v2.12.0
         ports:
-        - containerPort: 8080        # Port chính cho Prometheus scrape
-          name: http-metrics
-        - containerPort: 8081        # Port phụ cho telemetry
-          name: telemetry
-
-        # Kiểm tra KSM đã sẵn sàng phục vụ metrics chưa
+        - name: http-metrics
+          containerPort: 8080 # Cổng cung cấp metrics cho Prometheus
+        - name: telemetry
+          containerPort: 8181 # Cổng sức khỏe nội bộ của chính KSM
+        
+        # Kiểm tra KSM đã sẵn sàng xuất metrics chưa
         readinessProbe:
           httpGet:
             path: /healthz
             port: 8080
           initialDelaySeconds: 5
           periodSeconds: 10
-
-        # Kiểm tra KSM còn hoạt động hay đã bị treo
+        
+        # Kiểm tra KSM có bị treo không
         livenessProbe:
           httpGet:
             path: /healthz
@@ -44,11 +42,11 @@ spec:
           initialDelaySeconds: 10
           periodSeconds: 15
 
-        # Tài nguyên CPU/RAM cấp phát
+        # Tài nguyên tiêu thụ cực thấp nhưng hiệu quả cực cao
         resources:
           requests:
-            cpu: "50m"
-            memory: "64Mi"
+            cpu: "10m"
+            memory: "32Mi"
           limits:
             cpu: "100m"
             memory: "128Mi"

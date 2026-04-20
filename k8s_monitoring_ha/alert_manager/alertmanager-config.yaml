@@ -1,4 +1,4 @@
-# ConfigMap chứa cấu hình xử lý cảnh báo của Alertmanager
+# ConfigMap chứa logic "Não bộ" của Alertmanager: Định tuyến và Gửi thông báo.
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -7,21 +7,28 @@ metadata:
 data:
   alertmanager.yml: |
     global:
-      # Thời gian chờ để coi một cảnh báo đã được xử lý (resolve) nếu không nhận được dữ liệu mới
+      # Nếu trong 5 phút Prometheus không gửi lại thông tin về một Alert đang firing, Alertmanager sẽ tự động coi Alert đó là đã được giải quyết (Resolved).
       resolve_timeout: 5m
 
-    # Cấu hình định tuyến (Routing) - Xác định cảnh báo nào gửi đi đâu
+    # Cấu hình "Định tuyến" (Routing Tree): Quan trọng nhất để phân phối cảnh báo.
     route:
-      # Receiver mặc định để gửi tất cả cảnh báo nếu không khớp với quy tắc nào khác
+      group_by: ['alertname', 'severity'] # Gom nhóm các cảnh báo giống nhau để tránh bắn tin nhắn rác (spam)
+      group_wait: 30s        # Chờ 30 giây để gom các cảnh báo phát sinh cùng lúc
+      group_interval: 5m     # Thời gian chờ trước khi gửi tiếp các cảnh báo mới trong cùng một nhóm
+      repeat_interval: 4h    # Khoảng thời gian gửi lại cảnh báo nếu vấn đề vẫn chưa được xử lý (4 giờ gửi 1 lần)
+      
+      # Gửi toàn bộ cảnh báo về receiver mặc định là Telegram
       receiver: telegram
 
-    # Định nghĩa các nơi nhận cảnh báo (Receivers)
+    # Định nghĩa các "Đầu nhận" (Receivers)
     receivers:
       - name: telegram
         telegram_configs:
-          # Đọc Token của Bot Telegram từ file Secret đã mount (để đảm bảo bảo mật)
+          # Bảo mật: Không ghi trực tiếp Token vào đây. Token được đọc từ file nằm trong Volume Secret đã mount.
           - bot_token_file: /etc/alertmanager/secrets/telegram_bot_token
-          # ID của Chat hoặc Group Telegram nhận tin nhắn
+            # ID của Chat/Group Telegram nơi Bot sẽ bắn tin nhắn tới.
             chat_id: 7524643345
-          # Gửi cả thông báo khi lỗi đã được khắc phục (Status: Resolved)
+            # Đảm bảo nhận được thông báo cả khi hệ thống lỗi và khi hệ thống "Hồi phục" (Resolved).
             send_resolved: true
+            # Định dạng tin nhắn (Có thể tùy chỉnh bằng Template nếu cần)
+            parse_mode: 'HTML'

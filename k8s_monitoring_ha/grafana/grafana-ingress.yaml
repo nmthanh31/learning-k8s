@@ -1,22 +1,29 @@
+# Ingress: Cổng chào (Gateway) cho phép người dùng từ Internet truy cập vào Grafana qua tên miền.
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: grafana-ingress
   namespace: monitoring
   annotations:
+    kubernetes.io/ingress.class: "nginx"
+    # Ép buộc trình duyệt luôn sử dụng HTTPS để bảo mật dữ liệu Dashboard
     nginx.org/force-ssl-redirect: "true"
 
+    # Tối ưu hóa Buffer: Giúp tải các Dashboard nặng có nhiều Panel mà không bị lỗi 502/504
     nginx.org/proxy-buffer-size: "16k"
     nginx.org/proxy-buffers-number: "4"
     nginx.org/proxy-busy-buffers-size: "16k"
 
+    # Cấu hình Timeout: Cho phép các Query PromQL chạy lâu (lên tới 10 phút) mà không bị ngắt kết nối
     nginx.org/proxy-connect-timeout: "10s"
     nginx.org/proxy-read-timeout: "600s"
     nginx.org/proxy-send-timeout: "600s"
 
+    # Nhận diện IP thực của người dùng cuối thay vì IP của LoadBalancer/Proxy
     nginx.org/real-ip-header: "X-Forwarded-For"
     nginx.org/real-ip-recursive: "true"
 
+    # Snippet cấu hình Header: Đảm bảo Grafana nhận diện đúng giao diện HTTPS và Domain
     nginx.org/server-snippet: |
       proxy_set_header Host $host;
       proxy_set_header X-Real-IP $remote_addr;
@@ -25,15 +32,15 @@ metadata:
       proxy_set_header X-Forwarded-Host $host;
 
 spec:
-  ingressClassName: nginx
+  ingressClassName: nginx # Chỉ định sử dụng Nginx Ingress Controller
   rules:
-    - host: grafana.vnpost.cloud
+    - host: grafana.vnpost.cloud # Tên miền truy cập Grafana (Cần trỏ DNS về IP của Cluster)
       http:
         paths:
           - path: /
             pathType: Prefix
             backend:
               service:
-                name: grafana
+                name: grafana # Tên Service đích đã định nghĩa ở grafana-svc.yaml
                 port:
-                  number: 3000
+                  number: 3000 # Cổng Web của Grafana

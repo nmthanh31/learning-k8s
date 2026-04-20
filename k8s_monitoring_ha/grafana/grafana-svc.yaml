@@ -1,13 +1,17 @@
+# Service ClusterIP: Tạo một điểm truy cập ổn định duy nhất cho Grafana Panel.
 apiVersion: v1
 kind: Service
 metadata:
   name: grafana
   namespace: monitoring
 spec:
-  type: ClusterIP
+  # Chế độ ClusterIP: Chỉ truy cập được trong nội bộ Cluster. 
+  # Người dùng bên ngoài sẽ truy cập qua Ingress.
+  type: ClusterIP 
   ports:
-  - port: 3000
-    targetPort: 3000
-    # nodePort: 32001
+  - name: web
+    port: 3000        # Port mà Ingress sẽ kết nối tới
+    targetPort: 3000  # Port thực tế của ứng dụng bên trong Pod
+    protocol: TCP
   selector:
-    app: grafana
+    app: grafana      # Điều hướng traffic tới các Pod có nhãn 'app: grafana'

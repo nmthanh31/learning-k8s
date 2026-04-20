@@ -1,4 +1,4 @@
-# 1. Secret chứa mật khẩu database
+# 1. Secret: Lưu trữ thông tin xác thực để khởi tạo Database PostgreSQL.
 apiVersion: v1
 kind: Secret
 metadata:
@@ -6,30 +6,33 @@ metadata:
   namespace: monitoring
 type: kubernetes.io/basic-auth
 stringData:
-  username: grafana
+  username: grafana     # Tên chủ sở hữu (Owner) của Database
   password: grafana_pwd123
 ---
-# 2. PostgreSQL HA Cluster (CloudNativePG)
+# 2. PostgreSQL HA Cluster (Sử dụng Operator CloudNativePG)
+# Đây là giải pháp Database-as-Code mạnh mẽ nhất cho K8s giúp tự động hóa Failover.
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
   name: postgres-ha
   namespace: monitoring
 spec:
-  instances: 3
+  # Số lượng bản sao Database. Operator sẽ chọn 1 Primary và 2 Replicas.
+  instances: 3 
 
-  # Cấu hình lưu trữ
+  # Cấu hình lưu trữ dữ liệu bền vững
   storage:
-    size: 1Gi
-    storageClass: monitoring-storage
-
-  # Khởi tạo Database & User
+    size: 1Gi                      # Dung lượng cho mỗi instance
+    storageClass: monitoring-storage # Lớp lưu trữ hỗ trợ Volume snapshot/replication
+ 
+  # Cơ chế khởi tạo (Bootstraping)
   bootstrap:
     initdb:
-      database: grafana
-      owner: grafana
+      database: grafana            # Tên database cần tạo tự động lúc khởi động
+      owner: grafana               # Gán quyền chủ sở hữu cho user đã khai báo ở Secret
       secret:
-        name: grafana-db-creds
+        name: grafana-db-creds     # Tham chiếu tới Secret ở trên để lấy mật khẩu
   
+  # Cấu hình tự giám sát (Self-monitoring)
   monitoring:
-    enablePodMonitor: true
+    enablePodMonitor: true         # Cho phép Prometheus tự động phát hiện và kéo métrics từ Postgres

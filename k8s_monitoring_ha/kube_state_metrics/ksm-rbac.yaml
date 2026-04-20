@@ -1,58 +1,62 @@
-# Tạo ServiceAccount cho kube-state-metrics
+# 1. ServiceAccount: Danh tính cho Kube-State-Metrics (KSM)
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: kube-state-metrics
   namespace: monitoring
 ---
-# Định nghĩa các quyền đọc thông tin tài nguyên cluster mà kube-state-metrics cần 
-# để chuyển đổi chúng thành metrics (ví dụ: số lượng pod đang chạy, trạng thái node...)
+# 2. ClusterRole: Tổng hợp các quyền TRUY VẤN (Read-only) trên toàn Cluster.
+# KSM không thay đổi bất kỳ tài nguyên nào, nó chỉ đứng ngoài đếm và quan sát trạng thái.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: kube-state-metrics
 rules:
-# Quyền liệt kê và theo dõi các tài nguyên cốt lõi
+# Nhóm "" (Core API): Quan tâm tới số lượng Pod, tài nguyên Node, và lưu trữ (PV/PVC)
 - apiGroups: [""]
   resources:
-    - pods
-    - nodes
-    - namespaces
-    - services
-    - endpoints
-    - configmaps
-    - secrets
-    - persistentvolumes
-    - persistentvolumeclaims
-    - resourcequotas
-    - limitranges
+    - pods                   # Đếm số Pod đang Running/Pending/Failed
+    - nodes                  # Kiểm tra Node có bị NotReady không
+    - namespaces             # Thống kê theo Namespace
+    - services               # Theo dõi các Service đang tồn tại
+    - endpoints              # Kiểm tra tính sẵn sàng của backend
+    - configmaps             # (Ít dùng cho metrics nhưng cần để metadata)
+    - secrets                # (Ít dùng cho metrics nhưng cần để metadata)
+    - persistentvolumes      # Theo dõi dung lượng ổ đĩa vật lý
+    - persistentvolumeclaims # Theo dõi dung lượng ổ đĩa logic ứng dụng đang dùng
+    - resourcequotas         # Kiểm tra Namespace có bị hết hạn mức (Quota) không
+    - limitranges            # Kiểm tra các quy tắc giới hạn tài nguyên
   verbs: ["list","watch"]
-# Quyền liệt kê và theo dõi các tài nguyên apps (Deployment, StatefulSet, DaemonSet, ReplicaSet)
+
+# Nhóm "apps": Deployment, StatefulSet...
 - apiGroups: ["apps"]
   resources:
-    - deployments
-    - replicasets
-    - statefulsets
-    - daemonsets
+    - deployments            # Kiểm tra Deployment có đủ Replicas không
+    - replicasets            # Theo dõi các bản sao của Deployment
+    - statefulsets           # Kiểm tra số lượng Pod trong StatefulSet
+    - daemonsets             # Theo dõi các ứng dụng chạy trên mọi Node
   verbs: ["list","watch"]
-# Quyền liệt kê và theo dõi batch resources (Job, CronJob)
+
+# Nhóm "batch": Job, CronJob
 - apiGroups: ["batch"]
   resources:
-    - jobs
-    - cronjobs
+    - jobs                   # Kiểm tra Job có chạy xong (Success) không
+    - cronjobs               # Theo dõi các lịch trình chạy định kỳ
   verbs: ["list","watch"]
-# Quyền liệt kê và theo dõi Ingress
+
+# Nhóm "networking": Ingress
 - apiGroups: ["networking.k8s.io"]
   resources:
-    - ingresses
+    - ingresses              # Theo dõi các cổng vào hệ thống
   verbs: ["list","watch"]
-# Quyền liệt kê và theo dõi HPA
+
+# Nhóm "autoscaling": HPA
 - apiGroups: ["autoscaling"]
   resources:
-    - horizontalpodautoscalers
+    - horizontalpodautoscalers # Theo dõi trạng thái tự động giãn nở (Scale)
   verbs: ["list","watch"]
 ---
-# Liên kết ServiceAccount với ClusterRole tương ứng
+# 3. ClusterRoleBinding: Trao quyền quan sát cho ServiceAccount KSM
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:

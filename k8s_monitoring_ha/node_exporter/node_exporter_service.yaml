@@ -1,15 +1,18 @@
-# Service Headless cho Node Exporter để Prometheus có thể lấy metric từ DNS record của từng Node
+# Service Headless (ClusterIP: None) cho Node Exporter.
+# KHÁC BIỆT: Thay vì tạo 1 IP duy nhất, Service này trả về danh sách IP của TOÀN BỘ các Pod trên mọi Node.
+# Prometheus dùng danh sách này để kết nối tới từng Node vật lý và lấy métrics phần cứng riêng biệt.
 apiVersion: v1
 kind: Service
 metadata:
   name: node-exporter
   namespace: monitoring
 spec:
-  # clusterIP: None giúp Prometheus nhận được IP của tất cả các Pod thay vì chỉ một IP Service duy nhất
+  # Chế độ Headless: Không tạo Virtual IP đại diện.
   clusterIP: None
   selector:
-    app: node-exporter
+    app: node-exporter # Kết nối tới các Pod Node Exporter trên toàn cụm
   ports:
     - name: metrics
-      port: 9100
-      targetPort: 9100
+      port: 9100        # Port mà Prometheus sẽ gọi tới
+      targetPort: 9100  # Port Container
+      protocol: TCP

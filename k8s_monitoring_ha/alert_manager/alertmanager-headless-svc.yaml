@@ -1,4 +1,6 @@
-# Service Headless để hỗ trợ việc giao tiếp Clustering giữa các Pod Alertmanager
+# Service Headless (ClusterIP: None)
+# Mục đích: Không dùng Virtual IP. Trả về danh sách IP thực tế của tất cả Pod có nhãn 'app: alertmanager'.
+# Cần thiết để các Pod Alertmanager phát hiện (Discover) lẫn nhau và tạo thành cụm HA.
 apiVersion: v1
 kind: Service
 metadata:
@@ -7,12 +9,12 @@ metadata:
   labels:
     app: alertmanager
 spec:
-  # clusterIP: None định nghĩa đây là Service Headless (không có IP đại diện cho Cluster)
-  # Cho phép các bản sao tự tìm thấy IP của nhau qua DNS Record
-  clusterIP: None
+  # Chế độ Headless: Quan trọng để Gossip Cluster hoạt động.
+  clusterIP: None 
   selector:
-    app: alertmanager
+    app: alertmanager # Lọc các Pod cùng nhóm để tạo Cluster
   ports:
-    - name: mesh        # Port dành cho việc giao tiếp gossip protocol trong cluster
+    - name: mesh        # Port chuyên dụng cho giao thức Gossip (Trao đổi dữ liệu trạng thái giữa các Node)
       port: 9094
       targetPort: 9094
+      protocol: TCP

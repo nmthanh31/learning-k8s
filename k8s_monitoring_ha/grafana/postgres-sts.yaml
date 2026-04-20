@@ -1,3 +1,4 @@
+# StatefulSet cho PostgreSQL (Phương án Single-Node truyền thống hoặc Fallback)
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -14,14 +15,17 @@ spec:
       labels:
         app: postgres-monitoring
     spec:
+      # Thiết lập quyền hạn cho user 'postgres' (ID 999) trên Volume
       securityContext:
         fsGroup: 999
       containers:
         - name: postgres
           image: postgres:15
           env:
+            # Đường dẫn lưu trữ dữ liệu thực tế bên trong Volume
             - name: PGDATA
               value: /var/lib/postgresql/data/pgdata
+            # Khởi tạo Database và quyền truy cập
             - name: POSTGRES_DB
               value: "grafana"
             - name: POSTGRES_USER
@@ -29,11 +33,12 @@ spec:
             - name: POSTGRES_PASSWORD
               value: "grafana_pwd123"
           ports:
-            - containerPort: 5432
+            - containerPort: 5432 # Cổng chuẩn của PostgreSQL
           volumeMounts:
             - name: postgres-data
               mountPath: /var/lib/postgresql/data
-      volumes:
+  
+  # Yêu cầu cấp phát ổ đĩa bền vững
   volumeClaimTemplates:
   - metadata:
       name: postgres-data
@@ -44,6 +49,7 @@ spec:
         requests:
           storage: 1Gi
 ---
+# Service truy cập Database ClusterIP nội bộ
 apiVersion: v1
 kind: Service
 metadata:
@@ -53,5 +59,7 @@ spec:
   selector:
     app: postgres-monitoring
   ports:
-    - port: 5432
+    - name: tcp-postgresql
+      port: 5432
       targetPort: 5432
+      protocol: TCP

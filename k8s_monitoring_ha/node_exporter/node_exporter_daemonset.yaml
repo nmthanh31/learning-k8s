@@ -1,4 +1,5 @@
-# DaemonSet đảm bảo mỗi Node trong Cluster đều chạy một Pod node-exporter để thu thập metrics phần cứng
+# Node Exporter: "Cảm biến phần cứng" của Cluster.
+# Sử dụng DaemonSet để đảm bảo MỖI máy chủ (Node) trong Cluster đều chạy 1 bản sao duy nhất.
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
@@ -13,9 +14,14 @@ spec:
       labels:
         app: node-exporter
     spec:
-      # Sử dụng network của host để node-exporter có thể truy cập trực tiếp các thông số mạng của Node
+      # hostNetwork: Cho phép Node Exporter dùng chung card mạng với Server thật. 
+      # Cần thiết để lấy đúng các métrics về lưu lượng mạng trên Node.
       hostNetwork: true
-      # Cho phép chạy trên cả control-plane nodes (cp01, cp02, cp03)
+      
+      # hostPID: Cho phép nhìn thấy toàn bộ tiến trình đang chạy trên Node vật lý.
+      hostPID: true
+      
+      # Tolerations: Quy tắc cho phép Pod chạy lên cả các Node Master/Control-plane (vốn thường bị cấm chạy ứng dụng).
       tolerations:
         - key: "node-role.kubernetes.io/control-plane"
           operator: "Exists"
@@ -23,48 +29,48 @@ spec:
         - key: "node-role.kubernetes.io/master"
           operator: "Exists"
           effect: "NoSchedule"
+      
       containers:
       - name: node-exporter
         image: prom/node-exporter:v1.8.1
         ports:
-          - name: metrics        # Đặt tên port là metrics để Prometheus tự động nhận diện
-            containerPort: 9100
+          - name: metrics
+            containerPort: 9100 # Cổng chuẩn của Node Exporter
         args:
-          # Chỉ định đường dẫn rootfs của host nằm trong thư mục /host của container
+          # Chỉ định đường dẫn /host (được mount từ node thật) để quét tài nguyên ổ đĩa và hệ thống.
           - "--path.rootfs=/host"
+          - "--path.procfs=/host/proc"
+          - "--path.sysfs=/host/sys"
 
-        # Kiểm tra Node Exporter đã sẵn sàng chưa
+        # Kiểm tra sức khỏe của exporter
         readinessProbe:
           httpGet:
             path: /metrics
             port: 9100
           initialDelaySeconds: 5
           periodSeconds: 10
-          timeoutSeconds: 5
-
-        # Kiểm tra Node Exporter còn hoạt động hay đã bị treo
         livenessProbe:
           httpGet:
             path: /metrics
             port: 9100
           initialDelaySeconds: 10
           periodSeconds: 15
-          timeoutSeconds: 5
 
-        # Tài nguyên CPU/RAM cấp phát
+        # Tài nguyên tiêu tốn (rất nhỏ)
         resources:
           requests:
-            cpu: "50m"
-            memory: "32Mi"
-          limits:
-            cpu: "200m"
+            cpu: "100m"
             memory: "128Mi"
+          limits:
+            cpu: "250m"
+            memory: "256Mi"
 
         volumeMounts:
           - name: root
-            mountPath: /host     # Mount thư mục gốc của host vào container để lấy thông số ổ đĩa, CPU, RAM
-            readOnly: true
+            mountPath: /host     # Mount thư mục gốc của Node vật lý vào container
+            readOnly: true       # Bảo mật: Chỉ cho phép đọc, không cho xóa file trên Node thật
+            mountPropagation: HostToContainer
       volumes:
         - name: root
           hostPath:
-            path: /              # Lấy trực tiếp từ thư mục gốc của Node vật lý
+            path: /              # Lấy từ thư mục gốc của server Linux

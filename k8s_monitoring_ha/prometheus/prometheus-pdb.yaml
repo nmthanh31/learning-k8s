@@ -1,11 +1,13 @@
-# PodDisruptionBudget đảm bảo luôn có ít nhất 1 Pod Prometheus hoạt động khi drain node
+# PodDisruptionBudget (PDB): "Hợp đồng bảo hiểm" cho tính sẵn sàng cao
+# Đảm bảo rằng luôn có ít nhất 1 Pod Prometheus sống sót khi quản trị viên thực hiện bảo trì Node (kubectl drain).
+# Nếu chỉ còn 1 Pod đang sống, K8s sẽ từ chối việc tắt Pod đó cho đến khi có Pod khác thay thế.
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
   name: prometheus-pdb
   namespace: monitoring
 spec:
-  minAvailable: 1
+  minAvailable: 1 # Số lượng Pod tối thiểu phải "Sống" (Available) trong mọi tình huống bảo trì
   selector:
     matchLabels:
-      app: prometheus
+      app: prometheus # Lọc các Pod thuộc Prometheus để áp dụng luật này

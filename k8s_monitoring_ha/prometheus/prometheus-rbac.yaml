@@ -1,41 +1,47 @@
-# Tạo ServiceAccount cho Prometheus để nó có danh tính khi giao tiếp với Kubernetes API
+# 1. ServiceAccount: Định danh kỹ thuật cho Prometheus Pod
+# Giúp Pod có định danh để gửi kèm khi gọi vào Kubernetes API Server.
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: prometheus
   namespace: monitoring
 ---
-# Định nghĩa các quyền hạn (ClusterRole) mà Prometheus cần trên phạm vi toàn Cluster
+# 2. ClusterRole: Tập hợp các quyền hạn trên toàn hệ thống
+# Prometheus cần quyền "đọc" (get, list, watch) để thực hiện Service Discovery.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: prometheus
 rules:
-# Quyền lấy thông tin về tài nguyên lõi (Nodes, Services, Endpoints, Pods) để tự động tìm targets
+# Nhóm "" (Core API): Bao gồm các tài nguyên cơ bản nhất
 - apiGroups: [""]
   resources:
-  - nodes
-  - nodes/proxy
-  - nodes/metrics
-  - services
-  - endpoints
-  - pods
+  - nodes         # Để biết Cluster có bao nhiêu máy chủ vật lý
+  - nodes/proxy   # Để truy cập metrics qua /proxy (cAdvisor)
+  - nodes/metrics # Để lấy metrics trực tiếp từ Kubelet
+  - services      # Để tìm các Service cần scrape dữ liệu
+  - endpoints     # Để lấy danh sách IP thực tế của các Pod đằng sau Service
+  - pods          # Để lấy metadata của Pod (nhãn, annotation)
   verbs: ["get", "list", "watch"]
-# Quyền lấy thông tin về Deployments (thuộc nhóm mở rộng hoặc apps)
+
+# Nhóm "apps": Bao gồm Deployments, StatefulSets
 - apiGroups: ["extensions", "apps"]
   resources:
-  - deployments
+  - deployments   # Để giám sát trạng thái triển khai ứng dụng
   verbs: ["get", "list", "watch"]
-# Quyền đọc cấu hình từ ConfigMaps (ví dụ để nạp lại rules)
+
+# Quyền đọc ConfigMaps
 - apiGroups: [""]
   resources:
-  - configmaps
+  - configmaps    # Đôi khi cần đọc metadata của config để reload
   verbs: ["get", "list", "watch"]
-# Quyền truy cập các đường dẫn metrics hệ thống không phải resource định nghĩa sẵn
+
+# Quyền truy cập các URL metrics không phải dạng Resource (như /metrics)
 - nonResourceURLs: ["/metrics"]
   verbs: ["get"]
 ---
-# Liên kết ServiceAccount 'prometheus' với ClusterRole 'prometheus' để áp dụng các quyền trên
+# 3. ClusterRoleBinding: Trao quyền cho ServiceAccount
+# Liên kết ClusterRole (quyền) trực tiếp với ServiceAccount (Pod).
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
@@ -43,8 +49,8 @@ metadata:
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: prometheus
+  name: prometheus # Tên ClusterRole ở trên
 subjects:
 - kind: ServiceAccount
-  name: prometheus
+  name: prometheus # Tên ServiceAccount ở trên
   namespace: monitoring

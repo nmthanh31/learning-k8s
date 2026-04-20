@@ -1,12 +1,13 @@
-# Triển khai Alertmanager dưới dạng StatefulSet để hỗ trợ Clustering (HA) và lưu trữ dữ liệu
+# StatefulSet được sử dụng để Alertmanager có thể hoạt động theo cụm (Cluster Mode) với định danh cố định.
+# Điều này cực kỳ quan trọng cho việc đồng bộ trạng thái "Silence" giữa các bản sao.
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: alertmanager
   namespace: monitoring
 spec:
-  replicas: 3           # Chạy 3 bản sao để đảm bảo tính sẵn sàng cao (High Availability)
-  serviceName: "alertmanager-headless"
+  replicas: 3          # Chạy 3 bản sao để đảm bảo tính sẵn sàng cao (High Availability)
+  serviceName: "alertmanager-headless" # Liên kết DNS để các Pod tìm thấy nhau (Service Discovery nội bộ)
   selector:
     matchLabels:
       app: alertmanager
@@ -15,14 +16,14 @@ spec:
       labels:
         app: alertmanager
     spec:
-      # Cấu hình bảo mật để tránh lỗi 'permission denied' khi ghi vào ổ đĩa /alertmanager
+      # Thiết lập quyền hạn file để tránh lỗi 'permission denied' khi ghi vào ổ đĩa /alertmanager
       securityContext:
-        fsGroup: 65534     # Gán quyền volume cho group nobody
+        fsGroup: 65534     # Gán quyền volume cho group nobody (mặc định của Alertmanager)
         runAsUser: 65534   # Chạy container dưới user nobody
         runAsGroup: 65534
-        runAsNonRoot: true # Không chạy dưới quyền root
-
-      # Đảm bảo các Pod Alertmanager được phân tán trên các Node khác nhau
+        runAsNonRoot: true # Bảo mật: Không cho phép chạy dưới quyền ROOT
+ 
+      # Tránh tình trạng các Pod Alertmanager "đè" lên nhau trên cùng 1 Node vật lý
       affinity:
         podAntiAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
@@ -33,39 +34,40 @@ spec:
                     values:
                       - alertmanager
               topologyKey: "kubernetes.io/hostname"
-
+ 
       containers:
         - name: alertmanager
           image: prom/alertmanager:v0.27.0
+          # Các tham số khởi động điều phối cơ chế hoạt động theo cụm (Gossip Protocol)
           args:
-            - "--config.file=/etc/alertmanager/alertmanager.yml" # Đường dẫn file cấu hình
-            - "--storage.path=/alertmanager"                    # Nơi lưu trữ database của Alertmanager
-            - "--cluster.listen-address=0.0.0.0:9094"            # Port để các bản sao Alertmanager trao đổi dữ liệu với nhau
-            # Danh sách các peers (bản sao khác) trong cluster để đồng bộ trạng thái alerts/silences
+            - "--config.file=/etc/alertmanager/alertmanager.yml" # Chỉ định cấu hình
+            - "--storage.path=/alertmanager"                    # Nơi lưu trữ trạng thái alerts/silences
+            - "--cluster.listen-address=0.0.0.0:9094"            # Cổng để các Pod "nói chuyện" với nhau
+            # Khai báo địa chỉ của các "đồng nghiệp" (Peers) để tạo thành mạng lưới ngang hàng (Clustering)
             - "--cluster.peer=alertmanager-0.alertmanager-headless.monitoring.svc.cluster.local:9094"
             - "--cluster.peer=alertmanager-1.alertmanager-headless.monitoring.svc.cluster.local:9094"
             - "--cluster.peer=alertmanager-2.alertmanager-headless.monitoring.svc.cluster.local:9094"
           ports:
-            - containerPort: 9093 # Port phục vụ giao diện web và nhận alert từ Prometheus
-            - containerPort: 9094 # Port đồng bộ cluster
-
-          # Kiểm tra Alertmanager đã sẵn sàng nhận traffic chưa
+            - containerPort: 9093 # Cổng API/Giao diện người dùng
+            - containerPort: 9094 # Cổng giao tiếp nội bộ giữa các bản sao (Clustering)
+ 
+          # Kiểm tra Pod đã khởi động xong chưa
           readinessProbe:
             httpGet:
               path: /-/ready
               port: 9093
             initialDelaySeconds: 10
             periodSeconds: 10
-
-          # Kiểm tra Alertmanager còn hoạt động hay đã bị treo
+ 
+          # Kiểm tra Pod có bị treo hay không
           livenessProbe:
             httpGet:
               path: /-/healthy
               port: 9093
             initialDelaySeconds: 15
             periodSeconds: 15
-
-          # Tài nguyên CPU/RAM cấp phát cho Alertmanager
+ 
+          # Giới hạn tài nguyên để Cluster chạy ổn định
           resources:
             requests:
               cpu: "50m"
@@ -73,7 +75,8 @@ spec:
             limits:
               cpu: "100m"
               memory: "128Mi"
-
+ 
+          # Gắn các ổ đĩa và bí mật vào container
           volumeMounts:
             - name: config
               mountPath: /etc/alertmanager
@@ -81,16 +84,16 @@ spec:
               mountPath: /alertmanager
             - name: alertmanager-secret
               mountPath: /etc/alertmanager/secrets
-              readOnly: true
+              readOnly: true # Bảo mật: Chỉ cho phép đọc Secret
       volumes:
         - name: config
           configMap:
-            name: alertmanager-config # Mount cấu hình từ ConfigMap
+            name: alertmanager-config
         - name: alertmanager-secret
           secret:
-            secretName: alertmanager-secret # Mount các thông tin nhạy cảm (Token Telegram) từ Secret
-
-  # Cấp phát ổ đĩa riêng biệt cho mỗi bản sao Alertmanager
+            secretName: alertmanager-secret # Lấy từ Secret chứa Token Telegram
+ 
+  # Cơ chế tự động xin cấp ổ đĩa cứng từ Cluster (Persistent Storage)
   volumeClaimTemplates:
     - metadata:
         name: alertmanager-data
@@ -99,4 +102,4 @@ spec:
         storageClassName: "monitoring-storage"
         resources:
           requests:
-            storage: 1Gi # Dung lượng ổ đĩa cho mỗi bản sao (1GB)
+            storage: 1Gi # 1GB cho mỗi bản sao là đủ để lưu trữ Silences và Alerts hiện tại

@@ -1,103 +1,105 @@
-# Triển khai Prometheus dưới dạng StatefulSet để đảm bảo tính ổn định và lưu trữ dữ liệu bền vững
+# StatefulSet là lựa chọn tối ưu cho Prometheus vì nó cần định danh Pod cố định (prometheus-0, prometheus-1) và gắn ổ đĩa (PVC) chính xác cho từng Pod.
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: prometheus
   namespace: monitoring
 spec:
-  replicas: 2           # Chạy 2 bản sao (HA) trên 2 node khác nhau
-  serviceName: "prometheus-headless"
+  replicas: 1 # Trong môi trường HA thực tế nên set là 2. Ở đây set 1 để tiết kiệm tài nguyên POC nhưng cấu hình đã sẵn sàng cho HA.
+  serviceName: "prometheus-headless" # Liên kết với Service Headless để định danh DNS cho từng Pod
   selector:
     matchLabels:
-      app: prometheus   # Các Pod được quản lý có nhãn app: prometheus
-
+      app: prometheus
+ 
   template:
     metadata:
       labels:
         app: prometheus
-
+ 
     spec:
-      # Sử dụng ServiceAccount đã được cấp quyền RBAC ở file prometheus-rbac.yaml
+      # Sử dụng ServiceAccount có quyền RBAC để Prometheus có thể "quét" (Discover) các đối tượng trong Cluster
       serviceAccountName: prometheus
-      
-      # Cấu hình bảo mật cấp Pod
+ 
+      # Thiết lập quyền hạn cấp Pod
       securityContext:
-        fsGroup: 65534     # Gán quyền truy cập volume cho group nobody (UID/GID 65534 của Prometheus)
-
-      # Đảm bảo 2 Pod Prometheus không nằm chung trên cùng một Node vật lý
+        fsGroup: 65534 # Cho phép user của Prometheus (ID 65534) có quyền ghi vào Volume gắn kèm (cực kỳ quan trọng)
+ 
+      # Cơ chế đảm bảo tính sẵn sàng cao (Anti-Affinity)
       affinity:
         podAntiAffinity:
+          # Ép buộc (Required) các Pod Prometheus không bao giờ nằm trên cùng một Host
           requiredDuringSchedulingIgnoredDuringExecution:
             - labelSelector:
                 matchLabels:
                   app: prometheus
               topologyKey: "kubernetes.io/hostname"
-
+ 
       containers:
         - name: prometheus
-          image: prom/prometheus:v2.51.2 # Sử dụng image Prometheus phiên bản ổn định
-
-          # Cấu hình bảo mật cấp Container
+          image: prom/prometheus:v2.51.2 # Sử dụng bản ổn định, tránh dùng ':latest' trong Production
+ 
+          # Quyền hạn bảo mật cấp Container (tiêu chuẩn Pod Security Standard)
           securityContext:
-            runAsUser: 65534     # Chạy dưới user nobody
+            runAsUser: 65534
             runAsGroup: 65534
-            runAsNonRoot: true   # Không cho phép chạy dưới quyền root
-
-          # Các tham số dòng lệnh khởi chạy Prometheus
+            runAsNonRoot: true # Bảo mật: Không chạy dưới quyền Root để tránh leo thang đặc quyền
+ 
+          # Các tham số khởi động điều hướng toàn bộ hoạt động của Prometheus
           args:
-            - "--config.file=/etc/prometheus/prometheus.yml" # File cấu hình từ ConfigMap
-            - "--storage.tsdb.path=/prometheus"              # Thư mục lưu cơ sở dữ liệu metrics
-            - "--storage.tsdb.retention.time=15d"            # Thời gian lưu trữ dữ liệu (15 ngày)
-            - "--web.enable-lifecycle"                       # Cho phép load lại config qua HTTP (/-/reload)
-
+            - "--config.file=/etc/prometheus/prometheus.yml" # Chỉ định file cấu hình chính
+            - "--storage.tsdb.path=/prometheus"              # Nơi lưu trữ DB (Timeseries Database)
+            - "--storage.tsdb.retention.time=15d"            # Thời gian lưu dữ liệu (15 ngày) trước khi bị xóa cuốn chiếu
+            - "--web.enable-lifecycle"                       # Quan trọng: Cho phép reload cấu hình mà không cần restart Pod (Dùng lệnh curl -X POST)
+ 
           ports:
             - name: web
-              containerPort: 9090 # Port mặc định của giao diện web Prometheus
-
-          # Kiểm tra Pod đã sẵn sàng nhận traffic chưa
+              containerPort: 9090 # Cổng giao diện chính
+ 
+          # Kiểm tra Pod đã khởi tạo xong và sẵn sàng nhận truy vấn chưa
           readinessProbe:
             httpGet:
               path: /-/ready
               port: 9090
-            initialDelaySeconds: 10
-            periodSeconds: 10
-
-          # Kiểm tra Pod còn sống hay đã bị treo (để Kubernetes restart)
+            initialDelaySeconds: 10 # Chờ 10 giây sau khi start mới bắt đầu check
+            periodSeconds: 10       # Check mỗi 10 giây
+ 
+          # Kiểm tra Pod có bị treo hay không (Deadlock). Nếu check fail, K8s sẽ kill và tạo Pod mới.
           livenessProbe:
             httpGet:
               path: /-/healthy
               port: 9090
-            initialDelaySeconds: 30
+            initialDelaySeconds: 30 # Prometheus cần thời gian load DB cũ lúc khởi động nên chờ lâu hơn (30s)
             periodSeconds: 15
-
-          # Tài nguyên CPU/RAM cấp phát cho Prometheus
+ 
+          # Cực kỳ quan trọng trong POC: Quản lý tài nguyên để tránh gây treo Node vật lý
           resources:
             requests:
-              cpu: "500m"
-              memory: "512Mi"
+              cpu: 500m
+              memory: 1Gi  # Đảm bảo Prometheus luôn có tối thiểu 1GB RAM để hoạt động
             limits:
-              cpu: "1"
-              memory: "1Gi"
-
-          # Gắn các ổ đĩa vào container
+              cpu: 1
+              memory: 2Gi  # Giới hạn tối đa 2GB RAM để tránh lỗi rò rỉ bộ nhớ ảnh hưởng toàn cụm
+ 
+          # Liên kết đường dẫn trong Container với các Volume đã khai báo
           volumeMounts:
             - name: config
-              mountPath: /etc/prometheus # Chứa file prometheus.yml từ ConfigMap
+              mountPath: /etc/prometheus # Chứa file configmap
             - name: prometheus-data
-              mountPath: /prometheus     # Chứa dữ liệu metrics tích lũy
-
+              mountPath: /prometheus     # Chứa dữ liệu thực tế
+ 
+      # Khai báo các nguồn dữ liệu cho Volume
       volumes:
         - name: config
           configMap:
-            name: prometheus-config # Lấy dữ liệu từ ConfigMap prometheus-config
-
-  # Định nghĩa cấp phát ổ đĩa tự động (PVC) cho mỗi bản sao của StatefulSet
+            name: prometheus-config # Lấy nội dung từ ConfigMap đã định nghĩa
+ 
+  # Cơ chế tự động cấp phát ổ đĩa (Persistent Volume Claim)
   volumeClaimTemplates:
     - metadata:
         name: prometheus-data
       spec:
-        accessModes: ["ReadWriteOnce"]
-        storageClassName: "monitoring-storage" # Class ổ đĩa lưu trữ (cần được định nghĩa trước)
+        accessModes: ["ReadWriteOnce"] # Chỉ một Node có quyền ghi vào ổ đĩa này tại một thời điểm
+        storageClassName: "monitoring-storage" # Class ổ đĩa (Cần thay đổi theo Storage thực tế của bạn)
         resources:
           requests:
-            storage: 1Gi 
+            storage: 1Gi # Dung lượng ổ đĩa khởi tạo cho mỗi Pod

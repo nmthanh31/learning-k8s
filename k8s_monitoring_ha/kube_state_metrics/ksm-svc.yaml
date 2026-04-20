@@ -1,13 +1,18 @@
-# Service để Prometheus tìm thấy các Endpoint của kube-state-metrics
+# Service ClusterIP: Điểm truy cập tĩnh cho phép Prometheus kết nối tới KSM Pod.
 apiVersion: v1
 kind: Service
 metadata:
   name: kube-state-metrics
   namespace: monitoring
-spec:
-  selector:
+  labels:
     app: kube-state-metrics
+spec:
+  # Chế độ ClusterIP: Chỉ cho phép truy cập từ nội bộ Cluster.
+  type: ClusterIP
+  selector:
+    app: kube-state-metrics # Điều hướng traffic tới Pod KSM
   ports:
-    - name: http-metrics     # Tên port phải khớp với 'Regex' filter trong prometheus-config.yaml
-      port: 8080
-      targetPort: 8080
+    - name: http-metrics
+      port: 8080        # Port mà Prometheus sẽ gọi tới
+      targetPort: 8080  # Port thực tế của KSM Container
+      protocol: TCP

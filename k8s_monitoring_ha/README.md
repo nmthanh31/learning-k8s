@@ -1,60 +1,108 @@
-# Kiến Trúc Giám Sát K8s Monitor High Availability (HA)
+# ☸️ Master Guide: Kubernetes High-Availability Monitoring Stack (SRE Standard)
 
-Tài liệu này giải thích chi tiết chức năng của từng file cấu hình và kiến trúc của hệ thống giám sát High-Availability đang được triển khai trên cụm Kubernetes của VNPost.
-Hệ thống tuân thủ chuẩn Production với đầy đủ tính năng: Thu thập số liệu (Metrics), Báo động định tuyến (Alerting), và Trực quan hoá (Visualizing).
-
-## Cấu Trúc Tổng Quan
-
-Hệ thống được thiết kế theo Tư duy Microservices chia nhỏ thư mục với 5 cụm thành phần chính:
-1. `prometheus/` (Não bộ lưu trữ & Xử lý rules cảnh báo)
-2. `alert_manager/` (Trạm phân phối cảnh báo)
-3. `grafana/` (Bảng điều khiển trực quan UI)
-4. `node_exporter/` (Nhân viên thu thập chỉ số máy chủ - Hardware)
-5. `kube_state_metrics/` (Nhân viên thu thập chỉ số nội bộ K8s)
+Tài liệu này cung cấp cái nhìn **chi tiết mức độ chuyên gia** về hệ thống giám sát đã được tối ưu hóa cho môi trường Production, sẵn sàng cho buổi trình bày POC.
 
 ---
 
-## Giải Thích Chi Tiết Từng Thành Phần
+## 🏗️ 1. Kiến trúc tổng thể (Architecture Deep-Dive)
 
-### 1. Thư mục `prometheus/` (Gom dữ liệu & Đánh giá Cảnh báo)
-Prometheus là "trái tim" của hệ thống giám sát. Nó có nhiệm vụ liên tục kéo (scrape) các thông số (metrics) từ các ứng dụng/node về để lưu trữ và phân tích.
+Hệ thống sử dụng mô hình **Pull-based Monitoring** kết hợp với kiến trúc **High-Availability (HA)** ở mọi tầng lớp.
 
-- **`prometheus-config.yaml`**: Chứa ConfigMap với file cấu hình lõi. Nơi đây thiết lập các đối tượng giám sát (Scrape Config) như KSM, Node Exporter, kubelet cAdvisor. Quan trọng nhất, nó định nghĩa toàn bộ các **Luật Cảnh Báo** (Alerting Rules) theo chuẩn O11y (NodeDown, OOMKilled, HighCPU...)
-- **`prometheus-rbac.yaml`**: Cấp quyền K8s Role / ClusterRoleBinding (Role-Based Access Control) để Prometheus có đặc quyền gọi API Kubernetes nhằm mục đích quét các Node và Pod tự động (Service Discovery).
-- **`prometheus-sts.yaml`**: Triển khai Prometheus dưới dạng **StatefulSet**. Đảm bảo tính lưu trữ bền vững (Persistent Storage).
-- **`prometheus-pdb.yaml`**: Pod Disruption Budget (Giới hạn gián đoạn). Ngăn chặn tình trạng cả 2 Pod của Prometheus bị tắt ngang cùng lúc khi bảo trì node, giúp cụm chạy High Availability liên tục.
-- **`prometheus-svc.yaml`**: Mở cổng mạng (Service ClusterIP) cho phần còn lại (Ví dụ Grafana) đọc dữ liệu từ Prometheus.
+```mermaid
+graph TD
+    subgraph "Data Sources (Scrape Targets)"
+        NE[Node Exporter - Hardware Metrics]
+        KSM[Kube-State-Metrics - Logic Metrics]
+        CIL[Cilium Agent - eBPF Network]
+        HUB[Hubble - Flow Visibility]
+        CAD[cAdvisor - Container Metrics]
+    end
 
-### 2. Thư mục `alert_manager/` (Phân phối Cảnh báo)
-Khi Prometheus phát hiện lỗi (dựa trên Alerting Rules), nó không tự gửi tin nhắn, mà đẩy tín hiệu lỗi qua cho Alertmanager để tự động gom nhóm lỗi (Grouping), ức chế lỗi trùng (Inhibition) và định tuyến (Routing).
+    subgraph "Monitoring Core (HA)"
+        PRM[(Prometheus HA)]
+        ALM{Alertmanager Cluster}
+        GRA[Grafana 13.0]
+        PDB[PodDisruptionBudgets]
+    end
 
-- **`alertmanager-config.yaml`**: Chứa cơ chế Routing. Quản lý việc gửi tín hiệu cảnh báo nào đi đâu (VD: Channel Telegram, Email, Slack).
-- **`alertmanager-secret.yaml`**: Nơi mã hóa bảo mật các đoạn mã cực kỳ nhạy cảm như Telegram Bot Token, Webhook Token, không để lộ lên file text.
-- **`alertmanager-sts.yaml`**: Triển khai Alertmanager dưới luồng StatefulSet có Storage, đảm bảo cụm luôn nhớ được cảnh báo nào đã Mute (Silence).
-- **`alertmanager-headless-svc.yaml`**: Service nội bộ đặc biệt (ClusterIP: None) đóng vai trò cho phép các Pod của Alertmanager nhận diện được nhau tạo thành mạng lưới ngang hàng (Gossip Clustering).
-- **`alertmanager-svc.yaml`**: Service chính để các app và Prometheus gọi đẩy lỗi vào.
-- **`alertmanager-pdb.yaml`**: Đảm bảo Alertmanager luôn đủ tối thiểu Pod sống chặn đứng rớt mạng cảnh báo.
+    subgraph "Persistence & Alerting"
+        STG[Storage Class]
+        DB[(PostgreSQL HA)]
+        TEL[Telegram Bot]
+    end
 
-### 3. Thư mục `grafana/` (Bảng điều khiển & Trực quan Hóa)
-Chức năng chính của Grafana là kết nối vào Prometheus, lấy dữ liệu tĩnh học và hiện thực hoá thành các biểu đồ (Dashboard) tối ưu.
+    NE & KSM & CIL & HUB & CAD -->|Pull| PRM
+    
+    PRM -->|Alerts| ALM
+    ALM -->|Notify| TEL
+    GRA -->|Query| PRM
+    GRA <-->|State| DB
+    PRM <-->|Storage| STG
+```
 
-- **`grafana-sts.yaml`**: Triển khai Dashboard Grafana dạng StatefulSet. Đi kèm giới hạn phần cứng (Resource Requests/Limits) chống tràn RAM, và Health Probes chống kẹt tiến trình.
-- **`grafana-provisioning.yaml`**: Cơ chế Cấu hình tự động (Provisioning) siêu tối ưu. Ép Grafana nhận Prometheus nội bộ làm Datasource ngay lập tức từ khi khởi động (Infrastructure-As-Code - Không click chuột thủ công).
-- **`grafana-secret.yaml` & `grafana-db-creds`**: Mã hóa/lưu cấu hình đăng nhập mặc định và mật khẩu kết nối Database Postgres.
-- **`grafana-ingress.yaml`**: Chịu trách nhiệm mở Gateway, tạo Ingress Host phơi bày dịch vụ ra web bằng Domain name thật phục vụ người dùng.
-- **`grafana-pdb.yaml` & `grafana-svc.yaml`**: Pod Disruption Budget và Tên miền mạng nội bộ LAN của Kubernetes cho Grafana.
-- **`postgres-ha.yaml` & `postgres-sts.yaml`**: PostgreSQL được thiết kế theo cấu trúc High Availability Cluster (CloudNativePG) chuyên nghiệp với 3 nodes. Nơi Grafana chọn làm Database kiên cố chống thất thoát thông tin user thay vì SQLite sơ sài.
-
-### 4. Thư mục `node_exporter/` (Công cụ chỉ số phần cứng)
-Node Exporter bám sát vào lõi hệ điều hành bằng Kernel.
-
-- **`node_exporter_daemonset.yaml`**: Áp dụng thiết kế DaemonSet, đảm bảo rằng mỗi khi có VM (Node) mới gia nhập K8s, tự động sinh ra Pod đọc phần cứng (CPU, Disk ảo) liên tục bám theo máy đó mà không qua tay người lệnh lại. Tích hợp Tolerations để giám sát được cả luồng Control-Plane Node.
-- **`node_exporter_service.yaml`**: Service tĩnh móc các Daemon set phân mảnh gom lại, cung ứng Endpoints gộp cho thiết bị gom dữ liệu (`/metrics`).
-
-### 5. Thư mục `kube_state_metrics/` (Bác sĩ Kubernetes state)
-- **`ksm-deployment.yaml`**: Triển khai dạng Deployment Scale out. Khác bên Node-Exporter đọc OS vật lý, KSM móc dữ liệu trực tiếp với K8s API Master Server để truy kích luồng logic: Có bao nhiêu Pod fail? PVC Pending? OOMKilled diễn ra tần suất sao?
-- **`ksm-rbac.yaml`**: Danh sách khổng lồ các giấy phép uỷ quyền ClusterRole. Sự sống còn của KSM nằm ở việc nó được cấp phép "đọc thấu" toàn bộ object trong Cluster. Từ Pod, CronJob, HPA cho đến Ingress.
-- **`ksm-svc.yaml`**: Service xuất cảng API mạng chờ Prometheus chạy đến đọc `healthz` và `/metrics`.
+### Điểm nhấn kỹ thuật:
+1. **StatefulSet & PVC:** Prometheus và Alertmanager không chạy dưới dạng Deployment thông thường mà là `StatefulSet`. Điều này đảm bảo mỗi Pod có một danh tính DNS cố định và một ổ đĩa cứng (PVC) riêng biệt không đổi kể cả khi Pod bị restart.
+2. **Clustering (Gossip Protocol):** 3 Pod Alertmanager liên kết với nhau qua cổng `9094`. Khi bạn bấm "Silence" (Tắt thông báo) trên Pod 1, thông tin này ngay lập tức được "truyền tai" tới Pod 2 và 3, đảm bảo hệ thống luôn đồng nhất.
+3. **External DB for Grafana:** Thay vì dùng SQLite (dễ lỗi khi scale), Grafana được kết nối với cụm **PostgreSQL HA**. Điều này cho phép Grafana scale ngang vô tận mà không mất Dashboard hay Session người dùng.
 
 ---
-*Lưu ý O11y Standard: Cấu hình Production toàn bộ Stack trên đều tuân thủ độ khắt khe về Health Probes (Liveness/Readiness), Anti-MemoryLeak (Limits CPU/RAM) và Self-Healing PDB (Tránh Downtime bảo trì máy chủ).*
+
+## ⚙️ 2. Phân tích Manifest (Line-by-Line Logic)
+
+Mọi file cấu hình đều tuân thủ các tiêu chuẩn bảo mật và vận hành khắt khe nhất:
+
+### 🛡️ Bảo mật & Tài nguyên
+- **Non-Root Execution:** Tất cả container đều chạy với `runAsNonRoot: true` và UID `65534` (nobody) hoặc `472` (grafana). Điều này ngăn chặn hacker leo thang đặc quyền từ container ra Node vật lý.
+- **Resource Management:** Mọi Pod đều có `requests` (Tài nguyên cam kết) và `limits` (Ngưỡng tối đa). Điều này ngăn chặn tình trạng một cấu hình Prometheus sai có thể "ăn sạch" RAM của toàn bộ Node vật lý.
+- **fsGroup:** Sử dụng `fsGroup` trong `securityContext` để Kubernetes tự động gán quyền ghi vào ổ đĩa gắn kèm cho user chạy ứng dụng.
+
+### ⚓ Tính sẵn sàng cao (HA Mechanisms)
+- **Pod Anti-Affinity:** Sử dụng logic "Hard Requirements" để ép buộc các Pod cùng loại (ví dụ 2 Pod Prometheus) KHÔNG bao giờ được nằm chung trên cùng một Node vật lý. Nếu một Node cháy, các Node khác vẫn còn Pod hoạt động.
+- **Pod Disruption Budget (PDB):** Thiết lập `minAvailable`. Ví dụ với Alertmanager có 3 Pod, PDB yêu cầu luôn có 2 Pod sống. Khi bạn nâng cấp Cluster hoặc bảo trì Node, hệ thống sẽ ngăn cản việc tắt Pod nếu không đảm bảo đủ số lượng an toàn này.
+
+---
+
+## 📉 3. "Não bộ" Prometheus: Logic Relabeling & Rules
+
+Đây là phần phức tạp nhất, giúp dữ liệu trở nên sạch và dễ nhìn:
+
+### 🏷️ Relabeling Logic:
+- **Đồng bộ Instance:** Prometheus mặc định lấy `IP:Port` làm nhãn `instance`. Chúng tôi đã cấu hình `relabel_configs` để ép nhãn này thành **Tên Node thực tế**. Nhờ đó, bạn có thể lọc dữ liệu theo "Node-01", "Node-02" thay vì các địa chỉ IP vô nghĩa.
+- **Drop Metrics cực đoan:** Để tiết kiệm dung lượng, hệ thống chỉ giữ lại những Metric thực sự cần thiết qua `metric_relabel_configs` (Regex filter).
+
+### 🧮 SRE Golden Signals (Mục tiêu POC):
+Chúng tôi đã cài đặt sẵn các **Recording Rules** để tính toán trước các chỉ số vàng của SRE:
+1. **CPU Throttling (`pod:cpu_throttling:rate5m`):** Phát hiện ứng dụng bị lag do giới hạn CPU quá thấp (Dấu hiệu của Saturation).
+2. **Availability (`kube:deployment:availability`):** Tính toán tức thì % Readiness của toàn bộ ứng dụng trong Cluster.
+3. **Network Drops (`network:hubble:drop_rate:5m`):** Phân tích xem gói tin bị rớt do lỗi hạ tầng hay do **Network Policy** chặn.
+
+---
+
+## 🛰️ 4. Tầm nhìn mạng với Hubble (Cilium eBPF)
+
+Điểm khác biệt của hệ thống này so với các hệ thống monitoring thông thường là khả năng quan sát mạng tầng sâu:
+- **Lấy dữ liệu từ eBPF:** Hubble đọc trực tiếp từ nhân Linux hệ điều hành, cho phép nhìn thấy mọi gói tin mà không cần cài đặt thêm "sidecar" vào từng Pod приложения.
+- **DNS Visibility:** Theo dõi độ trễ của các truy vấn DNS. Nếu ứng dụng của bạn không kết nối được Database, bạn sẽ biết ngay là do lỗi Code hay lỗi DNS.
+- **Policy Enforcement:** Prometheus sẽ báo động (`HighNetworkDropRate`) nếu phát hiện một lượng lớn gói tin bị "Drop" bởi quy tắc bảo mật mạng.
+
+---
+
+## 🛠️ 5. Vận hành & Xử lý sự cố (Troubleshooting)
+
+### Thứ tự triển khai chuẩn (POC Order):
+1. `kubectl apply -f storage-class.yaml` (Nếu chưa có).
+2. `cd kube_state_metrics/ && kubectl apply -f .`
+3. `cd ../node_exporter/ && kubectl apply -f .`
+4. `cd ../prometheus/ && kubectl apply -f .`
+5. `cd ../alert_manager/ && kubectl apply -f .`
+6. `cd ../grafana/ && kubectl apply -f .`
+
+### Các lỗi thường gặp và cách xử lý:
+- **Pod bị "Pending":** Kiểm tra `kubectl get pvc -n monitoring`. Nếu PVC chưa ở trạng thái `Bound`, nghĩa là Storage Class chưa hỗ trợ cấp phát động.
+- **Metric không hiển thị trên Dashboard:** 
+    - Kiểm tra `Targets` trong Prometheus (`kubectl port-forward svc/prometheus 9090 -n monitoring`).
+    - Đảm bảo Pod `node-exporter` hoặc `KSM` đang ở trạng thái `Running`.
+- **Alertmanager không bắn tin nhắn:** Kiểm tra `logs` của Pod Alertmanager xem có lỗi `401 Unauthorized` (Sai Token Bot) hoặc lỗi mạng.
+
+---
+*Tài liệu này được soạn thảo chuyên sâu phục vụ riêng cho mục đích triển khai POC Monitoring High-Availability.*

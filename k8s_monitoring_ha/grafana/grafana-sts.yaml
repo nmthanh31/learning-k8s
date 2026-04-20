@@ -1,10 +1,11 @@
+# Grafana được triển khai dưới dạng StatefulSet để đảm bảo các plugin và dữ liệu cấu hình Local được lưu trữ bền vững.
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: grafana
   namespace: monitoring
 spec:
-  replicas: 2
+  replicas: 1 # Trong POC chạy 1 Pod. Hệ thống đã sẵn sàng Scale-out nhờ sử dụng Database Postgres bên ngoài.
   serviceName: "grafana"
   selector:
     matchLabels:
@@ -14,12 +15,15 @@ spec:
       labels:
         app: grafana
     spec:
+      # Cấp quyền cho user 'grafana' (ID 472) truy cập vào Volume lưu trữ
       securityContext:
         fsGroup: 472
+ 
+      # Chính sách phân tán Pod để tránh rủi ro mất toàn bộ dịch vụ khi một Node vật lý chết
       affinity:
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
-            - weight: 100
+            - weight: 100 # Ưu tiên tối đa việc tách Pod sang Node khác
               podAffinityTerm:
                 labelSelector:
                   matchExpressions:
@@ -28,15 +32,20 @@ spec:
                       values:
                         - grafana
                 topologyKey: "kubernetes.io/hostname"
+ 
       containers:
         - name: grafana
+          # Chạy container với định danh người dùng chuẩn của Grafana để tăng độ bảo mật
           securityContext:
             runAsUser: 472
             runAsGroup: 472
-          image: grafana/grafana:10.0.0
+          image: grafana/grafana:13.0 # Sử dụng phiên bản mới nhất để Demo các tính năng hiện đại
           ports:
-            - containerPort: 3000
+            - containerPort: 3000 # Cổng giao diện Web mặc định
+          
+          # Cấu hình môi trường cho Grafana (Environment Variables)
           env:
+            # Lấy mật khẩu Admin từ Secret (Không bao giờ ghi trực tiếp vào Manifest)
             - name: GF_SECURITY_ADMIN_PASSWORD
               valueFrom:
                 secretKeyRef:
@@ -44,10 +53,12 @@ spec:
                   key: GF_SECURITY_ADMIN_PASSWORD
             - name: GF_SECURITY_ADMIN_USER
               value: "admin"
+            
+            # KẾT NỐI DATABASE NGOÀI: Tăng tính HA cho Grafana
             - name: GF_DATABASE_TYPE
               value: "postgres"
             - name: GF_DATABASE_HOST
-              value: "postgres-ha-rw:5432"
+              value: "postgres-ha-rw:5432" # Kết nối với cụm Postgres HA (Primary node)
             - name: GF_DATABASE_NAME
               value: "grafana"
             - name: GF_DATABASE_USER
@@ -57,39 +68,44 @@ spec:
                 secretKeyRef:
                   name: grafana-secret
                   key: GF_DATABASE_PASSWORD
+          
+          # Tài nguyên giới hạn để bảo vệ Cluster
           resources:
             requests:
-              cpu: "100m"
-              memory: "128Mi"
+              cpu: 200m
+              memory: 512Mi
             limits:
-              cpu: "150m"
-              memory: "200Mi"
-
-          # Kiểm tra Grafana đã sẵn sàng phục vụ chưa
+              cpu: 500m
+              memory: 1Gi
+ 
+          # Kiểm tra Grafana đã sẵn sàng phục vụ chưa (API check)
           readinessProbe:
             httpGet:
               path: /api/health
               port: 3000
             initialDelaySeconds: 10
             periodSeconds: 10
-
-          # Kiểm tra Grafana còn hoạt động hay đã bị treo
+ 
+          # Tự động restart Pod nếu Grafana bị treo logic bên trong
           livenessProbe:
             httpGet:
               path: /api/health
               port: 3000
             initialDelaySeconds: 30
             periodSeconds: 15
+ 
           volumeMounts:
             - name: grafana-storage
-              mountPath: /var/lib/grafana
+              mountPath: /var/lib/grafana # Nơi lưu trữ plugins và session (Nếu không dùng DB)
             - name: provisioning
-              mountPath: /etc/grafana/provisioning/datasources
+              mountPath: /etc/grafana/provisioning/datasources # Tự động nạp Prometheus làm Datasource
               readOnly: true
       volumes:
         - name: provisioning
           configMap:
-            name: grafana-provisioning
+            name: grafana-provisioning # Lấy từ file grafana-provisioning.yaml
+ 
+  # Cấp phát ổ đĩa cứng tự động cho Grafana
   volumeClaimTemplates:
     - metadata:
         name: grafana-storage

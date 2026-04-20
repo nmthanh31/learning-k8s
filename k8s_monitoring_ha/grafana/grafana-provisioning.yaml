@@ -1,3 +1,5 @@
+# ConfigMap Provisioning: Tự động hóa việc cấu hình Grafana (Infrastructure-as-Code).
+# Giúp Grafana có sẵn nguồn dữ liệu Prometheus ngay khi vừa khởi động xong mà không cần cài đặt thủ công.
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -7,11 +9,11 @@ data:
   datasources.yaml: |
     apiVersion: 1
     datasources:
-      - name: Prometheus-HA
+      - name: Prometheus-HA # Tên hiển thị trên giao diện Grafana
         type: prometheus
-        url: http://prometheus:9090
-        access: proxy
-        isDefault: true
-        editable: true
+        url: http://prometheus:9090 # Đường dẫn Service nội bộ của Prometheus
+        access: proxy                # Grafana server sẽ thực hiện query thay cho trình duyệt (Bảo mật)
+        isDefault: true              # Đặt làm nguồn dữ liệu mặc định cho mọi Dashboard
+        editable: true               # Cho phép chỉnh sửa thông số qua giao diện nếu cần
         jsonData:
-          httpMethod: POST
+          httpMethod: POST           # Sử dụng HTTP POST để có thể gửi các query PromQL dài và phức tạp
