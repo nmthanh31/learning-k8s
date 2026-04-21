@@ -12,12 +12,10 @@ data:
 
     # Cấu hình "Định tuyến" (Routing Tree): Quan trọng nhất để phân phối cảnh báo.
     route:
-      group_by: ['alertname', 'severity'] # Gom nhóm các cảnh báo giống nhau để tránh bắn tin nhắn rác (spam)
-      group_wait: 30s        # Chờ 30 giây để gom các cảnh báo phát sinh cùng lúc
-      group_interval: 5m     # Thời gian chờ trước khi gửi tiếp các cảnh báo mới trong cùng một nhóm
-      repeat_interval: 4h    # Khoảng thời gian gửi lại cảnh báo nếu vấn đề vẫn chưa được xử lý (4 giờ gửi 1 lần)
-      
-      # Gửi toàn bộ cảnh báo về receiver mặc định là Telegram
+      group_by: ['alertname', 'cluster', 'severity']
+      group_wait: 1m
+      group_interval: 5m
+      repeat_interval: 2h
       receiver: telegram
 
     # Định nghĩa các "Đầu nhận" (Receivers)

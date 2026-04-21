@@ -102,4 +102,4 @@ spec:
         storageClassName: "monitoring-storage" # Class ổ đĩa (Cần thay đổi theo Storage thực tế của bạn)
         resources:
           requests:
-            storage: 1Gi # Dung lượng ổ đĩa khởi tạo cho mỗi Pod
+            storage: 5Gi # Dung lượng ổ đĩa khởi tạo cho mỗi Pod
