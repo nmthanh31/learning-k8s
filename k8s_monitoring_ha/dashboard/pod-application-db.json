@@ -83,7 +83,7 @@
             },
             "options": {
               "colorMode": "value",
-              "graphMode": "area",
+              "graphMode": "none",
               "justifyMode": "center",
               "orientation": "auto",
               "percentChangeColorMode": "standard",
@@ -121,7 +121,8 @@
                     "group": "prometheus",
                     "kind": "DataQuery",
                     "spec": {
-                      "expr": "topk(10, sum(rate(container_cpu_usage_seconds_total{namespace=\"$namespace\", pod=~\"$pod\", container!=\"\"}[5m])) by (pod) / (sum(kube_pod_container_resource_limits{namespace=\"$namespace\", pod=~\"$pod\", resource=\"cpu\"}) by (pod) > 0) * 100)",
+                      "editorMode": "code",
+                      "expr": "sum(rate(container_cpu_usage_seconds_total{namespace=\"$namespace\", container!=\"POD\"}[$__range])) by (pod)\r\n/\r\nsum(kube_pod_container_resource_limits{namespace=\"$namespace\", resource=\"cpu\"}) by (pod)\r\n* 100",
                       "legendFormat": "{{pod}}",
                       "range": true
                     },
@@ -138,7 +139,7 @@
         "description": "",
         "id": 6,
         "links": [],
-        "title": "🔥 Top 10 CPU Saturation (%)",
+        "title": "🔥 CPU Usage (%)",
         "vizConfig": {
           "group": "bargauge",
           "kind": "VizConfig",
@@ -219,7 +220,8 @@
                     "group": "prometheus",
                     "kind": "DataQuery",
                     "spec": {
-                      "expr": "sum(rate(container_cpu_usage_seconds_total{namespace=\"$namespace\", container!=\"\"}[5m])) / (sum(kube_pod_container_resource_limits{namespace=\"$namespace\", resource=\"cpu\"}) > 0) * 100",
+                      "editorMode": "code",
+                      "expr": "sum(rate(container_cpu_usage_seconds_total{namespace=\"$namespace\", container!=\"\"}[$__range])) / (sum(kube_pod_container_resource_limits{namespace=\"$namespace\", resource=\"cpu\"}) > 0) * 100",
                       "range": true
                     },
                     "version": "v0"
@@ -316,6 +318,7 @@
                     "group": "prometheus",
                     "kind": "DataQuery",
                     "spec": {
+                      "editorMode": "code",
                       "expr": "sum(container_memory_working_set_bytes{namespace=\"$namespace\", container!=\"\"}) / (sum(kube_pod_container_resource_limits{namespace=\"$namespace\", resource=\"memory\"}) > 0) * 100",
                       "range": true
                     },
@@ -689,7 +692,8 @@
                     "group": "prometheus",
                     "kind": "DataQuery",
                     "spec": {
-                      "expr": "topk(10, sum(container_memory_working_set_bytes{namespace=\"$namespace\", pod=~\"$pod\", container!=\"\"}) by (pod) / (sum(kube_pod_container_resource_limits{namespace=\"$namespace\", pod=~\"$pod\", resource=\"memory\"}) by (pod) > 0) * 100)",
+                      "editorMode": "code",
+                      "expr": "sum(container_memory_working_set_bytes{namespace=\"$namespace\", pod=~\"$pod\", container!=\"\"}) by (pod)\r\n/\r\n(sum(kube_pod_container_resource_limits{namespace=\"$namespace\", pod=~\"$pod\", resource=\"memory\"}) by (pod) > 0)\r\n* 100",
                       "legendFormat": "{{pod}}",
                       "range": true
                     },
@@ -706,7 +710,7 @@
         "description": "",
         "id": 7,
         "links": [],
-        "title": "🧠 Top 10 Memory Saturation (%)",
+        "title": "🧠 Memory Usage (%)",
         "vizConfig": {
           "group": "bargauge",
           "kind": "VizConfig",
@@ -1598,15 +1602,15 @@
     "timezone": "browser",
     "to": "now"
   },
-  "title": "🚀 Pod & Service Observatory [Premium SRE]",
+  "title": "Namespace - Pod",
   "variables": [
     {
       "kind": "QueryVariable",
       "spec": {
         "allowCustomValue": true,
         "current": {
-          "text": "elk-dung",
-          "value": "elk-dung"
+          "text": "monitoring",
+          "value": "monitoring"
         },
         "definition": "label_values(kube_pod_info, namespace)",
         "hide": "dontHide",
@@ -1639,7 +1643,9 @@
         "allValue": ".*",
         "allowCustomValue": true,
         "current": {
-          "text": "All",
+          "text": [
+            "All"
+          ],
           "value": [
             "$__all"
           ]

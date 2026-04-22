@@ -534,8 +534,10 @@
                     "group": "prometheus",
                     "kind": "DataQuery",
                     "spec": {
-                      "expr": "topk(10, sum(rate(container_cpu_usage_seconds_total{job=\"kubelet-cadvisor\", container!=\"\"}[5m])) by (pod, namespace))",
-                      "format": "table"
+                      "editorMode": "code",
+                      "expr": "topk(10, sum(rate(container_cpu_usage_seconds_total{job=\"kubelet-cadvisor\", container!=\"\"}[$__range])) by (pod, namespace))",
+                      "format": "table",
+                      "range": true
                     },
                     "version": "v0"
                   },
@@ -544,7 +546,23 @@
               }
             ],
             "queryOptions": {},
-            "transformations": []
+            "transformations": [
+              {
+                "group": "sortBy",
+                "kind": "Transformation",
+                "spec": {
+                  "options": {
+                    "fields": {},
+                    "sort": [
+                      {
+                        "desc": true,
+                        "field": "Time"
+                      }
+                    ]
+                  }
+                }
+              }
+            ]
           }
         },
         "description": "",
@@ -610,8 +628,10 @@
                     "group": "prometheus",
                     "kind": "DataQuery",
                     "spec": {
+                      "editorMode": "code",
                       "expr": "topk(10, sum(container_memory_working_set_bytes{job=\"kubelet-cadvisor\", container!=\"\"}) by (pod, namespace))",
-                      "format": "table"
+                      "format": "table",
+                      "range": true
                     },
                     "version": "v0"
                   },
@@ -620,7 +640,23 @@
               }
             ],
             "queryOptions": {},
-            "transformations": []
+            "transformations": [
+              {
+                "group": "sortBy",
+                "kind": "Transformation",
+                "spec": {
+                  "options": {
+                    "fields": {},
+                    "sort": [
+                      {
+                        "desc": true,
+                        "field": "Time"
+                      }
+                    ]
+                  }
+                }
+              }
+            ]
           }
         },
         "description": "",
@@ -846,7 +882,7 @@
                       "editorMode": "code",
                       "expr": "sum by (persistentvolumeclaim) (kubelet_volume_stats_capacity_bytes{job=\"kubelet\"})",
                       "format": "table",
-                      "range": true
+                      "range": false
                     },
                     "version": "v0"
                   },
@@ -913,18 +949,46 @@
                 "spec": {
                   "options": {
                     "excludeByName": {
+                      "Time 2": true,
+                      "Time 3": true,
                       "Value": true,
                       "instance": true,
                       "job": true,
                       "node": true,
                       "pod": true
                     },
+                    "includeByName": {},
+                    "indexByName": {
+                      "Time 1": 1,
+                      "Time 2": 4,
+                      "Time 3": 5,
+                      "Value #Cap": 3,
+                      "Value #Pct": 6,
+                      "Value #Used": 2,
+                      "persistentvolumeclaim": 0
+                    },
                     "renameByName": {
+                      "Time 1": "",
                       "Value #Cap": "Total Capacity",
                       "Value #Pct": "Utilization",
                       "Value #Used": "Used Space",
                       "persistentvolumeclaim": "PVC Name"
                     }
+                  }
+                }
+              },
+              {
+                "group": "sortBy",
+                "kind": "Transformation",
+                "spec": {
+                  "options": {
+                    "fields": {},
+                    "sort": [
+                      {
+                        "desc": true,
+                        "field": "Time 1"
+                      }
+                    ]
                   }
                 }
               }
@@ -1006,6 +1070,18 @@
                     {
                       "id": "unit",
                       "value": "decbytes"
+                    }
+                  ]
+                },
+                {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "PVC Name"
+                  },
+                  "properties": [
+                    {
+                      "id": "custom.width",
+                      "value": 348
                     }
                   ]
                 }
@@ -1687,6 +1763,427 @@
           "version": "13.0.1"
         }
       }
+    },
+    "panel-pvc-bound": {
+      "kind": "Panel",
+      "spec": {
+        "data": {
+          "kind": "QueryGroup",
+          "spec": {
+            "queries": [
+              {
+                "kind": "PanelQuery",
+                "spec": {
+                  "hidden": false,
+                  "query": {
+                    "datasource": {
+                      "name": "P5F3E870C62180F52"
+                    },
+                    "group": "prometheus",
+                    "kind": "DataQuery",
+                    "spec": {
+                      "expr": "sum(kube_persistentvolumeclaim_status_phase{job=\"kube-state-metrics\", phase=\"Bound\"})",
+                      "range": true
+                    },
+                    "version": "v0"
+                  },
+                  "refId": "A"
+                }
+              }
+            ],
+            "queryOptions": {},
+            "transformations": []
+          }
+        },
+        "id": 2005,
+        "title": "✅ Bound PVCs",
+        "vizConfig": {
+          "group": "stat",
+          "kind": "VizConfig",
+          "spec": {
+            "fieldConfig": {
+              "defaults": {
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": 0
+                    }
+                  ]
+                }
+              },
+              "overrides": []
+            },
+            "options": {
+              "colorMode": "background",
+              "graphMode": "none",
+              "justifyMode": "center",
+              "textMode": "value"
+            }
+          },
+          "version": "13.0.1"
+        }
+      }
+    },
+    "panel-pvc-pending": {
+      "kind": "Panel",
+      "spec": {
+        "data": {
+          "kind": "QueryGroup",
+          "spec": {
+            "queries": [
+              {
+                "kind": "PanelQuery",
+                "spec": {
+                  "hidden": false,
+                  "query": {
+                    "datasource": {
+                      "name": "P5F3E870C62180F52"
+                    },
+                    "group": "prometheus",
+                    "kind": "DataQuery",
+                    "spec": {
+                      "expr": "sum(kube_persistentvolumeclaim_status_phase{job=\"kube-state-metrics\", phase=\"Pending\"}) or vector(0)",
+                      "range": true
+                    },
+                    "version": "v0"
+                  },
+                  "refId": "A"
+                }
+              }
+            ],
+            "queryOptions": {},
+            "transformations": []
+          }
+        },
+        "id": 2006,
+        "title": "⏳ Pending PVCs (Unplaced)",
+        "vizConfig": {
+          "group": "stat",
+          "kind": "VizConfig",
+          "spec": {
+            "fieldConfig": {
+              "defaults": {
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "yellow",
+                      "value": 0
+                    },
+                    {
+                      "color": "orange",
+                      "value": 1
+                    }
+                  ]
+                }
+              },
+              "overrides": []
+            },
+            "options": {
+              "colorMode": "background",
+              "graphMode": "none",
+              "justifyMode": "center",
+              "textMode": "value"
+            }
+          },
+          "version": "13.0.1"
+        }
+      }
+    },
+    "panel-pvc-lost": {
+      "kind": "Panel",
+      "spec": {
+        "data": {
+          "kind": "QueryGroup",
+          "spec": {
+            "queries": [
+              {
+                "kind": "PanelQuery",
+                "spec": {
+                  "hidden": false,
+                  "query": {
+                    "datasource": {
+                      "name": "P5F3E870C62180F52"
+                    },
+                    "group": "prometheus",
+                    "kind": "DataQuery",
+                    "spec": {
+                      "expr": "sum(kube_persistentvolumeclaim_status_phase{job=\"kube-state-metrics\", phase=\"Lost\"}) or vector(0)",
+                      "range": true
+                    },
+                    "version": "v0"
+                  },
+                  "refId": "A"
+                }
+              }
+            ],
+            "queryOptions": {},
+            "transformations": []
+          }
+        },
+        "id": 2007,
+        "title": "❌ Lost PVCs (Critical)",
+        "vizConfig": {
+          "group": "stat",
+          "kind": "VizConfig",
+          "spec": {
+            "fieldConfig": {
+              "defaults": {
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "red",
+                      "value": 0
+                    }
+                  ]
+                }
+              },
+              "overrides": []
+            },
+            "options": {
+              "colorMode": "background",
+              "graphMode": "none",
+              "justifyMode": "center",
+              "textMode": "value"
+            }
+          },
+          "version": "13.0.1"
+        }
+      }
+    },
+    "panel-pvc-inodes": {
+      "kind": "Panel",
+      "spec": {
+        "data": {
+          "kind": "QueryGroup",
+          "spec": {
+            "queries": [
+              {
+                "kind": "PanelQuery",
+                "spec": {
+                  "hidden": false,
+                  "query": {
+                    "datasource": {
+                      "name": "P5F3E870C62180F52"
+                    },
+                    "group": "prometheus",
+                    "kind": "DataQuery",
+                    "spec": {
+                      "expr": "max(kubelet_volume_stats_inodes_used / kubelet_volume_stats_inodes) * 100 or vector(0)",
+                      "range": true
+                    },
+                    "version": "v0"
+                  },
+                  "refId": "A"
+                }
+              }
+            ],
+            "queryOptions": {},
+            "transformations": []
+          }
+        },
+        "id": 2008,
+        "title": "⚠️ Peak Inode Usage %",
+        "vizConfig": {
+          "group": "stat",
+          "kind": "VizConfig",
+          "spec": {
+            "fieldConfig": {
+              "defaults": {
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": 0
+                    },
+                    {
+                      "color": "orange",
+                      "value": 75
+                    },
+                    {
+                      "color": "red",
+                      "value": 90
+                    }
+                  ]
+                },
+                "unit": "percent"
+              },
+              "overrides": []
+            },
+            "options": {
+              "colorMode": "value",
+              "graphMode": "none",
+              "justifyMode": "center",
+              "textMode": "auto"
+            }
+          },
+          "version": "13.0.1"
+        }
+      }
+    },
+    "panel-pvc-ns-distribution": {
+      "kind": "Panel",
+      "spec": {
+        "data": {
+          "kind": "QueryGroup",
+          "spec": {
+            "queries": [
+              {
+                "kind": "PanelQuery",
+                "spec": {
+                  "hidden": false,
+                  "query": {
+                    "datasource": {
+                      "name": "P5F3E870C62180F52"
+                    },
+                    "group": "prometheus",
+                    "kind": "DataQuery",
+                    "spec": {
+                      "expr": "sum(kubelet_volume_stats_used_bytes) by (namespace)",
+                      "legendFormat": "{{namespace}}",
+                      "range": true
+                    },
+                    "version": "v0"
+                  },
+                  "refId": "A"
+                }
+              }
+            ],
+            "queryOptions": {},
+            "transformations": []
+          }
+        },
+        "id": 2009,
+        "title": "🏷️ Storage by Namespace",
+        "vizConfig": {
+          "group": "bargauge",
+          "kind": "VizConfig",
+          "spec": {
+            "fieldConfig": {
+              "defaults": {
+                "unit": "bytes"
+              },
+              "overrides": []
+            },
+            "options": {
+              "displayMode": "gradient",
+              "orientation": "horizontal"
+            }
+          },
+          "version": "13.0.1"
+        }
+      }
+    },
+    "panel-pvc-health-pie": {
+      "kind": "Panel",
+      "spec": {
+        "data": {
+          "kind": "QueryGroup",
+          "spec": {
+            "queries": [
+              {
+                "kind": "PanelQuery",
+                "spec": {
+                  "hidden": false,
+                  "query": {
+                    "datasource": {
+                      "name": "P5F3E870C62180F52"
+                    },
+                    "group": "prometheus",
+                    "kind": "DataQuery",
+                    "spec": {
+                      "expr": "sum by (phase) (kube_persistentvolumeclaim_status_phase)",
+                      "legendFormat": "{{phase}}",
+                      "range": true
+                    },
+                    "version": "v0"
+                  },
+                  "refId": "A"
+                }
+              }
+            ],
+            "queryOptions": {},
+            "transformations": []
+          }
+        },
+        "id": 2010,
+        "title": "🩺 Claims Health Distribution",
+        "vizConfig": {
+          "group": "piechart",
+          "kind": "VizConfig",
+          "spec": {
+            "fieldConfig": {
+              "defaults": {
+                "color": {
+                  "mode": "palette-classic"
+                }
+              },
+              "overrides": [
+                {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "Bound"
+                  },
+                  "properties": [
+                    {
+                      "id": "color",
+                      "value": {
+                        "fixedColor": "green",
+                        "mode": "fixed"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "Pending"
+                  },
+                  "properties": [
+                    {
+                      "id": "color",
+                      "value": {
+                        "fixedColor": "orange",
+                        "mode": "fixed"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "Lost"
+                  },
+                  "properties": [
+                    {
+                      "id": "color",
+                      "value": {
+                        "fixedColor": "red",
+                        "mode": "fixed"
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            "options": {
+              "displayLabels": [
+                "percent",
+                "name"
+              ],
+              "legend": {
+                "displayMode": "list",
+                "placement": "right"
+              }
+            }
+          },
+          "version": "13.0.1"
+        }
+      }
     }
   },
   "layout": {
@@ -1942,12 +2439,90 @@
                     "spec": {
                       "element": {
                         "kind": "ElementReference",
-                        "name": "panel-2001"
+                        "name": "panel-pvc-bound"
                       },
-                      "height": 7,
-                      "width": 24,
+                      "height": 4,
+                      "width": 3,
                       "x": 0,
                       "y": 0
+                    }
+                  },
+                  {
+                    "kind": "GridLayoutItem",
+                    "spec": {
+                      "element": {
+                        "kind": "ElementReference",
+                        "name": "panel-pvc-pending"
+                      },
+                      "height": 4,
+                      "width": 3,
+                      "x": 3,
+                      "y": 0
+                    }
+                  },
+                  {
+                    "kind": "GridLayoutItem",
+                    "spec": {
+                      "element": {
+                        "kind": "ElementReference",
+                        "name": "panel-pvc-lost"
+                      },
+                      "height": 4,
+                      "width": 3,
+                      "x": 6,
+                      "y": 0
+                    }
+                  },
+                  {
+                    "kind": "GridLayoutItem",
+                    "spec": {
+                      "element": {
+                        "kind": "ElementReference",
+                        "name": "panel-pvc-inodes"
+                      },
+                      "height": 4,
+                      "width": 3,
+                      "x": 9,
+                      "y": 0
+                    }
+                  },
+                  {
+                    "kind": "GridLayoutItem",
+                    "spec": {
+                      "element": {
+                        "kind": "ElementReference",
+                        "name": "panel-pvc-ns-distribution"
+                      },
+                      "height": 4,
+                      "width": 6,
+                      "x": 12,
+                      "y": 0
+                    }
+                  },
+                  {
+                    "kind": "GridLayoutItem",
+                    "spec": {
+                      "element": {
+                        "kind": "ElementReference",
+                        "name": "panel-pvc-health-pie"
+                      },
+                      "height": 4,
+                      "width": 6,
+                      "x": 18,
+                      "y": 0
+                    }
+                  },
+                  {
+                    "kind": "GridLayoutItem",
+                    "spec": {
+                      "element": {
+                        "kind": "ElementReference",
+                        "name": "panel-2001"
+                      },
+                      "height": 8,
+                      "width": 24,
+                      "x": 0,
+                      "y": 4
                     }
                   }
                 ]
@@ -1981,11 +2556,11 @@
       "1d"
     ],
     "fiscalYearStartMonth": 0,
-    "from": "now-5m",
+    "from": "now-1h",
     "hideTimepicker": false,
     "timezone": "browser",
     "to": "now"
   },
-  "title": "K8s Infrastructure - VISUAL OBSERVATION",
+  "title": "K8s Infrastructure -Final",
   "variables": []
 }
