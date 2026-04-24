@@ -1,0 +1,1106 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CKA Intensive · Phần 2: Tuần 9–16</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Barlow:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #080b10;
+  --bg2: #0c1018;
+  --card: #0f1520;
+  --card2: #141c2a;
+  --border: #1a2540;
+  --border2: #243050;
+  --cyan: #00e5ff;
+  --orange: #ff7043;
+  --green: #69ff47;
+  --yellow: #ffe57f;
+  --purple: #b388ff;
+  --red: #ff5252;
+  --text: #dce6f5;
+  --dim: #5a7090;
+  --muted: #2a3850;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;line-height:1.6;overflow-x:hidden}
+body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(255,112,67,0.01) 2px,rgba(255,112,67,0.01) 4px);pointer-events:none;z-index:999}
+body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(circle,rgba(255,112,67,0.06) 1px,transparent 1px);background-size:28px 28px;pointer-events:none;z-index:0}
+.wrap{max-width:1080px;margin:0 auto;padding:0 20px;position:relative;z-index:1}
+
+.hero{padding:56px 0 48px;border-bottom:1px solid var(--border)}
+.part-badge{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--orange);letter-spacing:3px;text-transform:uppercase;margin-bottom:18px;display:flex;align-items:center;gap:10px}
+.part-badge::before{content:'';width:32px;height:1px;background:var(--orange)}
+.hero h1{font-size:clamp(38px,6vw,72px);font-weight:800;line-height:1.05;font-family:'Rajdhani',sans-serif;letter-spacing:-1px;margin-bottom:12px}
+.hero h1 em{font-style:normal;color:var(--orange)}
+.hero h1 s{text-decoration:none;color:var(--green)}
+.tagline{font-size:15px;color:var(--dim);font-family:'JetBrains Mono',monospace;max-width:580px;margin-bottom:28px}
+.stat-bar{display:flex;gap:0;border:1px solid var(--border2);overflow:hidden;width:fit-content;margin-top:24px}
+.stat{padding:12px 24px;border-right:1px solid var(--border2);background:var(--card)}
+.stat:last-child{border-right:none}
+.stat-n{font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;color:var(--orange);display:block}
+.stat-l{font-size:11px;color:var(--dim);letter-spacing:1.5px;text-transform:uppercase;display:block;margin-top:2px}
+
+.sticky-nav{position:sticky;top:0;z-index:100;background:rgba(8,11,16,0.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:10px 0}
+.nav-inner{display:flex;gap:4px;overflow-x:auto;padding:0 20px}
+.nav-inner::-webkit-scrollbar{display:none}
+.nav-btn{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;padding:6px 14px;border:1px solid transparent;background:transparent;cursor:pointer;white-space:nowrap;text-decoration:none;transition:.2s}
+.nav-btn:hover{color:var(--orange);border-color:rgba(255,112,67,0.3);background:rgba(255,112,67,0.05)}
+
+.week-section{margin:0;border-bottom:1px solid var(--border)}
+.week-header{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:20px;padding:28px 24px;cursor:pointer;background:var(--bg2);transition:background .2s;user-select:none}
+.week-header:hover{background:var(--card)}
+.wk-num{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:var(--bg);background:var(--wk-color,var(--orange));padding:6px 14px;letter-spacing:1px}
+.wk-meta{display:flex;flex-direction:column;gap:3px}
+.wk-title{font-size:19px;font-weight:700;font-family:'Rajdhani',sans-serif;letter-spacing:.3px}
+.wk-subtitle{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--dim)}
+.wk-badges{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.badge{font-family:'JetBrains Mono',monospace;font-size:10px;padding:3px 9px;letter-spacing:1px;text-transform:uppercase;border:1px solid}
+.toggle-icon{font-size:18px;color:var(--dim);transition:transform .3s;padding-right:4px}
+.week-section.open .toggle-icon{transform:rotate(180deg)}
+.week-body{display:none;background:var(--bg)}
+.week-section.open .week-body{display:block}
+
+.theory-block{background:var(--card);border:1px solid var(--border2);border-top:2px solid var(--cyan);padding:20px;margin:0}
+.theory-title{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--cyan);letter-spacing:2px;text-transform:uppercase;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.theory-title::after{content:'';flex:1;height:1px;background:var(--border2)}
+.theory-points{display:flex;flex-direction:column;gap:8px}
+.tp{display:flex;gap:12px;font-size:13px;color:var(--dim);line-height:1.5}
+.tp-mark{color:var(--cyan);font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;flex-shrink:0;padding-top:1px}
+
+.labs-block{background:rgba(105,255,71,0.03);border:1px solid rgba(105,255,71,0.12);border-top:2px solid var(--green);padding:20px;margin-top:0}
+.labs-title{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--green);letter-spacing:2px;text-transform:uppercase;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.labs-title::after{content:'';flex:1;height:1px;background:rgba(105,255,71,0.15)}
+.lab-item{display:flex;gap:12px;margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--muted)}
+.lab-item:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
+.lab-n{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--orange);font-weight:700;min-width:26px;padding-top:1px}
+.lab-body{flex:1}
+.lab-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:5px}
+.lab-desc{font-size:12px;color:var(--dim);line-height:1.55;margin-bottom:6px}
+.lab-steps{list-style:none;display:flex;flex-direction:column;gap:3px}
+.lab-steps li{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--green);padding-left:14px;position:relative;line-height:1.5}
+.lab-steps li::before{content:'$';position:absolute;left:0;color:var(--orange)}
+.lab-verify{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--yellow);margin-top:6px;padding:4px 8px;background:rgba(255,229,127,0.05);border:1px solid rgba(255,229,127,0.1)}
+.lab-verify::before{content:'✓ verify: '}
+
+.warn-block{background:rgba(255,82,82,0.06);border:1px solid rgba(255,82,82,0.2);border-left:3px solid var(--red);padding:12px 16px;margin:12px 0;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--dim)}
+.warn-block strong{color:var(--red)}
+
+.code-block{background:#040608;border:1px solid var(--border);border-left:3px solid var(--orange);padding:14px 18px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--green);margin:12px 0;overflow-x:auto;line-height:1.9}
+.co{color:var(--dim)}.ck{color:var(--cyan)}.cv{color:var(--orange)}
+
+.week-summary{background:var(--card2);border-top:1px solid var(--border);padding:20px 24px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px}
+.sum-block h5{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px}
+.sum-block.theory h5{color:var(--cyan)}.sum-block.practice h5{color:var(--green)}.sum-block.goal h5{color:var(--yellow)}
+.sum-items{display:flex;flex-direction:column;gap:4px}
+.sum-item{font-size:12px;color:var(--dim);padding-left:10px;position:relative}
+.sum-item::before{content:'·';position:absolute;left:0;font-weight:700}
+.sum-block.theory .sum-item::before{color:var(--cyan)}.sum-block.practice .sum-item::before{color:var(--green)}.sum-block.goal .sum-item::before{color:var(--yellow)}
+
+.phase-divider{padding:48px 0 24px;text-align:center;position:relative}
+.phase-divider::before{content:'';position:absolute;left:0;right:0;top:50%;height:1px;background:var(--border)}
+.phase-inner{display:inline-flex;align-items:center;gap:16px;background:var(--bg);padding:0 24px;position:relative}
+.phase-label{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--dim)}
+.phase-name{font-family:'Rajdhani',sans-serif;font-size:22px;font-weight:700;color:var(--ph-color,var(--orange))}
+
+.checkpoint{background:linear-gradient(135deg,rgba(255,112,67,0.06),rgba(105,255,71,0.04));border:1px solid var(--border2);border-left:4px solid var(--orange);padding:24px 28px;margin:24px 0}
+.cp-title{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--orange);letter-spacing:2px;text-transform:uppercase;margin-bottom:14px}
+.cp-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.cp-item{display:flex;gap:8px;font-size:13px;color:var(--dim)}
+.cp-check{color:var(--green);font-weight:700;flex-shrink:0}
+
+/* SCENARIO blocks for troubleshooting */
+.scenario{background:rgba(255,82,82,0.04);border:1px solid rgba(255,82,82,0.15);padding:16px 20px;margin-bottom:14px}
+.scenario-head{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.scenario-tag{font-family:'JetBrains Mono',monospace;font-size:10px;padding:3px 8px;background:rgba(255,82,82,0.15);color:var(--red);letter-spacing:1px;text-transform:uppercase}
+.scenario-title{font-size:13px;font-weight:700;color:var(--text)}
+.scenario-steps{display:flex;flex-direction:column;gap:6px}
+.ss{display:flex;gap:8px;font-size:12px;color:var(--dim)}
+.ss-n{font-family:'JetBrains Mono',monospace;color:var(--red);font-size:11px;font-weight:700;flex-shrink:0;min-width:20px}
+.fix-tag{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--green);background:rgba(105,255,71,0.08);padding:2px 6px;margin-top:2px}
+
+/* EXAM day block */
+.exam-day{background:var(--card);border:1px solid var(--border2);padding:20px;margin-bottom:16px}
+.exam-day-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--muted)}
+.ed-title{font-family:'Rajdhani',sans-serif;font-size:16px;font-weight:700}
+.ed-time{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--dim)}
+.exam-tasks{display:flex;flex-direction:column;gap:8px}
+.et{display:flex;gap:10px;font-size:13px;color:var(--dim)}
+.et-pts{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--yellow);min-width:36px;padding-top:2px;font-weight:700}
+
+@media(max-width:640px){
+  .week-summary{grid-template-columns:1fr}
+  .cp-grid{grid-template-columns:1fr}
+  .stat-bar{flex-wrap:wrap}
+}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+<div class="hero">
+  <div class="part-badge">CKA INTENSIVE ROADMAP</div>
+  <h1>Phần <em>02</em><br>Tuần <s>9</s> đến <s>16</s></h1>
+  <div class="tagline">// Cluster Admin → etcd → Troubleshooting → Mock Exams<br>// Giai đoạn quyết định. Nặng nhất. Quan trọng nhất.</div>
+  <div class="stat-bar">
+    <div class="stat"><span class="stat-n">8</span><span class="stat-l">Tuần</span></div>
+    <div class="stat"><span class="stat-n">140+</span><span class="stat-l">Bài lab</span></div>
+    <div class="stat"><span class="stat-n">30</span><span class="stat-l">Scenarios</span></div>
+    <div class="stat"><span class="stat-n">4</span><span class="stat-l">Mock Exams</span></div>
+  </div>
+</div>
+</div>
+
+<div class="sticky-nav">
+  <div class="nav-inner">
+    <a class="nav-btn" href="cka-part1.html" style="color:var(--cyan)">← Phần 1</a>
+    <a class="nav-btn" href="#w9">W9</a>
+    <a class="nav-btn" href="#w10">W10</a>
+    <a class="nav-btn" href="#w11">W11</a>
+    <a class="nav-btn" href="#w12">W12</a>
+    <a class="nav-btn" href="#w13">W13</a>
+    <a class="nav-btn" href="#w14">W14</a>
+    <a class="nav-btn" href="#w15">W15</a>
+    <a class="nav-btn" href="#w16">W16</a>
+  </div>
+</div>
+
+<div class="wrap">
+
+<!-- PHASE 3 DIVIDER -->
+<div class="phase-divider">
+  <div class="phase-inner">
+    <span class="phase-label">Phase 03 ·</span>
+    <span class="phase-name" style="--ph-color:#ff5252">CLUSTER ADMIN</span>
+    <span class="phase-label">· Tuần 9–12</span>
+  </div>
+</div>
+
+<!-- ══ WEEK 9 ══ -->
+<div class="week-section open" id="w9">
+  <div class="week-header" onclick="toggleWeek(this)">
+    <span class="wk-num" style="--wk-color:#ff5252">W09</span>
+    <div class="wk-meta">
+      <div class="wk-title">Cluster Installation với kubeadm</div>
+      <div class="wk-subtitle">// kubeadm init · join · CNI · kubelet config · cluster from scratch</div>
+    </div>
+    <div class="wk-badges">
+      <span class="badge" style="color:#ff5252;border-color:rgba(255,82,82,0.3)">CLUSTER ADMIN</span>
+      <span class="badge" style="color:#69ff47;border-color:rgba(105,255,71,0.3)">14 LABS</span>
+    </div>
+    <span class="toggle-icon">▾</span>
+  </div>
+  <div class="week-body">
+    <div class="theory-block">
+      <div class="theory-title">Lý thuyết tuần 9 — kubeadm workflow</div>
+      <div class="theory-points">
+        <div class="tp"><span class="tp-mark">01</span><span><strong>kubeadm init phases:</strong> preflight → certs → kubeconfig → kubelet-start → control-plane → etcd → upload-config → upload-certs → mark-control-plane → bootstrap-token → addons. Mỗi phase có thể chạy riêng.</span></div>
+        <div class="tp"><span class="tp-mark">02</span><span><strong>kubeadm join:</strong> Worker node dùng bootstrap token để join. Token expire sau 24h mặc định. Tạo token mới: kubeadm token create --print-join-command.</span></div>
+        <div class="tp"><span class="tp-mark">03</span><span><strong>CNI (Container Network Interface):</strong> Phải cài sau kubeadm init. Phổ biến: Flannel (simple), Calico (NetworkPolicy support), Weave. Nodes NotReady cho đến khi cài CNI.</span></div>
+        <div class="tp"><span class="tp-mark">04</span><span><strong>Certificate rotation:</strong> kubeadm certs check-expiration. kubeadm certs renew all. Các cert trong /etc/kubernetes/pki/ expire sau 1 năm mặc định.</span></div>
+        <div class="tp"><span class="tp-mark">05</span><span><strong>kubelet configuration:</strong> /etc/kubernetes/kubelet.conf (kubeconfig cho kubelet), /var/lib/kubelet/config.yaml (kubelet config). Restart: systemctl restart kubelet sau khi thay đổi.</span></div>
+      </div>
+    </div>
+    <div class="labs-block">
+      <div class="labs-title">14 Labs — Cluster Installation</div>
+
+      <div class="lab-item">
+        <span class="lab-n">L01–L04</span>
+        <div class="lab-body">
+          <div class="lab-title">Build Cluster từ đầu với kubeadm</div>
+          <div class="lab-desc">Dùng multipass hoặc vagrant tạo 3 VMs (1 control-plane + 2 workers), cài cluster hoàn chỉnh.</div>
+          <ul class="lab-steps">
+            <li># Trên TẤT CẢ nodes: cài containerd, kubeadm, kubelet, kubectl</li>
+            <li>swapoff -a && disable swap in /etc/fstab</li>
+            <li>kubeadm init --pod-network-cidr=192.168.0.0/16 --apiserver-advertise-address=MASTER_IP</li>
+            <li>mkdir -p $HOME/.kube && cp /etc/kubernetes/admin.conf $HOME/.kube/config</li>
+            <li>kubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/.../calico.yaml</li>
+            <li>kubeadm join MASTER_IP:6443 --token ... --discovery-token-ca-cert-hash sha256:...</li>
+          </ul>
+          <div class="lab-verify">k get nodes → 3 nodes Status=Ready</div>
+        </div>
+      </div>
+
+      <div class="lab-item">
+        <span class="lab-n">L05–L07</span>
+        <div class="lab-body">
+          <div class="lab-title">Token & Join Command Management</div>
+          <div class="lab-desc">Quản lý bootstrap tokens.</div>
+          <ul class="lab-steps">
+            <li>kubeadm token list   # xem tokens đang có</li>
+            <li>kubeadm token create --print-join-command   # tạo token mới</li>
+            <li>kubeadm token create --ttl=2h   # token expire sau 2h</li>
+            <li>k get secret -n kube-system | grep bootstrap-token</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="lab-item">
+        <span class="lab-n">L08–L10</span>
+        <div class="lab-body">
+          <div class="lab-title">Certificate Management</div>
+          <div class="lab-desc">Check, renew certificates.</div>
+          <ul class="lab-steps">
+            <li>kubeadm certs check-expiration</li>
+            <li>openssl x509 -in /etc/kubernetes/pki/apiserver.crt -noout -dates</li>
+            <li>kubeadm certs renew apiserver</li>
+            <li>systemctl restart kubelet</li>
+          </ul>
+          <div class="lab-verify">Cert expiry date thay đổi sang +1 năm</div>
+        </div>
+      </div>
+
+      <div class="lab-item">
+        <span class="lab-n">L11–L14</span>
+        <div class="lab-body">
+          <div class="lab-title">kubelet Config & Troubleshoot</div>
+          <div class="lab-desc">Modify kubelet config, debug kubelet failures.</div>
+          <ul class="lab-steps">
+            <li>cat /var/lib/kubelet/config.yaml   # xem config</li>
+            <li>journalctl -u kubelet -f   # follow logs realtime</li>
+            <li>Simulate fail: rename kubelet binary, check node status</li>
+            <li>systemctl status kubelet → failed. Fix → systemctl restart kubelet</li>
+          </ul>
+          <div class="lab-verify">Node status thay đổi: Ready ↔ NotReady theo kubelet state</div>
+        </div>
+      </div>
+    </div>
+    <div class="week-summary">
+      <div class="sum-block theory"><h5>Lý thuyết</h5><div class="sum-items"><div class="sum-item">kubeadm init phases</div><div class="sum-item">CNI requirement</div><div class="sum-item">Certificate files</div></div></div>
+      <div class="sum-block practice"><h5>14 labs</h5><div class="sum-items"><div class="sum-item">Cluster from scratch</div><div class="sum-item">Token management</div><div class="sum-item">Cert renewal</div></div></div>
+      <div class="sum-block goal"><h5>Mục tiêu</h5><div class="sum-items"><div class="sum-item">Cài cluster &lt;30 phút</div><div class="sum-item">Fix kubelet failures</div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ WEEK 10 ══ -->
+<div class="week-section" id="w10">
+  <div class="week-header" onclick="toggleWeek(this)">
+    <span class="wk-num" style="--wk-color:#ff7043">W10</span>
+    <div class="wk-meta">
+      <div class="wk-title">Cluster Upgrade & etcd Backup/Restore</div>
+      <div class="wk-subtitle">// kubeadm upgrade · drain · etcdctl snapshot · restore procedure</div>
+    </div>
+    <div class="wk-badges">
+      <span class="badge" style="color:#ff7043;border-color:rgba(255,112,67,0.3)">CRITICAL EXAM</span>
+      <span class="badge" style="color:#69ff47;border-color:rgba(105,255,71,0.3)">16 LABS</span>
+    </div>
+    <span class="toggle-icon">▾</span>
+  </div>
+  <div class="week-body">
+    <div class="theory-block">
+      <div class="theory-title">Lý thuyết tuần 10 — phải thuộc lòng</div>
+      <div class="theory-points">
+        <div class="tp"><span class="tp-mark">01</span><span><strong>Upgrade order:</strong> Luôn upgrade control-plane TRƯỚC worker nodes. Không được skip minor version (1.28 → 1.29 → 1.30, không nhảy 1.28 → 1.30). Upgrade từng node một.</span></div>
+        <div class="tp"><span class="tp-mark">02</span><span><strong>Upgrade procedure per node:</strong> (1) drain node, (2) apt install kubeadm=new-version, (3) kubeadm upgrade apply/node, (4) apt install kubelet=kubectl=new-version, (5) restart kubelet, (6) uncordon node.</span></div>
+        <div class="tp"><span class="tp-mark">03</span><span><strong>etcd backup:</strong> Dùng etcdctl với TLS certs. Phải specify đúng endpoints, cacert, cert, key. Snapshot file là binary, không đọc được trực tiếp.</span></div>
+        <div class="tp"><span class="tp-mark">04</span><span><strong>etcd restore procedure:</strong> (1) snapshot restore → new data-dir, (2) edit etcd static pod manifest: --data-dir=new-path, (3) etcd pod tự restart, (4) verify cluster healthy.</span></div>
+      </div>
+    </div>
+
+    <div class="code-block">
+<span class="co"># ═══ CLUSTER UPGRADE — CONTROL PLANE ═══</span>
+<span class="co"># 1. Drain control-plane</span>
+<span class="ck">kubectl</span> drain controlplane <span class="cv">--ignore-daemonsets --delete-emptydir-data</span>
+
+<span class="co"># 2. Install new kubeadm</span>
+apt-mark unhold kubeadm
+apt install -y kubeadm=<span class="cv">1.29.0-00</span>
+apt-mark hold kubeadm
+
+<span class="co"># 3. Verify and apply</span>
+kubeadm upgrade plan
+kubeadm upgrade apply <span class="cv">v1.29.0</span>
+
+<span class="co"># 4. Install new kubelet + kubectl</span>
+apt-mark unhold kubelet kubectl
+apt install -y kubelet=<span class="cv">1.29.0-00</span> kubectl=<span class="cv">1.29.0-00</span>
+apt-mark hold kubelet kubectl
+systemctl daemon-reload && systemctl restart kubelet
+
+<span class="co"># 5. Uncordon</span>
+kubectl uncordon controlplane
+
+<span class="co"># ═══ ETCD BACKUP ═══</span>
+ETCDCTL_API=3 etcdctl snapshot save <span class="cv">/opt/backup/etcd-$(date +%F).db</span> \
+  --endpoints=https://127.0.0.1:2379 \
+  --cacert=/etc/kubernetes/pki/etcd/ca.crt \
+  --cert=/etc/kubernetes/pki/etcd/server.crt \
+  --key=/etc/kubernetes/pki/etcd/server.key
+
+<span class="co"># ═══ ETCD RESTORE ═══</span>
+ETCDCTL_API=3 etcdctl snapshot restore <span class="cv">/opt/backup/etcd-2024-01-01.db</span> \
+  --data-dir=<span class="cv">/var/lib/etcd-restore</span>
+
+<span class="co"># Edit static pod manifest</span>
+vi /etc/kubernetes/manifests/etcd.yaml
+<span class="co"># Change: --data-dir=/var/lib/etcd → --data-dir=/var/lib/etcd-restore</span>
+<span class="co"># Also update hostPath volume to match new data-dir</span>
+    </div>
+
+    <div class="warn-block"><strong>⚠ HAY RA THI:</strong> Sau restore, phải sửa CẢ HAI chỗ trong etcd.yaml: --data-dir flag VÀ volumes.hostPath.path. Nếu chỉ sửa 1 → etcd không start!</div>
+
+    <div class="labs-block">
+      <div class="labs-title">16 Labs — Upgrade & Backup</div>
+
+      <div class="lab-item">
+        <span class="lab-n">L01–L05</span>
+        <div class="lab-body">
+          <div class="lab-title">Full Cluster Upgrade 1.28 → 1.29</div>
+          <div class="lab-desc">Upgrade toàn bộ cluster, từng node một theo đúng quy trình.</div>
+          <ul class="lab-steps">
+            <li>Tạo deployment 3 replicas, verify sau upgrade vẫn chạy</li>
+            <li>Upgrade control-plane: drain → kubeadm upgrade apply → kubelet restart → uncordon</li>
+            <li>Upgrade worker1: drain → kubeadm upgrade node → kubelet restart → uncordon</li>
+            <li>Upgrade worker2: tương tự</li>
+            <li>k get nodes -o wide → tất cả VERSION=v1.29.0</li>
+          </ul>
+          <div class="lab-verify">All nodes: Ready, VERSION=v1.29.0. Deployment vẫn running với 3 replicas.</div>
+        </div>
+      </div>
+
+      <div class="lab-item">
+        <span class="lab-n">L06–L09</span>
+        <div class="lab-body">
+          <div class="lab-title">etcd Backup & Restore — Full Cycle</div>
+          <div class="lab-desc">Backup → tạo thêm resources → restore → verify rollback.</div>
+          <ul class="lab-steps">
+            <li>Tạo 5 deployments: web1, web2, web3, db1, cache1</li>
+            <li>Backup etcd: etcdctl snapshot save /opt/backup/before.db ...</li>
+            <li>Xóa web3, web4 deployments (simulate disaster)</li>
+            <li>Tạo thêm deployment "new-app" (sau backup)</li>
+            <li>Restore: etcdctl snapshot restore /opt/backup/before.db --data-dir=/var/lib/etcd-restore</li>
+            <li>Edit /etc/kubernetes/manifests/etcd.yaml → data-dir mới</li>
+            <li>Chờ etcd restart → k get deploy → web1-5 có, new-app không có</li>
+          </ul>
+          <div class="lab-verify">State khôi phục về đúng thời điểm backup. new-app (tạo sau backup) biến mất.</div>
+        </div>
+      </div>
+
+      <div class="lab-item">
+        <span class="lab-n">L10–L12</span>
+        <div class="lab-body">
+          <div class="lab-title">etcd Snapshot Verification</div>
+          <div class="lab-desc">Verify integrity của backup file.</div>
+          <ul class="lab-steps">
+            <li>ETCDCTL_API=3 etcdctl snapshot status /opt/backup/before.db --write-out=table</li>
+            <li>Xem: Hash, Revision, Total Keys, Total Size</li>
+            <li>Tạo corrupt backup (truncate file), verify → error message rõ ràng</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="lab-item">
+        <span class="lab-n">L13–L16</span>
+        <div class="lab-body">
+          <div class="lab-title">etcd trên external node (Multi-node etcd)</div>
+          <div class="lab-desc">Backup khi etcd ở node khác (common CKA scenario).</div>
+          <ul class="lab-steps">
+            <li>k get pods -n kube-system etcd-* -o yaml | grep -- --listen-client-urls</li>
+            <li>Xác định etcd endpoint từ static pod manifest</li>
+            <li>SSH vào etcd node, thực hiện backup với đúng certs</li>
+            <li>Copy snapshot về control-plane node cho restore</li>
+          </ul>
+          <div class="lab-verify">Backup từ node khác vẫn restore được trên control-plane node</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="week-summary">
+      <div class="sum-block theory"><h5>Lý thuyết</h5><div class="sum-items"><div class="sum-item">Upgrade version order</div><div class="sum-item">etcd data-dir restore</div></div></div>
+      <div class="sum-block practice"><h5>16 labs</h5><div class="sum-items"><div class="sum-item">Full cluster upgrade</div><div class="sum-item">etcd backup/restore cycle</div><div class="sum-item">Snapshot verification</div></div></div>
+      <div class="sum-block goal"><h5>Mục tiêu</h5><div class="sum-items"><div class="sum-item">etcd restore không tra docs</div><div class="sum-item">Upgrade trong 20 phút</div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ WEEK 11 ══ -->
+<div class="week-section" id="w11">
+  <div class="week-header" onclick="toggleWeek(this)">
+    <span class="wk-num" style="--wk-color:#ffe57f">W11</span>
+    <div class="wk-meta">
+      <div class="wk-title">Troubleshooting — Node & Control Plane</div>
+      <div class="wk-subtitle">// node failures · control plane components · kubelet · scheduler · controller</div>
+    </div>
+    <div class="wk-badges">
+      <span class="badge" style="color:#ff5252;border-color:rgba(255,82,82,0.3)">30% EXAM</span>
+      <span class="badge" style="color:#69ff47;border-color:rgba(105,255,71,0.3)">18 SCENARIOS</span>
+    </div>
+    <span class="toggle-icon">▾</span>
+  </div>
+  <div class="week-body">
+    <div class="theory-block">
+      <div class="theory-title">Debug methodology — Luôn theo thứ tự này</div>
+      <div class="theory-points">
+        <div class="tp"><span class="tp-mark">①</span><span><strong>Xác định scope:</strong> Vấn đề ở cluster level (node) hay app level (pod)? kubectl get nodes → kubectl get pods -A</span></div>
+        <div class="tp"><span class="tp-mark">②</span><span><strong>Node issues:</strong> kubectl describe node → Conditions. SSH vào node → systemctl status kubelet → journalctl -u kubelet --since "5m ago"</span></div>
+        <div class="tp"><span class="tp-mark">③</span><span><strong>Control plane issues:</strong> kubectl get pods -n kube-system → kubectl logs POD -n kube-system. Static pods: ls /etc/kubernetes/manifests/</span></div>
+        <div class="tp"><span class="tp-mark">④</span><span><strong>App issues:</strong> kubectl describe pod → Events section là vàng. kubectl logs pod → kubectl logs pod --previous. kubectl get events --sort-by=.lastTimestamp</span></div>
+      </div>
+    </div>
+
+    <div class="labs-block">
+      <div class="labs-title">18 Troubleshooting Scenarios</div>
+
+      <div class="scenario">
+        <div class="scenario-head">
+          <span class="scenario-tag">SCN 01</span>
+          <span class="scenario-title">Node NotReady — kubelet crashed</span>
+        </div>
+        <div class="scenario-steps">
+          <div class="ss"><span class="ss-n">inject</span><span>systemctl stop kubelet trên worker1</span></div>
+          <div class="ss"><span class="ss-n">symptom</span><span>k get nodes → worker1: NotReady. Pods trên đó: Unknown</span></div>
+          <div class="ss"><span class="ss-n">debug</span><span>k describe node worker1 → Conditions: Ready False. SSH worker1: systemctl status kubelet → inactive (dead)</span></div>
+          <div class="ss"><span class="ss-n">fix</span><span>systemctl start kubelet → systemctl enable kubelet</span></div>
+          <span class="fix-tag">Verify: k get nodes → worker1 Ready trong ~60s</span>
+        </div>
+      </div>
+
+      <div class="scenario">
+        <div class="scenario-head">
+          <span class="scenario-tag">SCN 02</span>
+          <span class="scenario-title">Node NotReady — network plugin down</span>
+        </div>
+        <div class="scenario-steps">
+          <div class="ss"><span class="ss-n">inject</span><span>k delete ds calico-node -n kube-system (hoặc tên CNI plugin DS)</span></div>
+          <div class="ss"><span class="ss-n">symptom</span><span>k get nodes → NotReady sau vài phút. Pods không communicate được</span></div>
+          <div class="ss"><span class="ss-n">debug</span><span>k describe node → NetworkPluginNotReady. k get pods -n kube-system → CNI pods missing</span></div>
+          <div class="ss"><span class="ss-n">fix</span><span>Reinstall CNI: kubectl apply -f calico.yaml</span></div>
+        </div>
+      </div>
+
+      <div class="scenario">
+        <div class="scenario-head">
+          <span class="scenario-tag">SCN 03</span>
+          <span class="scenario-title">kube-scheduler down — Pods Pending</span>
+        </div>
+        <div class="scenario-steps">
+          <div class="ss"><span class="ss-n">inject</span><span>mv /etc/kubernetes/manifests/kube-scheduler.yaml /tmp/ (disable static pod)</span></div>
+          <div class="ss"><span class="ss-n">symptom</span><span>Deploy mới tạo → pods Pending mãi không schedule</span></div>
+          <div class="ss"><span class="ss-n">debug</span><span>k get pods -n kube-system → kube-scheduler pod missing. k describe pod pending-pod → "0/2 nodes are available: 2 node(s) had scheduling errors"</span></div>
+          <div class="ss"><span class="ss-n">fix</span><span>mv /tmp/kube-scheduler.yaml /etc/kubernetes/manifests/ → scheduler restores</span></div>
+          <span class="fix-tag">Verify: Pending pods tự schedule sau vài giây</span>
+        </div>
+      </div>
+
+      <div class="scenario">
+        <div class="scenario-head">
+          <span class="scenario-tag">SCN 04</span>
+          <span class="scenario-title">kube-apiserver down — kubectl not responding</span>
+        </div>
+        <div class="scenario-steps">
+          <div class="ss"><span class="ss-n">inject</span><span>Edit /etc/kubernetes/manifests/kube-apiserver.yaml: add typo vào --etcd-servers flag</span></div>
+          <div class="ss"><span class="ss-n">symptom</span><span>kubectl get → "The connection to the server was refused"</span></div>
+          <div class="ss"><span class="ss-n">debug</span><span>SSH control-plane. crictl pods | grep apiserver. crictl logs APISERVER_POD_ID</span></div>
+          <div class="ss"><span class="ss-n">fix</span><span>Edit /etc/kubernetes/manifests/kube-apiserver.yaml → fix typo → chờ pod restart</span></div>
+          <span class="fix-tag">⚠ Phải dùng crictl (không dùng được kubectl khi apiserver down)</span>
+        </div>
+      </div>
+
+      <div class="scenario">
+        <div class="scenario-head">
+          <span class="scenario-tag">SCN 05</span>
+          <span class="scenario-title">etcd unhealthy</span>
+        </div>
+        <div class="scenario-steps">
+          <div class="ss"><span class="ss-n">inject</span><span>Edit etcd manifest: --initial-cluster-token typo</span></div>
+          <div class="ss"><span class="ss-n">symptom</span><span>kubectl get → slow/error. k get cs → etcd Unhealthy</span></div>
+          <div class="ss"><span class="ss-n">debug</span><span>crictl logs ETCD_CONTAINER. Xem error messages</span></div>
+          <div class="ss"><span class="ss-n">fix</span><span>Sửa lại manifest đúng → etcd restart</span></div>
+        </div>
+      </div>
+
+      <div class="scenario">
+        <div class="scenario-head">
+          <span class="scenario-tag">SCN 06–10</span>
+          <span class="scenario-title">Node disk pressure, memory pressure, PID pressure</span>
+        </div>
+        <div class="scenario-steps">
+          <div class="ss"><span class="ss-n">inject</span><span>dd if=/dev/zero of=/bigfile bs=1M count=10000 (fill disk)</span></div>
+          <div class="ss"><span class="ss-n">symptom</span><span>k describe node → Conditions: DiskPressure=True. Pods bị evict</span></div>
+          <div class="ss"><span class="ss-n">debug</span><span>df -h trên node. journalctl -u kubelet | grep evict</span></div>
+          <div class="ss"><span class="ss-n">fix</span><span>rm /bigfile → kubelet tự recover sau vài phút</span></div>
+        </div>
+      </div>
+
+      <div class="scenario">
+        <div class="scenario-head">
+          <span class="scenario-tag">SCN 11–18</span>
+          <span class="scenario-title">Mixed control plane failures — batch practice</span>
+        </div>
+        <div class="scenario-steps">
+          <div class="ss"><span class="ss-n">SCN 11</span><span>controller-manager down → Deployments không scale</span></div>
+          <div class="ss"><span class="ss-n">SCN 12</span><span>Wrong --kubeconfig path trong kubelet → node NotReady</span></div>
+          <div class="ss"><span class="ss-n">SCN 13</span><span>kube-proxy crash → Services không route traffic</span></div>
+          <div class="ss"><span class="ss-n">SCN 14</span><span>CoreDNS ConfigMap bị xóa → DNS failures</span></div>
+          <div class="ss"><span class="ss-n">SCN 15</span><span>Node certificate expired → kubelet authentication fails</span></div>
+          <div class="ss"><span class="ss-n">SCN 16</span><span>Wrong RBAC → ServiceAccount 403</span></div>
+          <div class="ss"><span class="ss-n">SCN 17</span><span>NetworkPolicy blocks all → apps can't talk</span></div>
+          <div class="ss"><span class="ss-n">SCN 18</span><span>PVC unbound → pod Pending</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="week-summary">
+      <div class="sum-block theory"><h5>Methodology</h5><div class="sum-items"><div class="sum-item">4-step debug process</div><div class="sum-item">crictl vs kubectl</div></div></div>
+      <div class="sum-block practice"><h5>18 scenarios</h5><div class="sum-items"><div class="sum-item">Node NotReady types</div><div class="sum-item">Control plane failures</div><div class="sum-item">Mixed failures</div></div></div>
+      <div class="sum-block goal"><h5>Mục tiêu</h5><div class="sum-items"><div class="sum-item">Identify root cause &lt;2 phút</div><div class="sum-item">Fix control plane &lt;5 phút</div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ WEEK 12 ══ -->
+<div class="week-section" id="w12">
+  <div class="week-header" onclick="toggleWeek(this)">
+    <span class="wk-num" style="--wk-color:#b388ff">W12</span>
+    <div class="wk-meta">
+      <div class="wk-title">Troubleshooting — Apps, Pods & Networking</div>
+      <div class="wk-subtitle">// pod failures · service debug · ingress 502 · DNS failures · persistent volume</div>
+    </div>
+    <div class="wk-badges">
+      <span class="badge" style="color:#b388ff;border-color:rgba(179,136,255,0.3)">APP DEBUG</span>
+      <span class="badge" style="color:#69ff47;border-color:rgba(105,255,71,0.3)">20 SCENARIOS</span>
+    </div>
+    <span class="toggle-icon">▾</span>
+  </div>
+  <div class="week-body">
+    <div class="labs-block">
+      <div class="labs-title">20 App & Network Troubleshooting Scenarios</div>
+
+      <div class="scenario">
+        <div class="scenario-head"><span class="scenario-tag">SCN 01</span><span class="scenario-title">CrashLoopBackOff — wrong command</span></div>
+        <div class="scenario-steps">
+          <div class="ss"><span class="ss-n">inject</span><span>Tạo pod với command: ["/bin/wrongcmd"]</span></div>
+          <div class="ss"><span class="ss-n">debug</span><span>k describe pod → Exit Code 127 (command not found). k logs pod --previous</span></div>
+          <div class="ss"><span class="ss-n">fix</span><span>k edit pod → sửa command đúng (phải delete + recreate pod)</span></div>
+        </div>
+      </div>
+
+      <div class="scenario">
+        <div class="scenario-head"><span class="scenario-tag">SCN 02</span><span class="scenario-title">CrashLoopBackOff — app exits immediately</span></div>
+        <div class="scenario-steps">
+          <div class="ss"><span class="ss-n">inject</span><span>Pod command: busybox, args: ["/bin/sh", "-c", "exit 1"]</span></div>
+          <div class="ss"><span class="ss-n">debug</span><span>k get pod → RESTARTS tăng. k logs pod → empty (exit ngay). k describe → Exit Code 1</span></div>
+          <div class="ss"><span class="ss-n">fix</span><span>Thêm "while true; do sleep 3600; done" → pod stays running</span></div>
+        </div>
+      </div>
+
+      <div class="scenario">
+        <div class="scenario-head"><span class="scenario-tag">SCN 03</span><span class="scenario-title">OOMKilled — memory limit too low</span></div>
+        <div class="scenario-steps">
+          <div class="ss"><span class="ss-n">inject</span><span>Pod limits.memory=20Mi, chạy app cần 100Mi</span></div>
+          <div class="ss"><span class="ss-n">debug</span><span>k describe pod → Last State: Terminated, Reason: OOMKilled, Exit Code 137</span></div>
+          <div class="ss"><span class="ss-n">fix</span><span>Tăng memory limit hoặc optimize app</span></div>
+          <span class="fix-tag">Exit Code 137 = OOMKill (128 + SIGKILL 9)</span>
+        </div>
+      </div>
+
+      <div class="scenario">
+        <div class="scenario-head"><span class="scenario-tag">SCN 04</span><span class="scenario-title">ImagePullBackOff — private registry</span></div>
+        <div class="scenario-steps">
+          <div class="ss"><span class="ss-n">inject</span><span>Pod với private image, không có imagePullSecrets</span></div>
+          <div class="ss"><span class="ss-n">debug</span><span>k describe pod → Failed to pull image: unauthorized</span></div>
+          <div class="ss"><span class="ss-n">fix</span><span>k create secret docker-registry regcred ... → thêm imagePullSecrets vào pod</span></div>
+        </div>
+      </div>
+
+      <div class="scenario">
+        <div class="scenario-head"><span class="scenario-tag">SCN 05–08</span><span class="scenario-title">Service không forward traffic — 4 scenarios</span></div>
+        <div class="scenario-steps">
+          <div class="ss"><span class="ss-n">SCN 05</span><span>Wrong selector (app=web-app vs app=webapp) → Endpoints empty → fix label</span></div>
+          <div class="ss"><span class="ss-n">SCN 06</span><span>Wrong targetPort (80 vs 8080) → Connection refused trong pod → fix port</span></div>
+          <div class="ss"><span class="ss-n">SCN 07</span><span>Service port mismatch → k get svc; k get ep; verify port chain</span></div>
+          <div class="ss"><span class="ss-n">SCN 08</span><span>Pod not ready (readiness probe fail) → not in Endpoints</span></div>
+          <span class="fix-tag">Debug flow: k get ep → k describe ep → k get pod -l selector → k describe pod</span>
+        </div>
+      </div>
+
+      <div class="scenario">
+        <div class="scenario-head"><span class="scenario-tag">SCN 09–12</span><span class="scenario-title">Ingress failures</span></div>
+        <div class="scenario-steps">
+          <div class="ss"><span class="ss-n">SCN 09</span><span>502 Bad Gateway: Ingress → backend service wrong port</span></div>
+          <div class="ss"><span class="ss-n">SCN 10</span><span>404 Not Found: path prefix wrong (/api vs /api/v1)</span></div>
+          <div class="ss"><span class="ss-n">SCN 11</span><span>TLS Error: Secret không có cert data đúng format</span></div>
+          <div class="ss"><span class="ss-n">SCN 12</span><span>Ingress không apply: Ingress Class không match controller</span></div>
+          <span class="fix-tag">Debug: k describe ingress → k logs ingress-controller-pod -n ingress-nginx</span>
+        </div>
+      </div>
+
+      <div class="scenario">
+        <div class="scenario-head"><span class="scenario-tag">SCN 13–16</span><span class="scenario-title">DNS failures</span></div>
+        <div class="scenario-steps">
+          <div class="ss"><span class="ss-n">SCN 13</span><span>DNS timeout: CoreDNS pod crash → k logs coredns -n kube-system</span></div>
+          <div class="ss"><span class="ss-n">SCN 14</span><span>Wrong namespace: curl web-svc (not web-svc.namespace) → 404</span></div>
+          <div class="ss"><span class="ss-n">SCN 15</span><span>CoreDNS ConfigMap wrong: edit ConfigMap, restart pods</span></div>
+          <div class="ss"><span class="ss-n">SCN 16</span><span>Pod dnsPolicy: None with wrong nameserver</span></div>
+        </div>
+      </div>
+
+      <div class="scenario">
+        <div class="scenario-head"><span class="scenario-tag">SCN 17–20</span><span class="scenario-title">Storage failures</span></div>
+        <div class="scenario-steps">
+          <div class="ss"><span class="ss-n">SCN 17</span><span>PVC Pending: no matching PV (size/accessMode mismatch) → fix PVC spec</span></div>
+          <div class="ss"><span class="ss-n">SCN 18</span><span>Pod Pending: PVC doesn't exist → create PVC first</span></div>
+          <div class="ss"><span class="ss-n">SCN 19</span><span>Volume ReadOnly: container write to readOnly mount → error in logs</span></div>
+          <div class="ss"><span class="ss-n">SCN 20</span><span>Wrong mount path → app can't find data files</span></div>
+          <span class="fix-tag">Debug: k describe pod → Volume mounts. k describe pvc → Conditions</span>
+        </div>
+      </div>
+    </div>
+    <div class="week-summary">
+      <div class="sum-block theory"><h5>Debug patterns</h5><div class="sum-items"><div class="sum-item">Exit codes meaning</div><div class="sum-item">Endpoint debug chain</div></div></div>
+      <div class="sum-block practice"><h5>20 scenarios</h5><div class="sum-items"><div class="sum-item">Pod crash types</div><div class="sum-item">Service 4 failure modes</div><div class="sum-item">Storage failures</div></div></div>
+      <div class="sum-block goal"><h5>Mục tiêu</h5><div class="sum-items"><div class="sum-item">App debug &lt;5 phút/scenario</div><div class="sum-item">Network debug systematic</div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- CHECKPOINT PHASE 3 -->
+<div class="checkpoint">
+  <div class="cp-title">✦ Checkpoint Phase 3 — Cuối tuần 12</div>
+  <div class="cp-grid">
+    <div class="cp-item"><span class="cp-check">✓</span>Build cluster từ đầu với kubeadm trong &lt;30 phút</div>
+    <div class="cp-item"><span class="cp-check">✓</span>etcd backup + restore không xem notes</div>
+    <div class="cp-item"><span class="cp-check">✓</span>Cluster upgrade 1 minor version hoàn chỉnh</div>
+    <div class="cp-item"><span class="cp-check">✓</span>Debug apiserver down dùng crictl</div>
+    <div class="cp-item"><span class="cp-check">✓</span>Fix 18 node/control-plane scenarios</div>
+    <div class="cp-item"><span class="cp-check">✓</span>Fix 20 app/network scenarios</div>
+    <div class="cp-item"><span class="cp-check">✓</span>Đọc exit code biết ngay nguyên nhân</div>
+    <div class="cp-item"><span class="cp-check">✓</span>Service debug: endpoints → selector → port chain</div>
+  </div>
+</div>
+
+<!-- PHASE 4 DIVIDER -->
+<div class="phase-divider">
+  <div class="phase-inner">
+    <span class="phase-label">Phase 04 ·</span>
+    <span class="phase-name" style="--ph-color:#69ff47">EXAM PREP</span>
+    <span class="phase-label">· Tuần 13–16</span>
+  </div>
+</div>
+
+<!-- ══ WEEK 13 ══ -->
+<div class="week-section" id="w13">
+  <div class="week-header" onclick="toggleWeek(this)">
+    <span class="wk-num" style="--wk-color:#00e5ff">W13</span>
+    <div class="wk-meta">
+      <div class="wk-title">Speed Drills & Gap Filling</div>
+      <div class="wk-subtitle">// timed challenges · weak area review · command muscle memory</div>
+    </div>
+    <div class="wk-badges">
+      <span class="badge" style="color:#00e5ff;border-color:rgba(0,229,255,0.3)">SPEED</span>
+      <span class="badge" style="color:#ffe57f;border-color:rgba(255,229,127,0.3)">TIMED</span>
+    </div>
+    <span class="toggle-icon">▾</span>
+  </div>
+  <div class="week-body">
+    <div class="theory-block">
+      <div class="theory-title">Exam Setup — Chạy ngay đầu buổi thi (mục tiêu &lt;60 giây)</div>
+      <div class="theory-points">
+        <div class="tp"><span class="tp-mark">①</span><span>alias k=kubectl và kubectl completion bash</span></div>
+        <div class="tp"><span class="tp-mark">②</span><span>export do="--dry-run=client -o yaml" → k run pod $do > pod.yaml</span></div>
+        <div class="tp"><span class="tp-mark">③</span><span>export now="--force --grace-period=0" → k delete pod name $now (xóa nhanh)</span></div>
+        <div class="tp"><span class="tp-mark">④</span><span>Đặt vim settings: :set expandtab tabstop=2 shiftwidth=2</span></div>
+      </div>
+    </div>
+
+    <div class="labs-block">
+      <div class="labs-title">Speed Drills — Mỗi task phải hoàn thành trong thời gian mục tiêu</div>
+
+      <div class="lab-item">
+        <span class="lab-n">DRILL 01</span>
+        <div class="lab-body">
+          <div class="lab-title">Pod với đầy đủ config — Mục tiêu: 4 phút</div>
+          <div class="lab-desc">Tạo pod: image=nginx:1.21, env từ secret, configmap, resource limit, liveness probe, nodeName</div>
+          <ul class="lab-steps">
+            <li>k run pod1 --image=nginx:1.21 $do > p.yaml</li>
+            <li>Vim edit: thêm resources, probes, env, nodeName</li>
+            <li>k apply -f p.yaml && k get pod pod1</li>
+          </ul>
+          <div class="lab-verify">Pod Running trong &lt;4 phút từ khi bắt đầu</div>
+        </div>
+      </div>
+
+      <div class="lab-item">
+        <span class="lab-n">DRILL 02</span>
+        <div class="lab-body">
+          <div class="lab-title">Deployment + Service + Ingress — Mục tiêu: 6 phút</div>
+          <div class="lab-desc">Full stack: deployment 3 replicas → ClusterIP service → Ingress path /app</div>
+          <ul class="lab-steps">
+            <li>k create deploy app --image=nginx --replicas=3 $do > d.yaml</li>
+            <li>k expose deploy app --port=80 $do > s.yaml</li>
+            <li>Viết Ingress YAML từ đầu (không template)</li>
+          </ul>
+          <div class="lab-verify">curl /app trả về nginx page trong &lt;6 phút</div>
+        </div>
+      </div>
+
+      <div class="lab-item">
+        <span class="lab-n">DRILL 03</span>
+        <div class="lab-body">
+          <div class="lab-title">RBAC full setup — Mục tiêu: 5 phút</div>
+          <div class="lab-desc">SA + Role (get/list pods,services) + RoleBinding + verify can-i</div>
+          <ul class="lab-steps">
+            <li>k create sa app-sa -n dev</li>
+            <li>k create role app-role --verb=get,list --resource=pods,services -n dev</li>
+            <li>k create rolebinding app-rb --role=app-role --serviceaccount=dev:app-sa -n dev</li>
+            <li>k auth can-i list pods --as=system:serviceaccount:dev:app-sa -n dev</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="lab-item">
+        <span class="lab-n">DRILL 04</span>
+        <div class="lab-body">
+          <div class="lab-title">PV + PVC + Pod mount — Mục tiêu: 5 phút</div>
+          <ul class="lab-steps">
+            <li>Tạo PV (hostPath 1Gi RWO Retain) từ YAML</li>
+            <li>Tạo PVC (500Mi RWO) → verify Bound</li>
+            <li>Deploy pod mount PVC → /data</li>
+            <li>exec: echo "test" > /data/f.txt</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="lab-item">
+        <span class="lab-n">DRILL 05</span>
+        <div class="lab-body">
+          <div class="lab-title">etcd backup + verify — Mục tiêu: 3 phút</div>
+          <div class="lab-desc">Backup etcd với đúng certs, verify snapshot</div>
+          <ul class="lab-steps">
+            <li>Tìm etcd certs path từ: k describe pod etcd-* -n kube-system</li>
+            <li>etcdctl snapshot save /opt/snap.db --endpoints... --cacert... --cert... --key...</li>
+            <li>etcdctl snapshot status /opt/snap.db --write-out=table</li>
+          </ul>
+          <div class="lab-verify">Snapshot status shows: hash, revision, keys — trong &lt;3 phút</div>
+        </div>
+      </div>
+
+      <div class="lab-item">
+        <span class="lab-n">DAILY DRILL</span>
+        <div class="lab-body">
+          <div class="lab-title">Lịch drill hàng ngày tuần 13</div>
+          <ul class="lab-steps">
+            <li>Thứ 2: Ôn pods + multi-container (30 phút speed)</li>
+            <li>Thứ 3: Ôn RBAC + SecurityContext (30 phút speed)</li>
+            <li>Thứ 4: Ôn etcd + upgrade procedure (45 phút)</li>
+            <li>Thứ 5: Ôn networking + NetworkPolicy (30 phút)</li>
+            <li>Thứ 6: Ôn troubleshooting scenarios (60 phút)</li>
+            <li>Thứ 7–CN: Random mix — sinh viên tự tạo scenario cho nhau</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="week-summary">
+      <div class="sum-block theory"><h5>Focus</h5><div class="sum-items"><div class="sum-item">Exam setup script</div><div class="sum-item">kubectl aliases</div></div></div>
+      <div class="sum-block practice"><h5>Drills</h5><div class="sum-items"><div class="sum-item">Timed challenges</div><div class="sum-item">Weak area review</div></div></div>
+      <div class="sum-block goal"><h5>Mục tiêu</h5><div class="sum-items"><div class="sum-item">Không tra docs cho 80% tasks</div><div class="sum-item">Setup môi trường &lt;60s</div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ WEEK 14 ══ -->
+<div class="week-section" id="w14">
+  <div class="week-header" onclick="toggleWeek(this)">
+    <span class="wk-num" style="--wk-color:#ff5252">W14</span>
+    <div class="wk-meta">
+      <div class="wk-title">Mock Exam #1 — killer.sh Simulation</div>
+      <div class="wk-subtitle">// full mock · time pressure · review · target weak spots</div>
+    </div>
+    <div class="wk-badges">
+      <span class="badge" style="color:#ff5252;border-color:rgba(255,82,82,0.3)">MOCK EXAM</span>
+      <span class="badge" style="color:#ffe57f;border-color:rgba(255,229,127,0.3)">2H LIMIT</span>
+    </div>
+    <span class="toggle-icon">▾</span>
+  </div>
+  <div class="week-body">
+    <div class="theory-block">
+      <div class="theory-title">Hướng dẫn làm mock exam</div>
+      <div class="theory-points">
+        <div class="tp"><span class="tp-mark">!</span><span><strong>Dùng killer.sh</strong> — tốt nhất, khó hơn thi thật, môi trường giống thật nhất. 2 session miễn phí khi đăng ký kỳ thi. Nếu chưa mua thi, dùng KillerCoda scenarios miễn phí.</span></div>
+        <div class="tp"><span class="tp-mark">!</span><span><strong>Quy tắc mock:</strong> Không mở notes cá nhân. Chỉ được dùng kubernetes.io/docs (như thi thật). Set timer 2 giờ. Không dừng giữa chừng.</span></div>
+        <div class="tp"><span class="tp-mark">!</span><span><strong>Sau mock:</strong> Review từng câu sai, hiểu tại sao sai, làm lại. Categorize: thiếu kiến thức vs thiếu tốc độ vs sai context/namespace.</span></div>
+      </div>
+    </div>
+
+    <div class="labs-block">
+      <div class="labs-title">Mock Exam Structure — 17 Tasks (~120 phút)</div>
+
+      <div class="exam-day">
+        <div class="exam-day-head">
+          <span class="ed-title">Thứ 2 — Mock Exam Run #1 (No time limit)</span>
+          <span class="ed-time">Không giới hạn thời gian — focus on accuracy</span>
+        </div>
+        <div class="exam-tasks">
+          <div class="et"><span class="et-pts">4%</span><span>Task: Scale deployment webapp to 5 replicas in namespace prod</span></div>
+          <div class="et"><span class="et-pts">5%</span><span>Task: Create NetworkPolicy deny-all, allow frontend→backend:8080</span></div>
+          <div class="et"><span class="et-pts">8%</span><span>Task: RBAC — create SA, Role (pods get/list/watch), RoleBinding</span></div>
+          <div class="et"><span class="et-pts">7%</span><span>Task: etcd backup to /opt/backup/etcd.db</span></div>
+          <div class="et"><span class="et-pts">6%</span><span>Task: Upgrade cluster control-plane to v1.29.x</span></div>
+          <div class="et"><span class="et-pts">4%</span><span>Task: Fix broken pod — liveness probe path wrong</span></div>
+          <div class="et"><span class="et-pts">7%</span><span>Task: PV 2Gi + PVC 1Gi + pod mount at /data</span></div>
+          <div class="et"><span class="et-pts">6%</span><span>Task: Static pod on node01, image=nginx, port=80</span></div>
+          <div class="et"><span class="et-pts">7%</span><span>Task: Ingress: host=app.example.com, /api → api-svc:8080</span></div>
+          <div class="et"><span class="et-pts">5%</span><span>Task: Node worker2 NotReady — find and fix issue</span></div>
+          <div class="et"><span class="et-pts">8%</span><span>Task: Create user 'john' cert, bind ClusterRole view</span></div>
+          <div class="et"><span class="et-pts">4%</span><span>Task: DaemonSet fluentd on all nodes (tolerate master)</span></div>
+          <div class="et"><span class="et-pts">7%</span><span>Task: Deployment with resource requests.cpu=200m, limits.cpu=500m</span></div>
+          <div class="et"><span class="et-pts">6%</span><span>Task: taint node01 env=prod:NoSchedule + toleration in pod</span></div>
+          <div class="et"><span class="et-pts">8%</span><span>Task: Fix app — pod connects to wrong service (wrong env var)</span></div>
+          <div class="et"><span class="et-pts">4%</span><span>Task: CronJob every 5 min, concurrencyPolicy=Forbid</span></div>
+          <div class="et"><span class="et-pts">5%</span><span>Task: ConfigMap from file, mount as volume</span></div>
+        </div>
+      </div>
+
+      <div class="exam-day">
+        <div class="exam-day-head">
+          <span class="ed-title">Thứ 3–4 — Review sâu từng câu sai</span>
+          <span class="ed-time">Mỗi câu sai: lý thuyết → làm lại → tự giải thích</span>
+        </div>
+        <div class="exam-tasks">
+          <div class="et"><span class="et-pts">Step 1</span><span>List tất cả câu sai/skip → nhóm theo domain (networking/storage/admin...)</span></div>
+          <div class="et"><span class="et-pts">Step 2</span><span>Đọc lại lý thuyết domain đó trong kubernetes.io/docs</span></div>
+          <div class="et"><span class="et-pts">Step 3</span><span>Làm lại câu đó từ đầu không nhìn solution</span></div>
+          <div class="et"><span class="et-pts">Step 4</span><span>Nếu vẫn sai → tìm labs tương tự trong phần 1-2, làm lại</span></div>
+        </div>
+      </div>
+
+      <div class="exam-day">
+        <div class="exam-day-head">
+          <span class="ed-title">Thứ 6–CN — Mock Run #2 (Full 2 giờ, strict)</span>
+          <span class="ed-time">Timer 2h, không dừng, simulate real exam</span>
+        </div>
+        <div class="exam-tasks">
+          <div class="et"><span class="et-pts">Target</span><span>Hoàn thành ≥80% tasks. Điểm ≥70/100.</span></div>
+          <div class="et"><span class="et-pts">Strategy</span><span>Đọc qua hết 17 câu (5 phút). Làm dễ trước. Flag khó. Quay lại.</span></div>
+          <div class="et"><span class="et-pts">Time</span><span>Average 5-6 phút/task. Câu etcd/upgrade cho 10-12 phút.</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="week-summary">
+      <div class="sum-block theory"><h5>Focus</h5><div class="sum-items"><div class="sum-item">Exam strategy</div><div class="sum-item">Time management</div></div></div>
+      <div class="sum-block practice"><h5>2 mock exams</h5><div class="sum-items"><div class="sum-item">Run #1: accuracy focus</div><div class="sum-item">Run #2: 2h timed</div></div></div>
+      <div class="sum-block goal"><h5>Mục tiêu</h5><div class="sum-items"><div class="sum-item">Mock #2: ≥70 điểm</div><div class="sum-item">Identify top 3 weak domains</div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ WEEK 15 ══ -->
+<div class="week-section" id="w15">
+  <div class="week-header" onclick="toggleWeek(this)">
+    <span class="wk-num" style="--wk-color:#69ff47">W15</span>
+    <div class="wk-meta">
+      <div class="wk-title">Mock Exam #2, #3 & Domain Deep Dives</div>
+      <div class="wk-subtitle">// targeted review · 2 more mock exams · weak spot elimination</div>
+    </div>
+    <div class="wk-badges">
+      <span class="badge" style="color:#69ff47;border-color:rgba(105,255,71,0.3)">MOCK #2 #3</span>
+      <span class="badge" style="color:#ffe57f;border-color:rgba(255,229,127,0.3)">TARGET ≥80</span>
+    </div>
+    <span class="toggle-icon">▾</span>
+  </div>
+  <div class="week-body">
+    <div class="labs-block">
+      <div class="labs-title">Lịch tuần 15 — Intensive Final Prep</div>
+
+      <div class="exam-day">
+        <div class="exam-day-head">
+          <span class="ed-title">Thứ 2–3 — Targeted Domain Review</span>
+          <span class="ed-time">Dựa theo mock #1 results — fix top 3 weak spots</span>
+        </div>
+        <div class="exam-tasks">
+          <div class="et"><span class="et-pts">2h</span><span>Domain yếu nhất: ôn lý thuyết + làm 10 labs liên tiếp không nghỉ</span></div>
+          <div class="et"><span class="et-pts">2h</span><span>Domain yếu thứ 2: tương tự</span></div>
+          <div class="et"><span class="et-pts">1h</span><span>Ôn lại etcd procedure (quan trọng nhất, hay mất điểm nhất)</span></div>
+        </div>
+      </div>
+
+      <div class="exam-day">
+        <div class="exam-day-head">
+          <span class="ed-title">Thứ 4 — Mock Exam #2 (2h strict)</span>
+          <span class="ed-time">killer.sh session 2 hoặc KillerCoda full scenario</span>
+        </div>
+        <div class="exam-tasks">
+          <div class="et"><span class="et-pts">Target</span><span>≥75 điểm. Hoàn thành trong 2h. Zero câu bỏ trống.</span></div>
+          <div class="et"><span class="et-pts">After</span><span>Immediate review: note câu nào hết thời gian, câu nào sai</span></div>
+        </div>
+      </div>
+
+      <div class="exam-day">
+        <div class="exam-day-head">
+          <span class="ed-title">Thứ 5–6 — Kubernetes.io/docs Navigation Speed</span>
+          <span class="ed-time">Tập tìm nhanh trong docs — &lt;60 giây mỗi topic</span>
+        </div>
+        <div class="exam-tasks">
+          <div class="et"><span class="et-pts">Topic 01</span><span>NetworkPolicy examples (tìm YAML example deny-all)</span></div>
+          <div class="et"><span class="et-pts">Topic 02</span><span>Static Pod manifest location & creation steps</span></div>
+          <div class="et"><span class="et-pts">Topic 03</span><span>kubeadm upgrade steps (exact commands)</span></div>
+          <div class="et"><span class="et-pts">Topic 04</span><span>RBAC Role YAML example (verbs + resources)</span></div>
+          <div class="et"><span class="et-pts">Topic 05</span><span>PersistentVolume YAML with access modes</span></div>
+          <div class="et"><span class="et-pts">Topic 06</span><span>Ingress TLS secret format</span></div>
+          <div class="et"><span class="et-pts">Topic 07</span><span>CronJob spec.schedule examples</span></div>
+          <div class="et"><span class="et-pts">Topic 08</span><span>Container securityContext runAsUser example</span></div>
+        </div>
+      </div>
+
+      <div class="exam-day">
+        <div class="exam-day-head">
+          <span class="ed-title">Thứ 7–CN — Mock Exam #3 + Full Day Review</span>
+          <span class="ed-time">Buổi sáng: Mock #3. Buổi chiều: review &amp; consolidate.</span>
+        </div>
+        <div class="exam-tasks">
+          <div class="et"><span class="et-pts">Target</span><span>Mock #3: ≥80 điểm. Đây là signal sẵn sàng thi.</span></div>
+          <div class="et"><span class="et-pts">Review</span><span>Viết "cheat sheet" cá nhân — các lệnh mình hay quên</span></div>
+          <div class="et"><span class="et-pts">Mental</span><span>Nếu đạt ≥80 → tự tin. Nếu dưới 70 → thêm 1 tuần ôn tập.</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="week-summary">
+      <div class="sum-block theory"><h5>Focus</h5><div class="sum-items"><div class="sum-item">Docs navigation speed</div><div class="sum-item">Cheat sheet creation</div></div></div>
+      <div class="sum-block practice"><h5>2 mock exams</h5><div class="sum-items"><div class="sum-item">Mock #2: target 75+</div><div class="sum-item">Mock #3: target 80+</div></div></div>
+      <div class="sum-block goal"><h5>Mục tiêu</h5><div class="sum-items"><div class="sum-item">Mock #3 ≥80 → sẵn sàng thi</div><div class="sum-item">Docs tìm kiếm &lt;60s/topic</div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ WEEK 16 ══ -->
+<div class="week-section" id="w16">
+  <div class="week-header" onclick="toggleWeek(this)">
+    <span class="wk-num" style="--wk-color:#ffe57f">W16</span>
+    <div class="wk-meta">
+      <div class="wk-title">Final Week — Ôn nhẹ & Ngày thi</div>
+      <div class="wk-subtitle">// light review · exam day checklist · mental prep · bookmarks</div>
+    </div>
+    <div class="wk-badges">
+      <span class="badge" style="color:#ffe57f;border-color:rgba(255,229,127,0.3)">EXAM WEEK</span>
+      <span class="badge" style="color:#ff5252;border-color:rgba(255,82,82,0.3)">GO TIME</span>
+    </div>
+    <span class="toggle-icon">▾</span>
+  </div>
+  <div class="week-body">
+    <div class="theory-block">
+      <div class="theory-title">Tuần cuối — KHÔNG học thêm mới</div>
+      <div class="theory-points">
+        <div class="tp"><span class="tp-mark">!</span><span><strong>Quy tắc tuần 16:</strong> Không học concept mới. Chỉ củng cố những gì đã biết. Học mới lúc này sẽ gây confusion trong phòng thi.</span></div>
+        <div class="tp"><span class="tp-mark">!</span><span><strong>Nghỉ ngơi:</strong> Ngày trước thi không làm lab nặng. Chỉ đọc nhẹ. Ngủ đủ giấc. Não cần recover để perform tốt.</span></div>
+        <div class="tp"><span class="tp-mark">!</span><span><strong>Bookmark sẵn:</strong> Trình duyệt mở sẵn kubernetes.io/docs. Biết bookmark: Tasks, Concepts, API Reference, Cheatsheet.</span></div>
+      </div>
+    </div>
+
+    <div class="labs-block">
+      <div class="labs-title">Lịch tuần thi</div>
+
+      <div class="exam-day">
+        <div class="exam-day-head">
+          <span class="ed-title">Thứ 2–3 — Light Review</span>
+          <span class="ed-time">30 phút/ngày — chỉ xem lại notes, không làm labs mới</span>
+        </div>
+        <div class="exam-tasks">
+          <div class="et"><span class="et-pts">Thứ 2</span><span>Xem lại cheat sheet cá nhân. Review etcd commands thuộc lòng chưa.</span></div>
+          <div class="et"><span class="et-pts">Thứ 3</span><span>Xem lại cluster upgrade steps. Review RBAC tạo SA+Role+Binding.</span></div>
+        </div>
+      </div>
+
+      <div class="exam-day">
+        <div class="exam-day-head">
+          <span class="ed-title">Trước ngày thi 1 ngày — Chuẩn bị môi trường</span>
+          <span class="ed-time">Kiểm tra kết nối, webcam, môi trường phòng thi</span>
+        </div>
+        <div class="exam-tasks">
+          <div class="et"><span class="et-pts">CHECK</span><span>Check kết nối internet stable. Test webcam + mic.</span></div>
+          <div class="et"><span class="et-pts">CHECK</span><span>Chuẩn bị ID (passport/CCCD). Phòng thi dọn sạch, không có tài liệu vật lý.</span></div>
+          <div class="et"><span class="et-pts">CHECK</span><span>Browser: Chrome/Chromium. Mở sẵn kubernetes.io/docs.</span></div>
+          <div class="et"><span class="et-pts">CHECK</span><span>Ngủ sớm, đủ 7-8 tiếng. Không thức khuya ôn thi.</span></div>
+        </div>
+      </div>
+
+      <div class="exam-day">
+        <div class="exam-day-head">
+          <span class="ed-title">NGÀY THI — Exam Day Protocol</span>
+          <span class="ed-time">2 giờ, ~17 tasks, open-book (kubernetes.io chỉ)</span>
+        </div>
+        <div class="exam-tasks">
+          <div class="et"><span class="et-pts">00:00</span><span>Vào exam, đọc hướng dẫn. Setup terminal: alias, completion, export vars.</span></div>
+          <div class="et"><span class="et-pts">00:05</span><span>Skim qua TẤT CẢ câu (đọc tên, ước tính thời gian). Flag câu khó/nhiều thời gian.</span></div>
+          <div class="et"><span class="et-pts">00:10</span><span>Bắt đầu từ câu dễ nhất. Mỗi câu đọc KỸ: cluster context, namespace, exact requirements.</span></div>
+          <div class="et"><span class="et-pts">~6 phút</span><span>Budget mỗi task. Nếu quá 6 phút chưa xong → flag, skip, quay lại cuối.</span></div>
+          <div class="et"><span class="et-pts">Verify</span><span>Sau mỗi task: k get [resource] để confirm đã tạo/sửa đúng.</span></div>
+          <div class="et"><span class="et-pts">01:45</span><span>Review flagged tasks. Còn 15 phút: không bắt đầu task mới quá phức tạp.</span></div>
+          <div class="et"><span class="et-pts">02:00</span><span>Done. Đợi kết quả trong 24-36 giờ.</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FINAL CHECKLISTS -->
+    <div style="background:rgba(105,255,71,0.04);border:1px solid rgba(105,255,71,0.15);border-top:3px solid var(--green);padding:24px;margin-top:0">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--green);letter-spacing:2px;text-transform:uppercase;margin-bottom:16px">☑ Final Mastery Checklist — Phải đánh dấu ✓ hết trước khi thi</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <div style="font-size:12px;color:var(--dim);padding-left:16px;position:relative"><span style="position:absolute;left:0;color:var(--green)">✓</span>Tạo pod với bất kỳ config &lt;3 phút không tra docs</div>
+        <div style="font-size:12px;color:var(--dim);padding-left:16px;position:relative"><span style="position:absolute;left:0;color:var(--green)">✓</span>Debug pod CrashLoop/Pending/OOMKilled &lt;3 phút</div>
+        <div style="font-size:12px;color:var(--dim);padding-left:16px;position:relative"><span style="position:absolute;left:0;color:var(--green)">✓</span>Deployment rolling update + rollback &lt;2 phút</div>
+        <div style="font-size:12px;color:var(--dim);padding-left:16px;position:relative"><span style="position:absolute;left:0;color:var(--green)">✓</span>Service debug (endpoints/selector/port) &lt;5 phút</div>
+        <div style="font-size:12px;color:var(--dim);padding-left:16px;position:relative"><span style="position:absolute;left:0;color:var(--green)">✓</span>NetworkPolicy deny-all + whitelist thuộc YAML</div>
+        <div style="font-size:12px;color:var(--dim);padding-left:16px;position:relative"><span style="position:absolute;left:0;color:var(--green)">✓</span>PV + PVC + mount không tra docs &lt;4 phút</div>
+        <div style="font-size:12px;color:var(--dim);padding-left:16px;position:relative"><span style="position:absolute;left:0;color:var(--green)">✓</span>RBAC SA+Role+Binding+verify &lt;3 phút</div>
+        <div style="font-size:12px;color:var(--dim);padding-left:16px;position:relative"><span style="position:absolute;left:0;color:var(--green)">✓</span>etcd backup + restore thuộc lệnh hoàn toàn</div>
+        <div style="font-size:12px;color:var(--dim);padding-left:16px;position:relative"><span style="position:absolute;left:0;color:var(--green)">✓</span>Cluster upgrade hoàn thành &lt;20 phút</div>
+        <div style="font-size:12px;color:var(--dim);padding-left:16px;position:relative"><span style="position:absolute;left:0;color:var(--green)">✓</span>Node NotReady: diagnose + fix &lt;5 phút</div>
+        <div style="font-size:12px;color:var(--dim);padding-left:16px;position:relative"><span style="position:absolute;left:0;color:var(--green)">✓</span>kube-scheduler/apiserver down: fix &lt;5 phút</div>
+        <div style="font-size:12px;color:var(--dim);padding-left:16px;position:relative"><span style="position:absolute;left:0;color:var(--green)">✓</span>Ingress TLS + path routing hoạt động</div>
+        <div style="font-size:12px;color:var(--dim);padding-left:16px;position:relative"><span style="position:absolute;left:0;color:var(--green)">✓</span>Taint/Toleration 3 effects thành thạo</div>
+        <div style="font-size:12px;color:var(--dim);padding-left:16px;position:relative"><span style="position:absolute;left:0;color:var(--green)">✓</span>Static pod: tạo, verify, xóa đúng cách</div>
+        <div style="font-size:12px;color:var(--dim);padding-left:16px;position:relative"><span style="position:absolute;left:0;color:var(--green)">✓</span>Mock exam score: ≥80/100</div>
+        <div style="font-size:12px;color:var(--dim);padding-left:16px;position:relative"><span style="position:absolute;left:0;color:var(--green)">✓</span>kubernetes.io/docs: tìm topic bất kỳ &lt;60s</div>
+      </div>
+    </div>
+
+    <div class="week-summary">
+      <div class="sum-block theory"><h5>Tinh thần</h5><div class="sum-items"><div class="sum-item">Nghỉ ngơi tốt</div><div class="sum-item">Tự tin vào prep</div></div></div>
+      <div class="sum-block practice"><h5>Exam day</h5><div class="sum-items"><div class="sum-item">Setup ngay đầu</div><div class="sum-item">Skip & return strategy</div></div></div>
+      <div class="sum-block goal"><h5>Mục tiêu cuối</h5><div class="sum-items"><div class="sum-item">Pass CKA ≥66/100</div><div class="sum-item">🎉 Certified!</div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- FINAL CHECKPOINT -->
+<div class="checkpoint" style="border-left-color:var(--green);background:linear-gradient(135deg,rgba(105,255,71,0.06),rgba(0,229,255,0.04))">
+  <div class="cp-title" style="color:var(--green)">✦ Final Checkpoint — Sẵn sàng thi CKA</div>
+  <div class="cp-grid">
+    <div class="cp-item"><span class="cp-check">✓</span>16 tuần lộ trình hoàn thành</div>
+    <div class="cp-item"><span class="cp-check">✓</span>260+ labs đã thực hành</div>
+    <div class="cp-item"><span class="cp-check">✓</span>38+ troubleshooting scenarios</div>
+    <div class="cp-item"><span class="cp-check">✓</span>3+ mock exams, score ≥80</div>
+    <div class="cp-item"><span class="cp-check">✓</span>etcd restore thuộc lòng không tra</div>
+    <div class="cp-item"><span class="cp-check">✓</span>Cluster upgrade thành thạo</div>
+    <div class="cp-item"><span class="cp-check">✓</span>Debug bất kỳ failure trong &lt;10 phút</div>
+    <div class="cp-item"><span class="cp-check">✓</span>Mock ≥80 → Thi thật sẽ đỗ</div>
+  </div>
+</div>
+
+<div style="text-align:center;padding:48px 0 32px">
+  <div style="font-family:'JetBrains Mono',monospace;font-size:24px;color:var(--green);letter-spacing:4px;margin-bottom:8px">GOOD LUCK!</div>
+  <div style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--dim)">You've put in the work. Trust the process. Trust yourself.</div>
+  <div style="margin-top:24px">
+    <a href="cka-part1.html" style="display:inline-flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--border2);padding:14px 28px;color:var(--cyan);font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;text-decoration:none">
+      ← Quay lại Phần 1
+    </a>
+  </div>
+</div>
+
+</div><!-- /wrap -->
+
+<script>
+function toggleWeek(header){
+  const section = header.parentElement;
+  section.classList.toggle('open');
+}
+document.querySelectorAll('.week-section').forEach((s,i)=>{
+  if(i===0) s.classList.add('open');
+});
+</script>
+</body>
+</html>

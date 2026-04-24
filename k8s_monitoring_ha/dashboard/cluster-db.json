@@ -20,164 +20,10 @@
       }
     }
   ],
-  "cursorSync": "Crosshair",
+  "cursorSync": "Off",
   "editable": true,
   "elements": {
-    "panel-1001": {
-      "kind": "Panel",
-      "spec": {
-        "data": {
-          "kind": "QueryGroup",
-          "spec": {
-            "queries": [
-              {
-                "kind": "PanelQuery",
-                "spec": {
-                  "hidden": false,
-                  "query": {
-                    "datasource": {
-                      "name": "P5F3E870C62180F52"
-                    },
-                    "group": "prometheus",
-                    "kind": "DataQuery",
-                    "spec": {
-                      "expr": "max by (namespace, pod) (kube_pod_status_phase{job=\"kube-state-metrics\", phase=~\"Pending|Failed|Unknown\"}) * on (namespace, pod) group_right() kube_pod_container_status_waiting_reason{job=\"kube-state-metrics\"}",
-                      "format": "table"
-                    },
-                    "version": "v0"
-                  },
-                  "refId": "A"
-                }
-              }
-            ],
-            "queryOptions": {},
-            "transformations": []
-          }
-        },
-        "description": "",
-        "id": 1001,
-        "links": [],
-        "title": "🔎 Failing Pod Reasons",
-        "vizConfig": {
-          "group": "table",
-          "kind": "VizConfig",
-          "spec": {
-            "fieldConfig": {
-              "defaults": {
-                "custom": {
-                  "align": "auto",
-                  "cellOptions": {
-                    "type": "auto"
-                  },
-                  "footer": {
-                    "reducers": []
-                  },
-                  "inspect": false
-                },
-                "thresholds": {
-                  "mode": "absolute",
-                  "steps": [
-                    {
-                      "color": "green",
-                      "value": 0
-                    },
-                    {
-                      "color": "red",
-                      "value": 80
-                    }
-                  ]
-                }
-              },
-              "overrides": []
-            },
-            "options": {
-              "cellHeight": "sm",
-              "showHeader": true
-            }
-          },
-          "version": "13.0.1"
-        }
-      }
-    },
-    "panel-12": {
-      "kind": "Panel",
-      "spec": {
-        "data": {
-          "kind": "QueryGroup",
-          "spec": {
-            "queries": [
-              {
-                "kind": "PanelQuery",
-                "spec": {
-                  "hidden": false,
-                  "query": {
-                    "datasource": {
-                      "name": "P5F3E870C62180F52"
-                    },
-                    "group": "prometheus",
-                    "kind": "DataQuery",
-                    "spec": {
-                      "expr": "sum(kube_pod_status_phase{job=\"kube-state-metrics\", phase=~\"Failed|Pending\"})"
-                    },
-                    "version": "v0"
-                  },
-                  "refId": "A"
-                }
-              }
-            ],
-            "queryOptions": {},
-            "transformations": []
-          }
-        },
-        "description": "",
-        "id": 12,
-        "links": [],
-        "title": "📉 Pending/Failed Pods",
-        "vizConfig": {
-          "group": "stat",
-          "kind": "VizConfig",
-          "spec": {
-            "fieldConfig": {
-              "defaults": {
-                "thresholds": {
-                  "mode": "absolute",
-                  "steps": [
-                    {
-                      "color": "green",
-                      "value": 0
-                    },
-                    {
-                      "color": "red",
-                      "value": 1
-                    }
-                  ]
-                }
-              },
-              "overrides": []
-            },
-            "options": {
-              "colorMode": "background",
-              "graphMode": "none",
-              "justifyMode": "center",
-              "orientation": "auto",
-              "percentChangeColorMode": "standard",
-              "reduceOptions": {
-                "calcs": [
-                  "lastNotNull"
-                ],
-                "fields": "",
-                "values": false
-              },
-              "showPercentChange": false,
-              "textMode": "auto",
-              "wideLayout": true
-            }
-          },
-          "version": "13.0.1"
-        }
-      }
-    },
-    "panel-120": {
+    "panel-1": {
       "kind": "Panel",
       "spec": {
         "data": {
@@ -196,70 +42,18 @@
                     "kind": "DataQuery",
                     "spec": {
                       "editorMode": "code",
-                      "expr": "sum(kube_pod_status_phase{job=\"kube-state-metrics\", phase=\"Running\"})",
-                      "range": true
+                      "exemplar": false,
+                      "expr": "sum(kube_node_status_condition{condition=\"Ready\"})",
+                      "format": "table",
+                      "instant": true,
+                      "legendFormat": "Total Nodes",
+                      "range": false
                     },
                     "version": "v0"
                   },
                   "refId": "A"
                 }
-              }
-            ],
-            "queryOptions": {},
-            "transformations": []
-          }
-        },
-        "description": "",
-        "id": 120,
-        "links": [],
-        "title": "📦 Running Pods",
-        "vizConfig": {
-          "group": "stat",
-          "kind": "VizConfig",
-          "spec": {
-            "fieldConfig": {
-              "defaults": {
-                "thresholds": {
-                  "mode": "absolute",
-                  "steps": [
-                    {
-                      "color": "green",
-                      "value": 0
-                    }
-                  ]
-                }
               },
-              "overrides": []
-            },
-            "options": {
-              "colorMode": "background",
-              "graphMode": "none",
-              "justifyMode": "center",
-              "orientation": "auto",
-              "percentChangeColorMode": "standard",
-              "reduceOptions": {
-                "calcs": [
-                  "lastNotNull"
-                ],
-                "fields": "",
-                "values": false
-              },
-              "showPercentChange": false,
-              "textMode": "auto",
-              "wideLayout": true
-            }
-          },
-          "version": "13.0.1"
-        }
-      }
-    },
-    "panel-121": {
-      "kind": "Panel",
-      "spec": {
-        "data": {
-          "kind": "QueryGroup",
-          "spec": {
-            "queries": [
               {
                 "kind": "PanelQuery",
                 "spec": {
@@ -272,14 +66,16 @@
                     "kind": "DataQuery",
                     "spec": {
                       "editorMode": "code",
-                      "expr": "sum(kube_pod_status_phase{job=\"kube-state-metrics\"})",
-                      "instant": false,
-                      "legendFormat": "__auto",
-                      "range": true
+                      "exemplar": false,
+                      "expr": "sum(kube_node_status_condition{condition=\"Ready\", status=\"true\"})",
+                      "format": "table",
+                      "instant": true,
+                      "legendFormat": "Ready",
+                      "range": false
                     },
                     "version": "v0"
                   },
-                  "refId": "A"
+                  "refId": "B"
                 }
               },
               {
@@ -293,22 +89,58 @@
                     "group": "prometheus",
                     "kind": "DataQuery",
                     "spec": {
-                      "expr": "cluster:pods_capacity:total"
+                      "editorMode": "code",
+                      "exemplar": false,
+                      "expr": "sum(kube_node_status_condition{condition=\"Ready\", status!=\"true\"})",
+                      "format": "table",
+                      "instant": true,
+                      "legendFormat": "NotReady",
+                      "range": false
                     },
                     "version": "v0"
                   },
-                  "refId": "Cap"
+                  "refId": "C"
                 }
               }
             ],
             "queryOptions": {},
-            "transformations": []
+            "transformations": [
+              {
+                "group": "calculateField",
+                "kind": "Transformation",
+                "spec": {
+                  "options": {}
+                }
+              },
+              {
+                "group": "organize",
+                "kind": "Transformation",
+                "spec": {
+                  "options": {
+                    "excludeByName": {
+                      "Time": true,
+                      "Total": true,
+                      "Value #B": false,
+                      "Value #C": false
+                    },
+                    "includeByName": {},
+                    "indexByName": {},
+                    "renameByName": {
+                      "Value #A": "Total",
+                      "Value #B": "Ready",
+                      "Value #C": "NotReady"
+                    }
+                  }
+                }
+              }
+            ]
           }
         },
         "description": "",
-        "id": 121,
+        "id": 1,
         "links": [],
-        "title": "🚀 Cluster Pod Capacity",
+        "title": "Nodes",
+        "transparent": true,
         "vizConfig": {
           "group": "stat",
           "kind": "VizConfig",
@@ -324,14 +156,6 @@
                     {
                       "color": "green",
                       "value": 0
-                    },
-                    {
-                      "color": "yellow",
-                      "value": 540
-                    },
-                    {
-                      "color": "red",
-                      "value": 1000
                     }
                   ]
                 }
@@ -339,10 +163,10 @@
               "overrides": []
             },
             "options": {
-              "colorMode": "background",
+              "colorMode": "none",
               "graphMode": "none",
-              "justifyMode": "center",
-              "orientation": "auto",
+              "justifyMode": "auto",
+              "orientation": "horizontal",
               "percentChangeColorMode": "standard",
               "reduceOptions": {
                 "calcs": [
@@ -352,7 +176,11 @@
                 "values": false
               },
               "showPercentChange": false,
-              "textMode": "value",
+              "text": {
+                "titleSize": 30,
+                "valueSize": 25
+              },
+              "textMode": "value_and_name",
               "wideLayout": true
             }
           },
@@ -360,7 +188,7 @@
         }
       }
     },
-    "panel-122": {
+    "panel-2": {
       "kind": "Panel",
       "spec": {
         "data": {
@@ -378,11 +206,50 @@
                     "group": "prometheus",
                     "kind": "DataQuery",
                     "spec": {
-                      "expr": "sum(kube_node_status_condition{job=\"kube-state-metrics\", condition=\"Ready\",status!=\"true\"})"
+                      "expr": "sum(kube_node_status_allocatable{resource='pods'})",
+                      "legendFormat": "Capacity"
                     },
                     "version": "v0"
                   },
                   "refId": "A"
+                }
+              },
+              {
+                "kind": "PanelQuery",
+                "spec": {
+                  "hidden": false,
+                  "query": {
+                    "datasource": {
+                      "name": "P5F3E870C62180F52"
+                    },
+                    "group": "prometheus",
+                    "kind": "DataQuery",
+                    "spec": {
+                      "expr": "sum(kube_pod_status_phase{phase='Running'})",
+                      "legendFormat": "Running"
+                    },
+                    "version": "v0"
+                  },
+                  "refId": "B"
+                }
+              },
+              {
+                "kind": "PanelQuery",
+                "spec": {
+                  "hidden": false,
+                  "query": {
+                    "datasource": {
+                      "name": "P5F3E870C62180F52"
+                    },
+                    "group": "prometheus",
+                    "kind": "DataQuery",
+                    "spec": {
+                      "expr": "sum(kube_pod_status_phase{phase='Pending'})",
+                      "legendFormat": "Pending"
+                    },
+                    "version": "v0"
+                  },
+                  "refId": "C"
                 }
               }
             ],
@@ -391,25 +258,25 @@
           }
         },
         "description": "",
-        "id": 122,
+        "id": 2,
         "links": [],
-        "title": "❌ NotReady Nodes",
+        "title": "Pods",
+        "transparent": true,
         "vizConfig": {
           "group": "stat",
           "kind": "VizConfig",
           "spec": {
             "fieldConfig": {
               "defaults": {
+                "color": {
+                  "mode": "thresholds"
+                },
                 "thresholds": {
                   "mode": "absolute",
                   "steps": [
                     {
                       "color": "green",
                       "value": 0
-                    },
-                    {
-                      "color": "red",
-                      "value": 80
                     }
                   ]
                 }
@@ -417,10 +284,10 @@
               "overrides": []
             },
             "options": {
-              "colorMode": "background",
-              "graphMode": "area",
-              "justifyMode": "center",
-              "orientation": "auto",
+              "colorMode": "none",
+              "graphMode": "none",
+              "justifyMode": "auto",
+              "orientation": "horizontal",
               "percentChangeColorMode": "standard",
               "reduceOptions": {
                 "calcs": [
@@ -430,431 +297,12 @@
                 "values": false
               },
               "showPercentChange": false,
-              "textMode": "auto",
+              "text": {
+                "titleSize": 30,
+                "valueSize": 25
+              },
+              "textMode": "value_and_name",
               "wideLayout": true
-            }
-          },
-          "version": "13.0.1"
-        }
-      }
-    },
-    "panel-13": {
-      "kind": "Panel",
-      "spec": {
-        "data": {
-          "kind": "QueryGroup",
-          "spec": {
-            "queries": [
-              {
-                "kind": "PanelQuery",
-                "spec": {
-                  "hidden": false,
-                  "query": {
-                    "datasource": {
-                      "name": "P5F3E870C62180F52"
-                    },
-                    "group": "prometheus",
-                    "kind": "DataQuery",
-                    "spec": {
-                      "expr": "sum(kube_node_status_condition{job=\"kube-state-metrics\", condition=\"Ready\",status=\"true\"})"
-                    },
-                    "version": "v0"
-                  },
-                  "refId": "A"
-                }
-              }
-            ],
-            "queryOptions": {},
-            "transformations": []
-          }
-        },
-        "description": "",
-        "id": 13,
-        "links": [],
-        "title": "✅ Ready Nodes",
-        "vizConfig": {
-          "group": "stat",
-          "kind": "VizConfig",
-          "spec": {
-            "fieldConfig": {
-              "defaults": {
-                "thresholds": {
-                  "mode": "absolute",
-                  "steps": [
-                    {
-                      "color": "green",
-                      "value": 0
-                    },
-                    {
-                      "color": "red",
-                      "value": 80
-                    }
-                  ]
-                }
-              },
-              "overrides": []
-            },
-            "options": {
-              "colorMode": "background",
-              "graphMode": "area",
-              "justifyMode": "center",
-              "orientation": "auto",
-              "percentChangeColorMode": "standard",
-              "reduceOptions": {
-                "calcs": [
-                  "lastNotNull"
-                ],
-                "fields": "",
-                "values": false
-              },
-              "showPercentChange": false,
-              "textMode": "auto",
-              "wideLayout": true
-            }
-          },
-          "version": "13.0.1"
-        }
-      }
-    },
-    "panel-130": {
-      "kind": "Panel",
-      "spec": {
-        "data": {
-          "kind": "QueryGroup",
-          "spec": {
-            "queries": [
-              {
-                "kind": "PanelQuery",
-                "spec": {
-                  "hidden": false,
-                  "query": {
-                    "datasource": {
-                      "name": "P5F3E870C62180F52"
-                    },
-                    "group": "prometheus",
-                    "kind": "DataQuery",
-                    "spec": {
-                      "editorMode": "code",
-                      "expr": "topk(10, sum(rate(container_cpu_usage_seconds_total{job=\"kubelet-cadvisor\", container!=\"\"}[$__range])) by (pod, namespace))",
-                      "format": "table",
-                      "range": true
-                    },
-                    "version": "v0"
-                  },
-                  "refId": "A"
-                }
-              }
-            ],
-            "queryOptions": {},
-            "transformations": [
-              {
-                "group": "sortBy",
-                "kind": "Transformation",
-                "spec": {
-                  "options": {
-                    "fields": {},
-                    "sort": [
-                      {
-                        "desc": true,
-                        "field": "Time"
-                      }
-                    ]
-                  }
-                }
-              }
-            ]
-          }
-        },
-        "description": "",
-        "id": 130,
-        "links": [],
-        "title": "🔥 Top CPU Pods",
-        "vizConfig": {
-          "group": "table",
-          "kind": "VizConfig",
-          "spec": {
-            "fieldConfig": {
-              "defaults": {
-                "custom": {
-                  "align": "auto",
-                  "cellOptions": {
-                    "type": "auto"
-                  },
-                  "footer": {
-                    "reducers": []
-                  },
-                  "inspect": false
-                },
-                "thresholds": {
-                  "mode": "absolute",
-                  "steps": [
-                    {
-                      "color": "green",
-                      "value": 0
-                    },
-                    {
-                      "color": "red",
-                      "value": 80
-                    }
-                  ]
-                }
-              },
-              "overrides": []
-            },
-            "options": {
-              "cellHeight": "sm",
-              "showHeader": true
-            }
-          },
-          "version": "13.0.1"
-        }
-      }
-    },
-    "panel-131": {
-      "kind": "Panel",
-      "spec": {
-        "data": {
-          "kind": "QueryGroup",
-          "spec": {
-            "queries": [
-              {
-                "kind": "PanelQuery",
-                "spec": {
-                  "hidden": false,
-                  "query": {
-                    "datasource": {
-                      "name": "P5F3E870C62180F52"
-                    },
-                    "group": "prometheus",
-                    "kind": "DataQuery",
-                    "spec": {
-                      "editorMode": "code",
-                      "expr": "topk(10, sum(container_memory_working_set_bytes{job=\"kubelet-cadvisor\", container!=\"\"}) by (pod, namespace))",
-                      "format": "table",
-                      "range": true
-                    },
-                    "version": "v0"
-                  },
-                  "refId": "A"
-                }
-              }
-            ],
-            "queryOptions": {},
-            "transformations": [
-              {
-                "group": "sortBy",
-                "kind": "Transformation",
-                "spec": {
-                  "options": {
-                    "fields": {},
-                    "sort": [
-                      {
-                        "desc": true,
-                        "field": "Time"
-                      }
-                    ]
-                  }
-                }
-              }
-            ]
-          }
-        },
-        "description": "",
-        "id": 131,
-        "links": [],
-        "title": "🧠 Top RAM Pods",
-        "vizConfig": {
-          "group": "table",
-          "kind": "VizConfig",
-          "spec": {
-            "fieldConfig": {
-              "defaults": {
-                "custom": {
-                  "align": "auto",
-                  "cellOptions": {
-                    "type": "auto"
-                  },
-                  "footer": {
-                    "reducers": []
-                  },
-                  "inspect": false
-                },
-                "thresholds": {
-                  "mode": "absolute",
-                  "steps": [
-                    {
-                      "color": "green",
-                      "value": 0
-                    },
-                    {
-                      "color": "red",
-                      "value": 80
-                    }
-                  ]
-                },
-                "unit": "bytes"
-              },
-              "overrides": []
-            },
-            "options": {
-              "cellHeight": "sm",
-              "showHeader": true
-            }
-          },
-          "version": "13.0.1"
-        }
-      }
-    },
-    "panel-200": {
-      "kind": "Panel",
-      "spec": {
-        "data": {
-          "kind": "QueryGroup",
-          "spec": {
-            "queries": [
-              {
-                "kind": "PanelQuery",
-                "spec": {
-                  "hidden": false,
-                  "query": {
-                    "datasource": {
-                      "name": "P5F3E870C62180F52"
-                    },
-                    "group": "prometheus",
-                    "kind": "DataQuery",
-                    "spec": {
-                      "expr": "ALERTS{alertstate=\"firing\"}",
-                      "format": "table"
-                    },
-                    "version": "v0"
-                  },
-                  "refId": "A"
-                }
-              }
-            ],
-            "queryOptions": {},
-            "transformations": [
-              {
-                "group": "labelsToFields",
-                "kind": "Transformation",
-                "spec": {
-                  "options": {
-                    "mode": "columns"
-                  }
-                }
-              },
-              {
-                "group": "organize",
-                "kind": "Transformation",
-                "spec": {
-                  "options": {
-                    "excludeByName": {
-                      "Value": true,
-                      "__name__": true,
-                      "alertstate": true,
-                      "cluster": true,
-                      "container": true,
-                      "instance": true,
-                      "job": true,
-                      "reason": true,
-                      "uid": true
-                    },
-                    "includeByName": {},
-                    "indexByName": {
-                      "Time": 0,
-                      "Value": 13,
-                      "__name__": 1,
-                      "alertname": 2,
-                      "alertstate": 5,
-                      "cluster": 6,
-                      "container": 7,
-                      "instance": 8,
-                      "job": 9,
-                      "namespace": 10,
-                      "pod": 3,
-                      "reason": 11,
-                      "severity": 4,
-                      "uid": 12
-                    },
-                    "renameByName": {
-                      "alertname": "Alert",
-                      "namespace": "Namespace",
-                      "severity": "Severity"
-                    }
-                  }
-                }
-              }
-            ]
-          }
-        },
-        "description": "",
-        "id": 200,
-        "links": [],
-        "title": "🚨 ACTIVE FIRING ALERTS",
-        "vizConfig": {
-          "group": "table",
-          "kind": "VizConfig",
-          "spec": {
-            "fieldConfig": {
-              "defaults": {
-                "custom": {
-                  "align": "auto",
-                  "cellOptions": {
-                    "type": "auto"
-                  },
-                  "footer": {
-                    "reducers": []
-                  },
-                  "inspect": false
-                },
-                "thresholds": {
-                  "mode": "absolute",
-                  "steps": [
-                    {
-                      "color": "green",
-                      "value": 0
-                    }
-                  ]
-                }
-              },
-              "overrides": [
-                {
-                  "matcher": {
-                    "id": "byName",
-                    "options": "Severity"
-                  },
-                  "properties": [
-                    {
-                      "id": "custom.cellOptions",
-                      "value": {
-                        "type": "color-background"
-                      }
-                    },
-                    {
-                      "id": "mappings",
-                      "value": [
-                        {
-                          "options": {
-                            "critical": {
-                              "color": "red",
-                              "text": "CRITICAL"
-                            },
-                            "warning": {
-                              "color": "yellow",
-                              "text": "WARNING"
-                            }
-                          },
-                          "type": "value"
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
-            },
-            "options": {
-              "cellHeight": "sm",
-              "showHeader": true
             }
           },
           "version": "13.0.1"
@@ -880,8 +328,10 @@
                     "kind": "DataQuery",
                     "spec": {
                       "editorMode": "code",
+                      "exemplar": false,
                       "expr": "sum by (persistentvolumeclaim) (kubelet_volume_stats_capacity_bytes{job=\"kubelet\"})",
                       "format": "table",
+                      "instant": true,
                       "range": false
                     },
                     "version": "v0"
@@ -949,6 +399,7 @@
                 "spec": {
                   "options": {
                     "excludeByName": {
+                      "Time 1": true,
                       "Time 2": true,
                       "Time 3": true,
                       "Value": true,
@@ -969,6 +420,8 @@
                     },
                     "renameByName": {
                       "Time 1": "",
+                      "Time 2": "",
+                      "Time 3": "",
                       "Value #Cap": "Total Capacity",
                       "Value #Pct": "Utilization",
                       "Value #Used": "Used Space",
@@ -986,7 +439,7 @@
                     "sort": [
                       {
                         "desc": true,
-                        "field": "Time 1"
+                        "field": "Utilization"
                       }
                     ]
                   }
@@ -999,6 +452,7 @@
         "id": 2001,
         "links": [],
         "title": "💾 PVC Resource Inventory & Health",
+        "transparent": true,
         "vizConfig": {
           "group": "table",
           "kind": "VizConfig",
@@ -1046,6 +500,17 @@
                     {
                       "id": "unit",
                       "value": "percent"
+                    },
+                    {
+                      "id": "custom.cellOptions",
+                      "value": {
+                        "type": "gauge",
+                        "valueDisplayMode": "text"
+                      }
+                    },
+                    {
+                      "id": "max",
+                      "value": 100
                     }
                   ]
                 },
@@ -1115,13 +580,40 @@
                     "kind": "DataQuery",
                     "spec": {
                       "editorMode": "code",
-                      "expr": "node:disk_usage:percent",
-                      "legendFormat": "{{instance}}",
+                      "exemplar": false,
+                      "expr": "count(kube_namespace_created)",
+                      "format": "time_series",
+                      "instant": false,
+                      "legendFormat": "Namespace",
                       "range": true
                     },
                     "version": "v0"
                   },
                   "refId": "A"
+                }
+              },
+              {
+                "kind": "PanelQuery",
+                "spec": {
+                  "hidden": false,
+                  "query": {
+                    "datasource": {
+                      "name": "P5F3E870C62180F52"
+                    },
+                    "group": "prometheus",
+                    "kind": "DataQuery",
+                    "spec": {
+                      "editorMode": "code",
+                      "exemplar": false,
+                      "expr": "count(kube_persistentvolumeclaim_info)",
+                      "format": "time_series",
+                      "instant": false,
+                      "legendFormat": "PVC",
+                      "range": true
+                    },
+                    "version": "v0"
+                  },
+                  "refId": "B"
                 }
               }
             ],
@@ -1132,18 +624,17 @@
         "description": "",
         "id": 2002,
         "links": [],
-        "title": "🧠 Disk Usage per Node",
+        "title": "Namespace/PVC",
+        "transparent": true,
         "vizConfig": {
-          "group": "bargauge",
+          "group": "gauge",
           "kind": "VizConfig",
           "spec": {
             "fieldConfig": {
               "defaults": {
                 "color": {
-                  "mode": "thresholds"
+                  "mode": "palette-classic"
                 },
-                "max": 100,
-                "min": 0,
                 "thresholds": {
                   "mode": "absolute",
                   "steps": [
@@ -1152,36 +643,26 @@
                       "value": 0
                     },
                     {
-                      "color": "yellow",
-                      "value": 75
-                    },
-                    {
                       "color": "red",
-                      "value": 90
+                      "value": 80
                     }
                   ]
-                },
-                "unit": "percent"
+                }
               },
               "overrides": []
             },
             "options": {
-              "displayLabels": [
-                "percent",
-                "name"
-              ],
-              "displayMode": "gradient",
-              "legend": {
-                "calcs": [],
-                "displayMode": "list",
-                "placement": "bottom",
-                "showLegend": false
+              "barShape": "rounded",
+              "barWidthFactor": 0.5,
+              "effects": {
+                "barGlow": false,
+                "centerGlow": false,
+                "gradient": false
               },
-              "maxVizHeight": 300,
-              "minVizHeight": 16,
-              "minVizWidth": 8,
-              "namePlacement": "auto",
-              "orientation": "horizontal",
+              "endpointMarker": "glow",
+              "minVizHeight": 75,
+              "minVizWidth": 75,
+              "orientation": "auto",
               "reduceOptions": {
                 "calcs": [
                   "lastNotNull"
@@ -1189,9 +670,14 @@
                 "fields": "",
                 "values": false
               },
-              "showUnfilled": true,
+              "segmentCount": 1,
+              "segmentSpacing": 0.3,
+              "shape": "gauge",
+              "showThresholdLabels": false,
+              "showThresholdMarkers": false,
               "sizing": "auto",
-              "valueMode": "color"
+              "sparkline": false,
+              "textMode": "value_and_name"
             }
           },
           "version": "13.0.1"
@@ -1217,9 +703,730 @@
                     "kind": "DataQuery",
                     "spec": {
                       "editorMode": "code",
-                      "expr": "sum by (instance) (\r\n  node_filesystem_size_bytes{fstype!~\"tmpfs|overlay\", mountpoint=\"/\"}\r\n)",
-                      "legendFormat": "{{instance}}",
+                      "exemplar": false,
+                      "expr": "max by(namespace,pod) (kube_pod_info)",
+                      "format": "table",
+                      "instant": true,
+                      "legendFormat": "__auto",
+                      "range": false
+                    },
+                    "version": "v0"
+                  },
+                  "refId": "A"
+                }
+              },
+              {
+                "kind": "PanelQuery",
+                "spec": {
+                  "hidden": false,
+                  "query": {
+                    "datasource": {
+                      "name": "P5F3E870C62180F52"
+                    },
+                    "group": "prometheus",
+                    "kind": "DataQuery",
+                    "spec": {
+                      "editorMode": "code",
+                      "exemplar": false,
+                      "expr": "sum by (pod, phase) (kube_pod_status_phase{phase=~\"Running|Pending|Failed|Succeeded\"} == 1)",
+                      "format": "table",
+                      "instant": true,
+                      "legendFormat": "__auto",
+                      "range": false
+                    },
+                    "version": "v0"
+                  },
+                  "refId": "B"
+                }
+              },
+              {
+                "kind": "PanelQuery",
+                "spec": {
+                  "hidden": false,
+                  "query": {
+                    "datasource": {
+                      "name": "P5F3E870C62180F52"
+                    },
+                    "group": "prometheus",
+                    "kind": "DataQuery",
+                    "spec": {
+                      "editorMode": "code",
+                      "expr": "sum by(namespace,pod)(\r\n  rate(container_cpu_usage_seconds_total{\r\n    container!=\"\",\r\n    pod!=\"\"\r\n  }[$__range])\r\n)",
+                      "format": "table",
+                      "instant": false,
+                      "legendFormat": "__auto",
                       "range": true
+                    },
+                    "version": "v0"
+                  },
+                  "refId": "D"
+                }
+              },
+              {
+                "kind": "PanelQuery",
+                "spec": {
+                  "hidden": false,
+                  "query": {
+                    "datasource": {
+                      "name": "P5F3E870C62180F52"
+                    },
+                    "group": "prometheus",
+                    "kind": "DataQuery",
+                    "spec": {
+                      "editorMode": "code",
+                      "exemplar": false,
+                      "expr": "sum by(namespace,pod)(\r\n  container_memory_working_set_bytes{\r\n    container!=\"\",\r\n    pod!=\"\"\r\n  }\r\n) / 1024^3",
+                      "format": "table",
+                      "instant": true,
+                      "legendFormat": "__auto",
+                      "range": false
+                    },
+                    "version": "v0"
+                  },
+                  "refId": "E"
+                }
+              },
+              {
+                "kind": "PanelQuery",
+                "spec": {
+                  "hidden": false,
+                  "query": {
+                    "datasource": {
+                      "name": "P5F3E870C62180F52"
+                    },
+                    "group": "prometheus",
+                    "kind": "DataQuery",
+                    "spec": {
+                      "editorMode": "code",
+                      "exemplar": false,
+                      "expr": "sum by(namespace,pod)(\r\n  kube_pod_container_resource_limits{resource=\"cpu\"}\r\n) * 1000",
+                      "format": "table",
+                      "instant": true,
+                      "legendFormat": "__auto",
+                      "range": false
+                    },
+                    "version": "v0"
+                  },
+                  "refId": "G"
+                }
+              },
+              {
+                "kind": "PanelQuery",
+                "spec": {
+                  "hidden": false,
+                  "query": {
+                    "datasource": {
+                      "name": "P5F3E870C62180F52"
+                    },
+                    "group": "prometheus",
+                    "kind": "DataQuery",
+                    "spec": {
+                      "editorMode": "code",
+                      "exemplar": false,
+                      "expr": "sum by(namespace,pod)(\r\n  kube_pod_container_resource_limits{resource=\"memory\"}\r\n) / (1024^3)",
+                      "format": "table",
+                      "instant": true,
+                      "legendFormat": "__auto",
+                      "range": false
+                    },
+                    "version": "v0"
+                  },
+                  "refId": "I"
+                }
+              }
+            ],
+            "queryOptions": {},
+            "transformations": [
+              {
+                "group": "joinByField",
+                "kind": "Transformation",
+                "spec": {
+                  "options": {
+                    "byField": "pod",
+                    "mode": "outer"
+                  }
+                }
+              },
+              {
+                "group": "organize",
+                "kind": "Transformation",
+                "spec": {
+                  "options": {
+                    "excludeByName": {
+                      "Time 1": true,
+                      "Time 2": true,
+                      "Time 3": true,
+                      "Time 4": true,
+                      "Time 5": true,
+                      "Time 6": true,
+                      "Time 7": true,
+                      "Time 8": true,
+                      "Value #A": true,
+                      "Value #B": true,
+                      "__name__": true,
+                      "cluster": true,
+                      "created_by_kind": true,
+                      "created_by_name": true,
+                      "host_ip": true,
+                      "host_network": false,
+                      "instance": true,
+                      "job": true,
+                      "namespace 1": false,
+                      "namespace 2": true,
+                      "namespace 3": true,
+                      "namespace 4": true,
+                      "namespace 5": true,
+                      "namespace 6": true,
+                      "namespace 7": true,
+                      "namespace 8": true,
+                      "pod 2": true,
+                      "pod 3": true,
+                      "pod 4": true,
+                      "pod 5": true,
+                      "pod 6": true,
+                      "pod 7": true,
+                      "pod 8": true,
+                      "pod_ip": true,
+                      "priority_class": true,
+                      "uid": true
+                    },
+                    "includeByName": {},
+                    "indexByName": {
+                      "Time 1": 24,
+                      "Time 2": 11,
+                      "Time 3": 12,
+                      "Time 4": 13,
+                      "Time 5": 14,
+                      "Time 6": 15,
+                      "Time 7": 16,
+                      "Time 8": 17,
+                      "Value #A": 3,
+                      "Value #B": 4,
+                      "Value #D": 5,
+                      "Value #E": 6,
+                      "Value #G": 7,
+                      "Value #I": 8,
+                      "Value #L": 9,
+                      "Value #M": 10,
+                      "namespace 1": 1,
+                      "namespace 2": 18,
+                      "namespace 3": 19,
+                      "namespace 4": 20,
+                      "namespace 5": 21,
+                      "namespace 6": 22,
+                      "namespace 7": 23,
+                      "phase": 2,
+                      "pod": 0
+                    },
+                    "orderByMode": "manual",
+                    "renameByName": {
+                      "Value #B": "Status",
+                      "Value #D": "CPU Used (cores)",
+                      "Value #E": "Memory Used (GB)",
+                      "Value #G": "CPU Limit",
+                      "Value #I": "Memory Limit",
+                      "namespace": "Namespace",
+                      "phase": "Status",
+                      "pod": "Pod",
+                      "pod 1": "Pod"
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "description": "",
+        "id": 2003,
+        "links": [],
+        "title": "Pod Detail",
+        "transparent": true,
+        "vizConfig": {
+          "group": "table",
+          "kind": "VizConfig",
+          "spec": {
+            "fieldConfig": {
+              "defaults": {
+                "color": {
+                  "mode": "thresholds"
+                },
+                "custom": {
+                  "align": "auto",
+                  "cellOptions": {
+                    "type": "color-text"
+                  },
+                  "footer": {
+                    "reducers": []
+                  },
+                  "inspect": false
+                },
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": 0
+                    },
+                    {
+                      "color": "red",
+                      "value": 0
+                    }
+                  ]
+                }
+              },
+              "overrides": [
+                {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "Pod"
+                  },
+                  "properties": [
+                    {
+                      "id": "custom.width",
+                      "value": 206
+                    }
+                  ]
+                },
+                {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "CPU Used (cores)",
+                    "scope": "series"
+                  },
+                  "properties": [
+                    {
+                      "id": "unit",
+                      "value": "percentunit"
+                    },
+                    {
+                      "id": "thresholds",
+                      "value": {
+                        "mode": "absolute",
+                        "steps": [
+                          {
+                            "color": "red",
+                            "value": 0
+                          },
+                          {
+                            "color": "green",
+                            "value": 0
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "id": "noValue",
+                      "value": "0"
+                    }
+                  ]
+                },
+                {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "Memory Used (GB)",
+                    "scope": "series"
+                  },
+                  "properties": [
+                    {
+                      "id": "unit",
+                      "value": "decgbytes"
+                    },
+                    {
+                      "id": "thresholds",
+                      "value": {
+                        "mode": "absolute",
+                        "steps": [
+                          {
+                            "color": "red",
+                            "value": 0
+                          },
+                          {
+                            "color": "green",
+                            "value": 1e-7
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "id": "noValue",
+                      "value": "0"
+                    }
+                  ]
+                },
+                {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "CPU Limit",
+                    "scope": "series"
+                  },
+                  "properties": [
+                    {
+                      "id": "noValue",
+                      "value": "No Limit"
+                    },
+                    {
+                      "id": "thresholds",
+                      "value": {
+                        "mode": "absolute",
+                        "steps": [
+                          {
+                            "color": "red",
+                            "value": 0
+                          },
+                          {
+                            "color": "green",
+                            "value": 80
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                },
+                {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "Memory Limit",
+                    "scope": "series"
+                  },
+                  "properties": [
+                    {
+                      "id": "unit",
+                      "value": "decgbytes"
+                    },
+                    {
+                      "id": "noValue",
+                      "value": "0"
+                    },
+                    {
+                      "id": "thresholds",
+                      "value": {
+                        "mode": "absolute",
+                        "steps": [
+                          {
+                            "color": "red",
+                            "value": 0
+                          },
+                          {
+                            "color": "green",
+                            "value": 0
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            "options": {
+              "cellHeight": "sm",
+              "showHeader": true
+            }
+          },
+          "version": "13.0.1"
+        }
+      }
+    },
+    "panel-2004": {
+      "kind": "Panel",
+      "spec": {
+        "data": {
+          "kind": "QueryGroup",
+          "spec": {
+            "queries": [
+              {
+                "kind": "PanelQuery",
+                "spec": {
+                  "hidden": false,
+                  "query": {
+                    "datasource": {
+                      "name": "P5F3E870C62180F52"
+                    },
+                    "group": "prometheus",
+                    "kind": "DataQuery",
+                    "spec": {
+                      "editorMode": "code",
+                      "expr": "sum(rate(container_network_receive_bytes_total{pod!=\"\"}[$__range]))",
+                      "legendFormat": "__auto",
+                      "range": true
+                    },
+                    "version": "v0"
+                  },
+                  "refId": "A"
+                }
+              },
+              {
+                "kind": "PanelQuery",
+                "spec": {
+                  "hidden": false,
+                  "query": {
+                    "datasource": {
+                      "name": "P5F3E870C62180F52"
+                    },
+                    "group": "prometheus",
+                    "kind": "DataQuery",
+                    "spec": {
+                      "editorMode": "code",
+                      "expr": "sum(rate(container_network_transmit_bytes_total{pod!=\"\"}[$__range]))",
+                      "instant": false,
+                      "legendFormat": "__auto",
+                      "range": true
+                    },
+                    "version": "v0"
+                  },
+                  "refId": "B"
+                }
+              }
+            ],
+            "queryOptions": {},
+            "transformations": []
+          }
+        },
+        "description": "",
+        "id": 2004,
+        "links": [],
+        "title": "Cluster Network Traffic (RX / TX)",
+        "transparent": true,
+        "vizConfig": {
+          "group": "timeseries",
+          "kind": "VizConfig",
+          "spec": {
+            "fieldConfig": {
+              "defaults": {
+                "color": {
+                  "mode": "palette-classic"
+                },
+                "custom": {
+                  "axisBorderShow": false,
+                  "axisCenteredZero": false,
+                  "axisColorMode": "text",
+                  "axisLabel": "",
+                  "axisPlacement": "auto",
+                  "barAlignment": 0,
+                  "barWidthFactor": 0.6,
+                  "drawStyle": "line",
+                  "fillOpacity": 25,
+                  "gradientMode": "none",
+                  "hideFrom": {
+                    "legend": false,
+                    "tooltip": false,
+                    "viz": false
+                  },
+                  "insertNulls": false,
+                  "lineInterpolation": "linear",
+                  "lineWidth": 1,
+                  "pointSize": 5,
+                  "scaleDistribution": {
+                    "type": "linear"
+                  },
+                  "showPoints": "auto",
+                  "showValues": false,
+                  "spanNulls": false,
+                  "stacking": {
+                    "group": "A",
+                    "mode": "normal"
+                  },
+                  "thresholdsStyle": {
+                    "mode": "off"
+                  }
+                },
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": 0
+                    },
+                    {
+                      "color": "red",
+                      "value": 80
+                    }
+                  ]
+                }
+              },
+              "overrides": []
+            },
+            "options": {
+              "annotations": {
+                "clustering": -1,
+                "multiLane": false
+              },
+              "legend": {
+                "calcs": [],
+                "displayMode": "list",
+                "placement": "bottom",
+                "showLegend": true
+              },
+              "tooltip": {
+                "hideZeros": false,
+                "mode": "single",
+                "sort": "none"
+              }
+            }
+          },
+          "version": "13.0.1"
+        }
+      }
+    },
+    "panel-2005": {
+      "kind": "Panel",
+      "spec": {
+        "data": {
+          "kind": "QueryGroup",
+          "spec": {
+            "queries": [
+              {
+                "kind": "PanelQuery",
+                "spec": {
+                  "hidden": false,
+                  "query": {
+                    "datasource": {
+                      "name": "P5F3E870C62180F52"
+                    },
+                    "group": "prometheus",
+                    "kind": "DataQuery",
+                    "spec": {
+                      "editorMode": "code",
+                      "exemplar": false,
+                      "expr": "topk(10,\r\n  sum by(pod, namespace)(\r\n    rate(container_network_receive_bytes_total{pod!=\"\"}[5m])\r\n  )\r\n)",
+                      "format": "table",
+                      "instant": true,
+                      "legendFormat": "__auto",
+                      "range": false
+                    },
+                    "version": "v0"
+                  },
+                  "refId": "A"
+                }
+              }
+            ],
+            "queryOptions": {},
+            "transformations": [
+              {
+                "group": "sortBy",
+                "kind": "Transformation",
+                "spec": {
+                  "options": {
+                    "fields": {},
+                    "sort": [
+                      {
+                        "desc": true,
+                        "field": "Value"
+                      }
+                    ]
+                  }
+                }
+              },
+              {
+                "group": "organize",
+                "kind": "Transformation",
+                "spec": {
+                  "options": {
+                    "excludeByName": {},
+                    "includeByName": {},
+                    "indexByName": {
+                      "Time": 0,
+                      "Value": 3,
+                      "namespace": 2,
+                      "pod": 1
+                    },
+                    "renameByName": {
+                      "Value": "Network RX (Bps)",
+                      "pod": "Pod"
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "description": "",
+        "id": 2005,
+        "links": [],
+        "title": "Top Pods by Network Receive",
+        "transparent": true,
+        "vizConfig": {
+          "group": "table",
+          "kind": "VizConfig",
+          "spec": {
+            "fieldConfig": {
+              "defaults": {
+                "color": {
+                  "mode": "thresholds"
+                },
+                "custom": {
+                  "align": "auto",
+                  "cellOptions": {
+                    "type": "auto"
+                  },
+                  "footer": {
+                    "reducers": []
+                  },
+                  "inspect": false
+                },
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": 0
+                    },
+                    {
+                      "color": "red",
+                      "value": 80
+                    }
+                  ]
+                }
+              },
+              "overrides": [
+                {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "Network RX (Bps)",
+                    "scope": "series"
+                  },
+                  "properties": [
+                    {
+                      "id": "unit",
+                      "value": "Bps"
+                    }
+                  ]
+                }
+              ]
+            },
+            "options": {
+              "cellHeight": "sm",
+              "showHeader": true
+            }
+          },
+          "version": "13.0.1"
+        }
+      }
+    },
+    "panel-2006": {
+      "kind": "Panel",
+      "spec": {
+        "data": {
+          "kind": "QueryGroup",
+          "spec": {
+            "queries": [
+              {
+                "kind": "PanelQuery",
+                "spec": {
+                  "hidden": false,
+                  "query": {
+                    "datasource": {
+                      "name": "P5F3E870C62180F52"
+                    },
+                    "group": "prometheus",
+                    "kind": "DataQuery",
+                    "spec": {
+                      "editorMode": "code",
+                      "exemplar": false,
+                      "expr": "(\r\n  sum(node_nf_conntrack_entries)\r\n/\r\n  sum(node_nf_conntrack_entries_limit)\r\n) * 100",
+                      "format": "table",
+                      "instant": true,
+                      "legendFormat": "__auto",
+                      "range": false
                     },
                     "version": "v0"
                   },
@@ -1232,9 +1439,10 @@
           }
         },
         "description": "",
-        "id": 2003,
+        "id": 2006,
         "links": [],
-        "title": "🔢 Total Disk",
+        "title": "Conntrack Usage (%)",
+        "transparent": true,
         "vizConfig": {
           "group": "gauge",
           "kind": "VizConfig",
@@ -1248,12 +1456,16 @@
                   "mode": "absolute",
                   "steps": [
                     {
-                      "color": "purple",
+                      "color": "green",
                       "value": 0
+                    },
+                    {
+                      "color": "red",
+                      "value": 80
                     }
                   ]
                 },
-                "unit": "bytes"
+                "unit": "percent"
               },
               "overrides": []
             },
@@ -1280,7 +1492,7 @@
               "segmentSpacing": 0.3,
               "shape": "gauge",
               "showThresholdLabels": false,
-              "showThresholdMarkers": false,
+              "showThresholdMarkers": true,
               "sizing": "auto",
               "sparkline": false,
               "textMode": "auto"
@@ -1290,7 +1502,7 @@
         }
       }
     },
-    "panel-210": {
+    "panel-3": {
       "kind": "Panel",
       "spec": {
         "data": {
@@ -1308,10 +1520,8 @@
                     "group": "prometheus",
                     "kind": "DataQuery",
                     "spec": {
-                      "editorMode": "code",
-                      "expr": "node:cpu_usage:rate5m",
-                      "legendFormat": "{{instance}}",
-                      "range": true
+                      "expr": "(sum(rate(node_cpu_seconds_total{mode!='idle'}[5m])) / sum(rate(node_cpu_seconds_total[5m]))) * 100",
+                      "legendFormat": "Utilised %"
                     },
                     "version": "v0"
                   },
@@ -1324,11 +1534,12 @@
           }
         },
         "description": "",
-        "id": 210,
+        "id": 3,
         "links": [],
-        "title": "⚡ CPU Saturation per Node",
+        "title": "CPU (cluster)",
+        "transparent": true,
         "vizConfig": {
-          "group": "bargauge",
+          "group": "gauge",
           "kind": "VizConfig",
           "spec": {
             "fieldConfig": {
@@ -1346,107 +1557,7 @@
                       "value": 0
                     },
                     {
-                      "color": "yellow",
-                      "value": 70
-                    },
-                    {
-                      "color": "red",
-                      "value": 85
-                    }
-                  ]
-                },
-                "unit": "percent"
-              },
-              "overrides": []
-            },
-            "options": {
-              "displayLabels": [
-                "percent",
-                "name"
-              ],
-              "displayMode": "gradient",
-              "legend": {
-                "calcs": [],
-                "displayMode": "list",
-                "placement": "bottom",
-                "showLegend": false
-              },
-              "maxVizHeight": 300,
-              "minVizHeight": 16,
-              "minVizWidth": 8,
-              "namePlacement": "auto",
-              "orientation": "horizontal",
-              "reduceOptions": {
-                "calcs": [
-                  "lastNotNull"
-                ],
-                "fields": "",
-                "values": false
-              },
-              "showUnfilled": true,
-              "sizing": "auto",
-              "valueMode": "color"
-            }
-          },
-          "version": "13.0.1"
-        }
-      }
-    },
-    "panel-211": {
-      "kind": "Panel",
-      "spec": {
-        "data": {
-          "kind": "QueryGroup",
-          "spec": {
-            "queries": [
-              {
-                "kind": "PanelQuery",
-                "spec": {
-                  "hidden": false,
-                  "query": {
-                    "datasource": {
-                      "name": "P5F3E870C62180F52"
-                    },
-                    "group": "prometheus",
-                    "kind": "DataQuery",
-                    "spec": {
-                      "expr": "node:memory_usage:percent",
-                      "legendFormat": "{{instance}}"
-                    },
-                    "version": "v0"
-                  },
-                  "refId": "A"
-                }
-              }
-            ],
-            "queryOptions": {},
-            "transformations": []
-          }
-        },
-        "description": "",
-        "id": 211,
-        "links": [],
-        "title": "🧠 Memory Usage per Node",
-        "vizConfig": {
-          "group": "bargauge",
-          "kind": "VizConfig",
-          "spec": {
-            "fieldConfig": {
-              "defaults": {
-                "color": {
-                  "mode": "thresholds"
-                },
-                "max": 100,
-                "min": 0,
-                "thresholds": {
-                  "mode": "absolute",
-                  "steps": [
-                    {
-                      "color": "green",
-                      "value": 0
-                    },
-                    {
-                      "color": "yellow",
+                      "color": "orange",
                       "value": 75
                     },
                     {
@@ -1460,21 +1571,16 @@
               "overrides": []
             },
             "options": {
-              "displayLabels": [
-                "percent",
-                "name"
-              ],
-              "displayMode": "gradient",
-              "legend": {
-                "calcs": [],
-                "displayMode": "list",
-                "placement": "bottom",
-                "showLegend": false
+              "barShape": "rounded",
+              "barWidthFactor": 0.5,
+              "effects": {
+                "barGlow": false,
+                "centerGlow": false,
+                "gradient": true
               },
-              "maxVizHeight": 300,
-              "minVizHeight": 16,
-              "minVizWidth": 8,
-              "namePlacement": "auto",
+              "endpointMarker": "glow",
+              "minVizHeight": 75,
+              "minVizWidth": 75,
               "orientation": "horizontal",
               "reduceOptions": {
                 "calcs": [
@@ -1483,195 +1589,9 @@
                 "fields": "",
                 "values": false
               },
-              "showUnfilled": true,
-              "sizing": "auto",
-              "valueMode": "color"
-            }
-          },
-          "version": "13.0.1"
-        }
-      }
-    },
-    "panel-213": {
-      "kind": "Panel",
-      "spec": {
-        "data": {
-          "kind": "QueryGroup",
-          "spec": {
-            "queries": [
-              {
-                "kind": "PanelQuery",
-                "spec": {
-                  "hidden": false,
-                  "query": {
-                    "datasource": {
-                      "name": "P5F3E870C62180F52"
-                    },
-                    "group": "prometheus",
-                    "kind": "DataQuery",
-                    "spec": {
-                      "editorMode": "code",
-                      "expr": "kube_node_status_capacity{job=\"kube-state-metrics\", resource=\"cpu\"}",
-                      "legendFormat": "{{node}}",
-                      "range": true
-                    },
-                    "version": "v0"
-                  },
-                  "refId": "A"
-                }
-              }
-            ],
-            "queryOptions": {},
-            "transformations": []
-          }
-        },
-        "description": "",
-        "id": 213,
-        "links": [],
-        "title": "🔢 Total Cores",
-        "vizConfig": {
-          "group": "gauge",
-          "kind": "VizConfig",
-          "spec": {
-            "fieldConfig": {
-              "defaults": {
-                "color": {
-                  "mode": "thresholds"
-                },
-                "thresholds": {
-                  "mode": "absolute",
-                  "steps": [
-                    {
-                      "color": "green",
-                      "value": 0
-                    },
-                    {
-                      "color": "red",
-                      "value": 80
-                    }
-                  ]
-                }
-              },
-              "overrides": []
-            },
-            "options": {
-              "barShape": "flat",
-              "barWidthFactor": 0.5,
-              "effects": {
-                "barGlow": false,
-                "centerGlow": false,
-                "gradient": true
-              },
-              "endpointMarker": "point",
-              "minVizHeight": 75,
-              "minVizWidth": 75,
-              "orientation": "auto",
-              "reduceOptions": {
-                "calcs": [
-                  "lastNotNull"
-                ],
-                "fields": "",
-                "values": false
-              },
               "segmentCount": 1,
               "segmentSpacing": 0.3,
-              "shape": "gauge",
-              "showThresholdLabels": false,
-              "showThresholdMarkers": false,
-              "sizing": "auto",
-              "sparkline": false,
-              "textMode": "value_and_name"
-            }
-          },
-          "version": "13.0.1"
-        }
-      }
-    },
-    "panel-214": {
-      "kind": "Panel",
-      "spec": {
-        "data": {
-          "kind": "QueryGroup",
-          "spec": {
-            "queries": [
-              {
-                "kind": "PanelQuery",
-                "spec": {
-                  "hidden": false,
-                  "query": {
-                    "datasource": {
-                      "name": "P5F3E870C62180F52"
-                    },
-                    "group": "prometheus",
-                    "kind": "DataQuery",
-                    "spec": {
-                      "editorMode": "code",
-                      "expr": "max by (instance) (node_memory_MemTotal_bytes{job=\"node-exporter\"})",
-                      "legendFormat": "{{instance}}",
-                      "range": true
-                    },
-                    "version": "v0"
-                  },
-                  "refId": "A"
-                }
-              }
-            ],
-            "queryOptions": {},
-            "transformations": []
-          }
-        },
-        "description": "",
-        "id": 214,
-        "links": [],
-        "title": "🔢 Total RAM",
-        "vizConfig": {
-          "group": "gauge",
-          "kind": "VizConfig",
-          "spec": {
-            "fieldConfig": {
-              "defaults": {
-                "color": {
-                  "mode": "thresholds"
-                },
-                "thresholds": {
-                  "mode": "absolute",
-                  "steps": [
-                    {
-                      "color": "green",
-                      "value": 0
-                    },
-                    {
-                      "color": "red",
-                      "value": 80
-                    }
-                  ]
-                },
-                "unit": "bytes"
-              },
-              "overrides": []
-            },
-            "options": {
-              "barShape": "flat",
-              "barWidthFactor": 0.5,
-              "effects": {
-                "barGlow": false,
-                "centerGlow": false,
-                "gradient": true
-              },
-              "endpointMarker": "point",
-              "minVizHeight": 75,
-              "minVizWidth": 75,
-              "orientation": "auto",
-              "reduceOptions": {
-                "calcs": [
-                  "lastNotNull"
-                ],
-                "fields": "",
-                "values": false
-              },
-              "segmentCount": 1,
-              "segmentSpacing": 0.3,
-              "shape": "gauge",
+              "shape": "circle",
               "showThresholdLabels": false,
               "showThresholdMarkers": false,
               "sizing": "auto",
@@ -1683,7 +1603,7 @@
         }
       }
     },
-    "panel-300": {
+    "panel-4": {
       "kind": "Panel",
       "spec": {
         "data": {
@@ -1701,7 +1621,8 @@
                     "group": "prometheus",
                     "kind": "DataQuery",
                     "spec": {
-                      "expr": "cluster:apiserver:up"
+                      "expr": "(sum(node_memory_MemTotal_bytes) - sum(node_memory_MemAvailable_bytes)) / sum(node_memory_MemTotal_bytes) * 100",
+                      "legendFormat": "Utilised %"
                     },
                     "version": "v0"
                   },
@@ -1714,16 +1635,20 @@
           }
         },
         "description": "",
-        "id": 300,
+        "id": 4,
         "links": [],
-        "title": "🏢 API Server",
+        "title": "Memory (cluster)",
+        "transparent": true,
         "vizConfig": {
-          "group": "stat",
+          "group": "gauge",
           "kind": "VizConfig",
           "spec": {
             "fieldConfig": {
               "defaults": {
-                "max": 1,
+                "color": {
+                  "mode": "thresholds"
+                },
+                "max": 100,
                 "min": 0,
                 "thresholds": {
                   "mode": "absolute",
@@ -1733,20 +1658,171 @@
                       "value": 0
                     },
                     {
+                      "color": "orange",
+                      "value": 75
+                    },
+                    {
                       "color": "red",
-                      "value": 80
+                      "value": 90
                     }
                   ]
                 },
-                "unit": "percentunit"
+                "unit": "percent"
               },
               "overrides": []
             },
             "options": {
-              "colorMode": "background",
+              "barShape": "rounded",
+              "barWidthFactor": 0.5,
+              "effects": {
+                "barGlow": false,
+                "centerGlow": false,
+                "gradient": true
+              },
+              "endpointMarker": "glow",
+              "minVizHeight": 75,
+              "minVizWidth": 75,
+              "orientation": "horizontal",
+              "reduceOptions": {
+                "calcs": [
+                  "lastNotNull"
+                ],
+                "fields": "",
+                "values": false
+              },
+              "segmentCount": 1,
+              "segmentSpacing": 0.3,
+              "shape": "circle",
+              "showThresholdLabels": false,
+              "showThresholdMarkers": false,
+              "sizing": "auto",
+              "sparkline": false,
+              "textMode": "auto"
+            }
+          },
+          "version": "13.0.1"
+        }
+      }
+    },
+    "panel-5": {
+      "kind": "Panel",
+      "spec": {
+        "data": {
+          "kind": "QueryGroup",
+          "spec": {
+            "queries": [
+              {
+                "kind": "PanelQuery",
+                "spec": {
+                  "hidden": false,
+                  "query": {
+                    "datasource": {
+                      "name": "P5F3E870C62180F52"
+                    },
+                    "group": "prometheus",
+                    "kind": "DataQuery",
+                    "spec": {
+                      "expr": "count(kube_namespace_created)",
+                      "legendFormat": "Namespaces"
+                    },
+                    "version": "v0"
+                  },
+                  "refId": "A"
+                }
+              },
+              {
+                "kind": "PanelQuery",
+                "spec": {
+                  "hidden": false,
+                  "query": {
+                    "datasource": {
+                      "name": "P5F3E870C62180F52"
+                    },
+                    "group": "prometheus",
+                    "kind": "DataQuery",
+                    "spec": {
+                      "expr": "count(kube_persistentvolumeclaim_info)",
+                      "legendFormat": "Total PVCs"
+                    },
+                    "version": "v0"
+                  },
+                  "refId": "B"
+                }
+              },
+              {
+                "kind": "PanelQuery",
+                "spec": {
+                  "hidden": false,
+                  "query": {
+                    "datasource": {
+                      "name": "P5F3E870C62180F52"
+                    },
+                    "group": "prometheus",
+                    "kind": "DataQuery",
+                    "spec": {
+                      "expr": "sum(kube_persistentvolumeclaim_status_phase{phase='Bound'})",
+                      "legendFormat": "Bound"
+                    },
+                    "version": "v0"
+                  },
+                  "refId": "C"
+                }
+              },
+              {
+                "kind": "PanelQuery",
+                "spec": {
+                  "hidden": false,
+                  "query": {
+                    "datasource": {
+                      "name": "P5F3E870C62180F52"
+                    },
+                    "group": "prometheus",
+                    "kind": "DataQuery",
+                    "spec": {
+                      "expr": "sum(kube_persistentvolumeclaim_status_phase{phase='Pending'})",
+                      "legendFormat": "Pending"
+                    },
+                    "version": "v0"
+                  },
+                  "refId": "D"
+                }
+              }
+            ],
+            "queryOptions": {},
+            "transformations": []
+          }
+        },
+        "description": "",
+        "id": 5,
+        "links": [],
+        "title": "PVCs",
+        "transparent": true,
+        "vizConfig": {
+          "group": "stat",
+          "kind": "VizConfig",
+          "spec": {
+            "fieldConfig": {
+              "defaults": {
+                "color": {
+                  "mode": "thresholds"
+                },
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": 0
+                    }
+                  ]
+                }
+              },
+              "overrides": []
+            },
+            "options": {
+              "colorMode": "value",
               "graphMode": "none",
               "justifyMode": "center",
-              "orientation": "auto",
+              "orientation": "vertical",
               "percentChangeColorMode": "standard",
               "reduceOptions": {
                 "calcs": [
@@ -1756,15 +1832,15 @@
                 "values": false
               },
               "showPercentChange": false,
-              "textMode": "value",
-              "wideLayout": true
+              "textMode": "value_and_name",
+              "wideLayout": false
             }
           },
           "version": "13.0.1"
         }
       }
     },
-    "panel-pvc-bound": {
+    "panel-6": {
       "kind": "Panel",
       "spec": {
         "data": {
@@ -1782,27 +1858,334 @@
                     "group": "prometheus",
                     "kind": "DataQuery",
                     "spec": {
-                      "expr": "sum(kube_persistentvolumeclaim_status_phase{job=\"kube-state-metrics\", phase=\"Bound\"})",
+                      "editorMode": "code",
+                      "exemplar": false,
+                      "expr": "kube_node_status_condition{condition=\"Ready\", status=\"true\"}",
+                      "format": "table",
+                      "instant": false,
+                      "legendFormat": "{{node}}",
+                      "range": true
+                    },
+                    "version": "v0"
+                  },
+                  "refId": "J"
+                }
+              },
+              {
+                "kind": "PanelQuery",
+                "spec": {
+                  "hidden": false,
+                  "query": {
+                    "datasource": {
+                      "name": "P5F3E870C62180F52"
+                    },
+                    "group": "prometheus",
+                    "kind": "DataQuery",
+                    "spec": {
+                      "editorMode": "code",
+                      "exemplar": false,
+                      "expr": "avg_over_time(\r\n  sum by(node)(\r\n    rate(node_cpu_seconds_total{mode!=\"idle\"}[5m])\r\n  )[${__range}:]\r\n)",
+                      "format": "table",
+                      "instant": false,
+                      "legendFormat": "{{node}}",
                       "range": true
                     },
                     "version": "v0"
                   },
                   "refId": "A"
                 }
+              },
+              {
+                "kind": "PanelQuery",
+                "spec": {
+                  "hidden": false,
+                  "query": {
+                    "datasource": {
+                      "name": "P5F3E870C62180F52"
+                    },
+                    "group": "prometheus",
+                    "kind": "DataQuery",
+                    "spec": {
+                      "editorMode": "code",
+                      "exemplar": false,
+                      "expr": "sum by(node) (\r\n  kube_node_status_allocatable{resource=\"cpu\"}\r\n)",
+                      "format": "table",
+                      "instant": true,
+                      "legendFormat": "__auto",
+                      "range": false
+                    },
+                    "version": "v0"
+                  },
+                  "refId": "B"
+                }
+              },
+              {
+                "kind": "PanelQuery",
+                "spec": {
+                  "hidden": false,
+                  "query": {
+                    "datasource": {
+                      "name": "P5F3E870C62180F52"
+                    },
+                    "group": "prometheus",
+                    "kind": "DataQuery",
+                    "spec": {
+                      "editorMode": "code",
+                      "exemplar": false,
+                      "expr": "(\r\n  avg_over_time(\r\n    sum by(node)(\r\n      rate(node_cpu_seconds_total{mode!=\"idle\"}[5m])\r\n    )[${__range}:]\r\n  )\r\n/\r\n  sum by(node)(\r\n    kube_node_status_allocatable{resource=\"cpu\"}\r\n  )\r\n) * 100",
+                      "format": "table",
+                      "instant": false,
+                      "legendFormat": "__auto",
+                      "range": true
+                    },
+                    "version": "v0"
+                  },
+                  "refId": "C"
+                }
+              },
+              {
+                "kind": "PanelQuery",
+                "spec": {
+                  "hidden": false,
+                  "query": {
+                    "datasource": {
+                      "name": "P5F3E870C62180F52"
+                    },
+                    "group": "prometheus",
+                    "kind": "DataQuery",
+                    "spec": {
+                      "editorMode": "code",
+                      "exemplar": false,
+                      "expr": "last_over_time(\r\n  sum by(node)(\r\n    node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes\r\n  )[${__range}:]\r\n) / 1024^3",
+                      "format": "table",
+                      "instant": false,
+                      "legendFormat": "__auto",
+                      "range": true
+                    },
+                    "version": "v0"
+                  },
+                  "refId": "D"
+                }
+              },
+              {
+                "kind": "PanelQuery",
+                "spec": {
+                  "hidden": false,
+                  "query": {
+                    "datasource": {
+                      "name": "P5F3E870C62180F52"
+                    },
+                    "group": "prometheus",
+                    "kind": "DataQuery",
+                    "spec": {
+                      "editorMode": "code",
+                      "exemplar": false,
+                      "expr": "sum by(node) (\r\n  node_memory_MemTotal_bytes\r\n) / 1024^3",
+                      "format": "table",
+                      "instant": true,
+                      "legendFormat": "__auto",
+                      "range": false
+                    },
+                    "version": "v0"
+                  },
+                  "refId": "E"
+                }
+              },
+              {
+                "kind": "PanelQuery",
+                "spec": {
+                  "hidden": false,
+                  "query": {
+                    "datasource": {
+                      "name": "P5F3E870C62180F52"
+                    },
+                    "group": "prometheus",
+                    "kind": "DataQuery",
+                    "spec": {
+                      "editorMode": "code",
+                      "exemplar": false,
+                      "expr": "(\r\n  sum by(node) (\r\n    node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes\r\n  )\r\n/\r\n  sum by(node) (\r\n    node_memory_MemTotal_bytes\r\n  )\r\n) * 100",
+                      "format": "table",
+                      "instant": false,
+                      "legendFormat": "__auto",
+                      "range": true
+                    },
+                    "version": "v0"
+                  },
+                  "refId": "F"
+                }
+              },
+              {
+                "kind": "PanelQuery",
+                "spec": {
+                  "hidden": false,
+                  "query": {
+                    "datasource": {
+                      "name": "P5F3E870C62180F52"
+                    },
+                    "group": "prometheus",
+                    "kind": "DataQuery",
+                    "spec": {
+                      "editorMode": "code",
+                      "exemplar": false,
+                      "expr": "last_over_time(\r\n  sum by(node)(\r\n    node_filesystem_size_bytes{fstype!~\"tmpfs|overlay\",mountpoint=\"/\"}\r\n    -\r\n    node_filesystem_avail_bytes{fstype!~\"tmpfs|overlay\",mountpoint=\"/\"}\r\n  )[${__range}:]\r\n) / 1024^3",
+                      "format": "table",
+                      "instant": false,
+                      "legendFormat": "__auto",
+                      "range": true
+                    },
+                    "version": "v0"
+                  },
+                  "refId": "G"
+                }
+              },
+              {
+                "kind": "PanelQuery",
+                "spec": {
+                  "hidden": false,
+                  "query": {
+                    "datasource": {
+                      "name": "P5F3E870C62180F52"
+                    },
+                    "group": "prometheus",
+                    "kind": "DataQuery",
+                    "spec": {
+                      "editorMode": "code",
+                      "exemplar": false,
+                      "expr": "sum by(node) (\r\n  node_filesystem_size_bytes{\r\n    fstype!~\"tmpfs|overlay\",\r\n    mountpoint=\"/\"\r\n  }\r\n) / 1024^3",
+                      "format": "table",
+                      "instant": true,
+                      "legendFormat": "__auto",
+                      "range": false
+                    },
+                    "version": "v0"
+                  },
+                  "refId": "H"
+                }
+              },
+              {
+                "kind": "PanelQuery",
+                "spec": {
+                  "hidden": false,
+                  "query": {
+                    "datasource": {
+                      "name": "P5F3E870C62180F52"
+                    },
+                    "group": "prometheus",
+                    "kind": "DataQuery",
+                    "spec": {
+                      "editorMode": "code",
+                      "exemplar": false,
+                      "expr": "(\r\n  sum by(node) (\r\n    node_filesystem_size_bytes{\r\n      fstype!~\"tmpfs|overlay\",\r\n      mountpoint=\"/\"\r\n    }\r\n  -\r\n    node_filesystem_avail_bytes{\r\n      fstype!~\"tmpfs|overlay\",\r\n      mountpoint=\"/\"\r\n    }\r\n  )\r\n/\r\n  sum by(node) (\r\n    node_filesystem_size_bytes{\r\n      fstype!~\"tmpfs|overlay\",\r\n      mountpoint=\"/\"\r\n    }\r\n  )\r\n) * 100",
+                      "format": "table",
+                      "instant": false,
+                      "legendFormat": "__auto",
+                      "range": true
+                    },
+                    "version": "v0"
+                  },
+                  "refId": "I"
+                }
               }
             ],
             "queryOptions": {},
-            "transformations": []
+            "transformations": [
+              {
+                "group": "joinByField",
+                "kind": "Transformation",
+                "spec": {
+                  "options": {
+                    "byField": "node",
+                    "mode": "outer"
+                  }
+                }
+              },
+              {
+                "group": "organize",
+                "kind": "Transformation",
+                "spec": {
+                  "options": {
+                    "excludeByName": {
+                      "Time 1": true,
+                      "Time 10": true,
+                      "Time 2": true,
+                      "Time 3": true,
+                      "Time 4": true,
+                      "Time 5": true,
+                      "Time 6": true,
+                      "Time 7": true,
+                      "Time 8": true,
+                      "Time 9": true,
+                      "Value #J": true,
+                      "__name__": true,
+                      "cluster": true,
+                      "condition": false,
+                      "instance": true,
+                      "job": true,
+                      "status": true
+                    },
+                    "includeByName": {},
+                    "indexByName": {},
+                    "renameByName": {
+                      "Time 4": "",
+                      "Value #A": "CPU Used (cores)",
+                      "Value #B": "CPU Total (cores)",
+                      "Value #C": "CPU Usage (%)",
+                      "Value #D": "Memory Used (GB)",
+                      "Value #E": "Memory Total (GB)",
+                      "Value #F": "Memory Usage (%)",
+                      "Value #G": "Disk Used (GB)",
+                      "Value #H": "Disk Total (GB)",
+                      "Value #I": "Disk Usage (%)",
+                      "condition": "Status",
+                      "node": "Node"
+                    }
+                  }
+                }
+              },
+              {
+                "group": "sortBy",
+                "kind": "Transformation",
+                "spec": {
+                  "options": {
+                    "fields": {},
+                    "sort": [
+                      {
+                        "field": "Node"
+                      }
+                    ]
+                  }
+                }
+              }
+            ]
           }
         },
-        "id": 2005,
-        "title": "✅ Bound PVCs",
+        "description": "",
+        "id": 6,
+        "links": [],
+        "title": "Node resource details",
+        "transparent": true,
         "vizConfig": {
-          "group": "stat",
+          "group": "table",
           "kind": "VizConfig",
           "spec": {
             "fieldConfig": {
               "defaults": {
+                "color": {
+                  "mode": "thresholds"
+                },
+                "custom": {
+                  "align": "auto",
+                  "cellOptions": {
+                    "type": "color-text"
+                  },
+                  "footer": {
+                    "reducers": []
+                  },
+                  "inspect": false,
+                  "styleField": "Node"
+                },
+                "fieldMinMax": false,
                 "thresholds": {
                   "mode": "absolute",
                   "steps": [
@@ -1813,272 +2196,293 @@
                   ]
                 }
               },
-              "overrides": []
-            },
-            "options": {
-              "colorMode": "background",
-              "graphMode": "none",
-              "justifyMode": "center",
-              "textMode": "value"
-            }
-          },
-          "version": "13.0.1"
-        }
-      }
-    },
-    "panel-pvc-pending": {
-      "kind": "Panel",
-      "spec": {
-        "data": {
-          "kind": "QueryGroup",
-          "spec": {
-            "queries": [
-              {
-                "kind": "PanelQuery",
-                "spec": {
-                  "hidden": false,
-                  "query": {
-                    "datasource": {
-                      "name": "P5F3E870C62180F52"
-                    },
-                    "group": "prometheus",
-                    "kind": "DataQuery",
-                    "spec": {
-                      "expr": "sum(kube_persistentvolumeclaim_status_phase{job=\"kube-state-metrics\", phase=\"Pending\"}) or vector(0)",
-                      "range": true
-                    },
-                    "version": "v0"
+              "overrides": [
+                {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "CPU Usage (%)",
+                    "scope": "series"
                   },
-                  "refId": "A"
-                }
-              }
-            ],
-            "queryOptions": {},
-            "transformations": []
-          }
-        },
-        "id": 2006,
-        "title": "⏳ Pending PVCs (Unplaced)",
-        "vizConfig": {
-          "group": "stat",
-          "kind": "VizConfig",
-          "spec": {
-            "fieldConfig": {
-              "defaults": {
-                "thresholds": {
-                  "mode": "absolute",
-                  "steps": [
+                  "properties": [
                     {
-                      "color": "yellow",
-                      "value": 0
+                      "id": "unit",
+                      "value": "percent"
                     },
                     {
-                      "color": "orange",
-                      "value": 1
-                    }
-                  ]
-                }
-              },
-              "overrides": []
-            },
-            "options": {
-              "colorMode": "background",
-              "graphMode": "none",
-              "justifyMode": "center",
-              "textMode": "value"
-            }
-          },
-          "version": "13.0.1"
-        }
-      }
-    },
-    "panel-pvc-lost": {
-      "kind": "Panel",
-      "spec": {
-        "data": {
-          "kind": "QueryGroup",
-          "spec": {
-            "queries": [
-              {
-                "kind": "PanelQuery",
-                "spec": {
-                  "hidden": false,
-                  "query": {
-                    "datasource": {
-                      "name": "P5F3E870C62180F52"
-                    },
-                    "group": "prometheus",
-                    "kind": "DataQuery",
-                    "spec": {
-                      "expr": "sum(kube_persistentvolumeclaim_status_phase{job=\"kube-state-metrics\", phase=\"Lost\"}) or vector(0)",
-                      "range": true
-                    },
-                    "version": "v0"
-                  },
-                  "refId": "A"
-                }
-              }
-            ],
-            "queryOptions": {},
-            "transformations": []
-          }
-        },
-        "id": 2007,
-        "title": "❌ Lost PVCs (Critical)",
-        "vizConfig": {
-          "group": "stat",
-          "kind": "VizConfig",
-          "spec": {
-            "fieldConfig": {
-              "defaults": {
-                "thresholds": {
-                  "mode": "absolute",
-                  "steps": [
-                    {
-                      "color": "red",
-                      "value": 0
-                    }
-                  ]
-                }
-              },
-              "overrides": []
-            },
-            "options": {
-              "colorMode": "background",
-              "graphMode": "none",
-              "justifyMode": "center",
-              "textMode": "value"
-            }
-          },
-          "version": "13.0.1"
-        }
-      }
-    },
-    "panel-pvc-inodes": {
-      "kind": "Panel",
-      "spec": {
-        "data": {
-          "kind": "QueryGroup",
-          "spec": {
-            "queries": [
-              {
-                "kind": "PanelQuery",
-                "spec": {
-                  "hidden": false,
-                  "query": {
-                    "datasource": {
-                      "name": "P5F3E870C62180F52"
-                    },
-                    "group": "prometheus",
-                    "kind": "DataQuery",
-                    "spec": {
-                      "expr": "max(kubelet_volume_stats_inodes_used / kubelet_volume_stats_inodes) * 100 or vector(0)",
-                      "range": true
-                    },
-                    "version": "v0"
-                  },
-                  "refId": "A"
-                }
-              }
-            ],
-            "queryOptions": {},
-            "transformations": []
-          }
-        },
-        "id": 2008,
-        "title": "⚠️ Peak Inode Usage %",
-        "vizConfig": {
-          "group": "stat",
-          "kind": "VizConfig",
-          "spec": {
-            "fieldConfig": {
-              "defaults": {
-                "thresholds": {
-                  "mode": "absolute",
-                  "steps": [
-                    {
-                      "color": "green",
-                      "value": 0
+                      "id": "max",
+                      "value": 100
                     },
                     {
-                      "color": "orange",
-                      "value": 75
+                      "id": "thresholds",
+                      "value": {
+                        "mode": "absolute",
+                        "steps": [
+                          {
+                            "color": "green",
+                            "value": 0
+                          },
+                          {
+                            "color": "orange",
+                            "value": 50
+                          },
+                          {
+                            "color": "red",
+                            "value": 70
+                          }
+                        ]
+                      }
                     },
                     {
-                      "color": "red",
-                      "value": 90
+                      "id": "custom.cellOptions",
+                      "value": {
+                        "mode": "gradient",
+                        "type": "gauge",
+                        "valueDisplayMode": "color"
+                      }
                     }
                   ]
                 },
-                "unit": "percent"
-              },
-              "overrides": []
-            },
-            "options": {
-              "colorMode": "value",
-              "graphMode": "none",
-              "justifyMode": "center",
-              "textMode": "auto"
-            }
-          },
-          "version": "13.0.1"
-        }
-      }
-    },
-    "panel-pvc-ns-distribution": {
-      "kind": "Panel",
-      "spec": {
-        "data": {
-          "kind": "QueryGroup",
-          "spec": {
-            "queries": [
-              {
-                "kind": "PanelQuery",
-                "spec": {
-                  "hidden": false,
-                  "query": {
-                    "datasource": {
-                      "name": "P5F3E870C62180F52"
-                    },
-                    "group": "prometheus",
-                    "kind": "DataQuery",
-                    "spec": {
-                      "expr": "sum(kubelet_volume_stats_used_bytes) by (namespace)",
-                      "legendFormat": "{{namespace}}",
-                      "range": true
-                    },
-                    "version": "v0"
+                {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "Memory Usage (%)",
+                    "scope": "series"
                   },
-                  "refId": "A"
+                  "properties": [
+                    {
+                      "id": "unit",
+                      "value": "percent"
+                    },
+                    {
+                      "id": "max",
+                      "value": 100
+                    },
+                    {
+                      "id": "thresholds",
+                      "value": {
+                        "mode": "absolute",
+                        "steps": [
+                          {
+                            "color": "green",
+                            "value": 0
+                          },
+                          {
+                            "color": "orange",
+                            "value": 50
+                          },
+                          {
+                            "color": "red",
+                            "value": 70
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "id": "custom.cellOptions",
+                      "value": {
+                        "type": "gauge"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "Disk Usage (%)",
+                    "scope": "series"
+                  },
+                  "properties": [
+                    {
+                      "id": "unit",
+                      "value": "percent"
+                    },
+                    {
+                      "id": "max",
+                      "value": 100
+                    },
+                    {
+                      "id": "thresholds",
+                      "value": {
+                        "mode": "absolute",
+                        "steps": [
+                          {
+                            "color": "green",
+                            "value": 0
+                          },
+                          {
+                            "color": "orange",
+                            "value": 50
+                          },
+                          {
+                            "color": "red",
+                            "value": 70
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "id": "custom.cellOptions",
+                      "value": {
+                        "type": "gauge"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "Status"
+                  },
+                  "properties": [
+                    {
+                      "id": "thresholds",
+                      "value": {
+                        "mode": "absolute",
+                        "steps": [
+                          {
+                            "color": "green",
+                            "value": 0
+                          },
+                          {
+                            "color": "red",
+                            "value": ""
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "id": "mappings",
+                      "value": [
+                        {
+                          "options": {
+                            "0": {
+                              "index": 1,
+                              "text": "NotReady"
+                            },
+                            "1": {
+                              "index": 0,
+                              "text": "Ready"
+                            }
+                          },
+                          "type": "value"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "custom.width",
+                      "value": 87
+                    }
+                  ]
+                },
+                {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "Memory Used (GB)",
+                    "scope": "series"
+                  },
+                  "properties": [
+                    {
+                      "id": "unit",
+                      "value": "decgbytes"
+                    }
+                  ]
+                },
+                {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "Memory Total (GB)",
+                    "scope": "series"
+                  },
+                  "properties": [
+                    {
+                      "id": "unit",
+                      "value": "decgbytes"
+                    }
+                  ]
+                },
+                {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "Disk Used (GB)",
+                    "scope": "series"
+                  },
+                  "properties": [
+                    {
+                      "id": "unit",
+                      "value": "decgbytes"
+                    }
+                  ]
+                },
+                {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "Disk Total (GB)",
+                    "scope": "series"
+                  },
+                  "properties": [
+                    {
+                      "id": "unit",
+                      "value": "decgbytes"
+                    }
+                  ]
+                },
+                {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "Node"
+                  },
+                  "properties": [
+                    {
+                      "id": "custom.width",
+                      "value": 101
+                    }
+                  ]
+                },
+                {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "CPU Used (cores)",
+                    "scope": "series"
+                  },
+                  "properties": [
+                    {
+                      "id": "unit",
+                      "value": "percentunit"
+                    }
+                  ]
+                },
+                {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "CPU Total (cores)",
+                    "scope": "series"
+                  },
+                  "properties": [
+                    {
+                      "id": "unit",
+                      "value": "percentunit"
+                    }
+                  ]
                 }
-              }
-            ],
-            "queryOptions": {},
-            "transformations": []
-          }
-        },
-        "id": 2009,
-        "title": "🏷️ Storage by Namespace",
-        "vizConfig": {
-          "group": "bargauge",
-          "kind": "VizConfig",
-          "spec": {
-            "fieldConfig": {
-              "defaults": {
-                "unit": "bytes"
-              },
-              "overrides": []
+              ]
             },
             "options": {
-              "displayMode": "gradient",
-              "orientation": "horizontal"
+              "cellHeight": "sm",
+              "frameIndex": 2,
+              "showHeader": true,
+              "sortBy": [
+                {
+                  "desc": true,
+                  "displayName": "cp01"
+                }
+              ]
             }
           },
           "version": "13.0.1"
         }
       }
     },
-    "panel-pvc-health-pie": {
+    "panel-7": {
       "kind": "Panel",
       "spec": {
         "data": {
@@ -2096,7 +2500,8 @@
                     "group": "prometheus",
                     "kind": "DataQuery",
                     "spec": {
-                      "expr": "sum by (phase) (kube_persistentvolumeclaim_status_phase)",
+                      "editorMode": "code",
+                      "expr": "sum by(phase) (kube_pod_status_phase)",
                       "legendFormat": "{{phase}}",
                       "range": true
                     },
@@ -2110,8 +2515,11 @@
             "transformations": []
           }
         },
-        "id": 2010,
-        "title": "🩺 Claims Health Distribution",
+        "description": "",
+        "id": 7,
+        "links": [],
+        "title": "Pod Status",
+        "transparent": true,
         "vizConfig": {
           "group": "piechart",
           "kind": "VizConfig",
@@ -2120,65 +2528,453 @@
               "defaults": {
                 "color": {
                   "mode": "palette-classic"
+                },
+                "custom": {
+                  "hideFrom": {
+                    "legend": false,
+                    "tooltip": false,
+                    "viz": false
+                  }
+                }
+              },
+              "overrides": []
+            },
+            "options": {
+              "legend": {
+                "displayMode": "list",
+                "placement": "right",
+                "showLegend": true
+              },
+              "pieType": "donut",
+              "reduceOptions": {
+                "calcs": [
+                  "lastNotNull"
+                ],
+                "fields": "",
+                "values": false
+              },
+              "sort": "desc",
+              "tooltip": {
+                "hideZeros": false,
+                "mode": "single",
+                "sort": "none"
+              }
+            }
+          },
+          "version": "13.0.1"
+        }
+      }
+    },
+    "panel-8": {
+      "kind": "Panel",
+      "spec": {
+        "data": {
+          "kind": "QueryGroup",
+          "spec": {
+            "queries": [
+              {
+                "kind": "PanelQuery",
+                "spec": {
+                  "hidden": false,
+                  "query": {
+                    "datasource": {
+                      "name": "P5F3E870C62180F52"
+                    },
+                    "group": "prometheus",
+                    "kind": "DataQuery",
+                    "spec": {
+                      "editorMode": "code",
+                      "expr": "count by(namespace) (kube_pod_info)",
+                      "format": "table",
+                      "instant": true,
+                      "legendFormat": "{{namespace}}"
+                    },
+                    "version": "v0"
+                  },
+                  "refId": "A"
+                }
+              },
+              {
+                "kind": "PanelQuery",
+                "spec": {
+                  "hidden": false,
+                  "query": {
+                    "datasource": {
+                      "name": "P5F3E870C62180F52"
+                    },
+                    "group": "prometheus",
+                    "kind": "DataQuery",
+                    "spec": {
+                      "expr": "sum by(namespace) (kube_pod_status_phase{phase='Running'})",
+                      "format": "table",
+                      "instant": true,
+                      "legendFormat": "{{namespace}}"
+                    },
+                    "version": "v0"
+                  },
+                  "refId": "B"
+                }
+              },
+              {
+                "kind": "PanelQuery",
+                "spec": {
+                  "hidden": false,
+                  "query": {
+                    "datasource": {
+                      "name": "P5F3E870C62180F52"
+                    },
+                    "group": "prometheus",
+                    "kind": "DataQuery",
+                    "spec": {
+                      "editorMode": "code",
+                      "expr": "sum by(namespace) (kube_pod_status_phase{phase='Pending'})",
+                      "format": "table",
+                      "instant": true,
+                      "legendFormat": "{{namespace}}"
+                    },
+                    "version": "v0"
+                  },
+                  "refId": "C"
+                }
+              },
+              {
+                "kind": "PanelQuery",
+                "spec": {
+                  "hidden": false,
+                  "query": {
+                    "datasource": {
+                      "name": "P5F3E870C62180F52"
+                    },
+                    "group": "prometheus",
+                    "kind": "DataQuery",
+                    "spec": {
+                      "editorMode": "code",
+                      "exemplar": false,
+                      "expr": "sum by(namespace)(\r\n  rate(container_cpu_usage_seconds_total{\r\n    container!=\"\",\r\n    pod!=\"\"\r\n  }[5m])\r\n)",
+                      "format": "table",
+                      "instant": true,
+                      "legendFormat": "__auto",
+                      "range": false
+                    },
+                    "version": "v0"
+                  },
+                  "refId": "G"
+                }
+              },
+              {
+                "kind": "PanelQuery",
+                "spec": {
+                  "hidden": false,
+                  "query": {
+                    "datasource": {
+                      "name": "P5F3E870C62180F52"
+                    },
+                    "group": "prometheus",
+                    "kind": "DataQuery",
+                    "spec": {
+                      "editorMode": "code",
+                      "exemplar": false,
+                      "expr": "sum by(namespace)(\r\n  container_memory_working_set_bytes{\r\n    container!=\"\",\r\n    pod!=\"\"\r\n  }\r\n) / 1024^3",
+                      "format": "table",
+                      "instant": true,
+                      "legendFormat": "__auto",
+                      "range": false
+                    },
+                    "version": "v0"
+                  },
+                  "refId": "H"
+                }
+              },
+              {
+                "kind": "PanelQuery",
+                "spec": {
+                  "hidden": false,
+                  "query": {
+                    "datasource": {
+                      "name": "P5F3E870C62180F52"
+                    },
+                    "group": "prometheus",
+                    "kind": "DataQuery",
+                    "spec": {
+                      "editorMode": "code",
+                      "expr": "sum by(namespace) (kube_persistentvolumeclaim_info)",
+                      "format": "table",
+                      "instant": true,
+                      "legendFormat": "{{namespace}}"
+                    },
+                    "version": "v0"
+                  },
+                  "refId": "F"
+                }
+              }
+            ],
+            "queryOptions": {},
+            "transformations": [
+              {
+                "group": "joinByField",
+                "kind": "Transformation",
+                "spec": {
+                  "options": {
+                    "byField": "namespace",
+                    "mode": "outer"
+                  }
+                }
+              },
+              {
+                "group": "organize",
+                "kind": "Transformation",
+                "spec": {
+                  "options": {
+                    "excludeByName": {
+                      "Time 1": true,
+                      "Time 2": true,
+                      "Time 3": true,
+                      "Time 4": true,
+                      "Time 5": true,
+                      "Time 6": true,
+                      "namespace 1": false
+                    },
+                    "includeByName": {},
+                    "indexByName": {},
+                    "renameByName": {
+                      "Value #A": "Pods",
+                      "Value #B": "Running",
+                      "Value #C": "Pending",
+                      "Value #D": "CPU req%",
+                      "Value #E": "Mem req%",
+                      "Value #F": "PVCs",
+                      "Value #G": "CPU (cores)",
+                      "Value #H": "Memory (GB)"
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "description": "",
+        "id": 8,
+        "links": [],
+        "title": "Namespace overview",
+        "transparent": true,
+        "vizConfig": {
+          "group": "table",
+          "kind": "VizConfig",
+          "spec": {
+            "fieldConfig": {
+              "defaults": {
+                "color": {
+                  "mode": "thresholds"
+                },
+                "custom": {
+                  "align": "auto",
+                  "cellOptions": {
+                    "type": "auto"
+                  },
+                  "footer": {
+                    "reducers": []
+                  },
+                  "inspect": false
+                },
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": 0
+                    },
+                    {
+                      "color": "red",
+                      "value": 80
+                    }
+                  ]
                 }
               },
               "overrides": [
                 {
                   "matcher": {
                     "id": "byName",
-                    "options": "Bound"
+                    "options": "Pods",
+                    "scope": "series"
                   },
                   "properties": [
                     {
-                      "id": "color",
+                      "id": "max",
+                      "value": 100
+                    },
+                    {
+                      "id": "thresholds",
                       "value": {
-                        "fixedColor": "green",
-                        "mode": "fixed"
+                        "mode": "absolute",
+                        "steps": [
+                          {
+                            "color": "green",
+                            "value": 0
+                          }
+                        ]
                       }
+                    },
+                    {
+                      "id": "noValue",
+                      "value": "0"
                     }
                   ]
                 },
                 {
                   "matcher": {
                     "id": "byName",
-                    "options": "Pending"
+                    "options": "Running",
+                    "scope": "series"
                   },
                   "properties": [
                     {
-                      "id": "color",
+                      "id": "thresholds",
                       "value": {
-                        "fixedColor": "orange",
-                        "mode": "fixed"
+                        "mode": "absolute",
+                        "steps": [
+                          {
+                            "color": "green",
+                            "value": 0
+                          }
+                        ]
                       }
+                    },
+                    {
+                      "id": "noValue",
+                      "value": "0"
                     }
                   ]
                 },
                 {
                   "matcher": {
                     "id": "byName",
-                    "options": "Lost"
+                    "options": "Pending",
+                    "scope": "series"
                   },
                   "properties": [
                     {
-                      "id": "color",
-                      "value": {
-                        "fixedColor": "red",
-                        "mode": "fixed"
-                      }
+                      "id": "noValue",
+                      "value": "0"
+                    }
+                  ]
+                },
+                {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "CPU (cores)",
+                    "scope": "series"
+                  },
+                  "properties": [
+                    {
+                      "id": "unit",
+                      "value": "percentunit"
+                    },
+                    {
+                      "id": "noValue",
+                      "value": "0"
+                    }
+                  ]
+                },
+                {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "Memory (GB)",
+                    "scope": "series"
+                  },
+                  "properties": [
+                    {
+                      "id": "unit",
+                      "value": "decgbytes"
+                    },
+                    {
+                      "id": "noValue",
+                      "value": "0"
+                    }
+                  ]
+                },
+                {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "PVCs",
+                    "scope": "series"
+                  },
+                  "properties": [
+                    {
+                      "id": "noValue",
+                      "value": "0"
                     }
                   ]
                 }
               ]
             },
             "options": {
-              "displayLabels": [
-                "percent",
-                "name"
-              ],
-              "legend": {
-                "displayMode": "list",
-                "placement": "right"
-              }
+              "cellHeight": "sm",
+              "showHeader": true,
+              "sortBy": []
+            }
+          },
+          "version": "13.0.1"
+        }
+      }
+    },
+    "panel-9": {
+      "kind": "Panel",
+      "spec": {
+        "data": {
+          "kind": "QueryGroup",
+          "spec": {
+            "queries": [],
+            "queryOptions": {},
+            "transformations": []
+          }
+        },
+        "description": "",
+        "id": 9,
+        "links": [],
+        "title": "Active Alerts",
+        "transparent": true,
+        "vizConfig": {
+          "group": "alertlist",
+          "kind": "VizConfig",
+          "spec": {
+            "fieldConfig": {
+              "defaults": {},
+              "overrides": []
+            },
+            "options": {
+              "alertInstanceLabelFilter": "",
+              "alertName": "",
+              "dashboardAlerts": false,
+              "groupBy": [],
+              "groupMode": "default",
+              "maxItems": 20,
+              "show": "current",
+              "showInactiveAlerts": false,
+              "sortOrder": 1,
+              "statColorMode": "none",
+              "statThresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": 0
+                  },
+                  {
+                    "color": "red",
+                    "value": 80
+                  }
+                ]
+              },
+              "statValueMappings": [],
+              "stateFilter": {
+                "error": true,
+                "firing": true,
+                "noData": false,
+                "normal": false,
+                "pending": true,
+                "recovering": true
+              },
+              "viewMode": "list"
             }
           },
           "version": "13.0.1"
@@ -2194,6 +2990,8 @@
           "kind": "RowsLayoutRow",
           "spec": {
             "collapse": false,
+            "fillScreen": true,
+            "hideHeader": false,
             "layout": {
               "kind": "GridLayout",
               "spec": {
@@ -2203,9 +3001,9 @@
                     "spec": {
                       "element": {
                         "kind": "ElementReference",
-                        "name": "panel-13"
+                        "name": "panel-1"
                       },
-                      "height": 4,
+                      "height": 6,
                       "width": 4,
                       "x": 0,
                       "y": 0
@@ -2216,9 +3014,9 @@
                     "spec": {
                       "element": {
                         "kind": "ElementReference",
-                        "name": "panel-122"
+                        "name": "panel-2"
                       },
-                      "height": 4,
+                      "height": 6,
                       "width": 4,
                       "x": 4,
                       "y": 0
@@ -2229,9 +3027,9 @@
                     "spec": {
                       "element": {
                         "kind": "ElementReference",
-                        "name": "panel-120"
+                        "name": "panel-3"
                       },
-                      "height": 4,
+                      "height": 6,
                       "width": 4,
                       "x": 8,
                       "y": 0
@@ -2242,130 +3040,12 @@
                     "spec": {
                       "element": {
                         "kind": "ElementReference",
-                        "name": "panel-12"
+                        "name": "panel-4"
                       },
-                      "height": 4,
+                      "height": 6,
                       "width": 4,
                       "x": 12,
                       "y": 0
-                    }
-                  },
-                  {
-                    "kind": "GridLayoutItem",
-                    "spec": {
-                      "element": {
-                        "kind": "ElementReference",
-                        "name": "panel-121"
-                      },
-                      "height": 4,
-                      "width": 4,
-                      "x": 16,
-                      "y": 0
-                    }
-                  },
-                  {
-                    "kind": "GridLayoutItem",
-                    "spec": {
-                      "element": {
-                        "kind": "ElementReference",
-                        "name": "panel-300"
-                      },
-                      "height": 4,
-                      "width": 4,
-                      "x": 20,
-                      "y": 0
-                    }
-                  },
-                  {
-                    "kind": "GridLayoutItem",
-                    "spec": {
-                      "element": {
-                        "kind": "ElementReference",
-                        "name": "panel-1001"
-                      },
-                      "height": 7,
-                      "width": 24,
-                      "x": 0,
-                      "y": 4
-                    }
-                  },
-                  {
-                    "kind": "GridLayoutItem",
-                    "spec": {
-                      "element": {
-                        "kind": "ElementReference",
-                        "name": "panel-200"
-                      },
-                      "height": 7,
-                      "width": 24,
-                      "x": 0,
-                      "y": 11
-                    }
-                  }
-                ]
-              }
-            },
-            "title": "--- GLOBAL CLUSTER STATUS ---"
-          }
-        },
-        {
-          "kind": "RowsLayoutRow",
-          "spec": {
-            "collapse": false,
-            "layout": {
-              "kind": "GridLayout",
-              "spec": {
-                "items": [
-                  {
-                    "kind": "GridLayoutItem",
-                    "spec": {
-                      "element": {
-                        "kind": "ElementReference",
-                        "name": "panel-210"
-                      },
-                      "height": 8,
-                      "width": 18,
-                      "x": 0,
-                      "y": 0
-                    }
-                  },
-                  {
-                    "kind": "GridLayoutItem",
-                    "spec": {
-                      "element": {
-                        "kind": "ElementReference",
-                        "name": "panel-213"
-                      },
-                      "height": 8,
-                      "width": 6,
-                      "x": 18,
-                      "y": 0
-                    }
-                  },
-                  {
-                    "kind": "GridLayoutItem",
-                    "spec": {
-                      "element": {
-                        "kind": "ElementReference",
-                        "name": "panel-211"
-                      },
-                      "height": 8,
-                      "width": 18,
-                      "x": 0,
-                      "y": 8
-                    }
-                  },
-                  {
-                    "kind": "GridLayoutItem",
-                    "spec": {
-                      "element": {
-                        "kind": "ElementReference",
-                        "name": "panel-214"
-                      },
-                      "height": 8,
-                      "width": 6,
-                      "x": 18,
-                      "y": 8
                     }
                   },
                   {
@@ -2375,55 +3055,16 @@
                         "kind": "ElementReference",
                         "name": "panel-2002"
                       },
-                      "height": 8,
-                      "width": 18,
-                      "x": 0,
-                      "y": 16
-                    }
-                  },
-                  {
-                    "kind": "GridLayoutItem",
-                    "spec": {
-                      "element": {
-                        "kind": "ElementReference",
-                        "name": "panel-2003"
-                      },
-                      "height": 8,
-                      "width": 6,
-                      "x": 18,
-                      "y": 16
-                    }
-                  },
-                  {
-                    "kind": "GridLayoutItem",
-                    "spec": {
-                      "element": {
-                        "kind": "ElementReference",
-                        "name": "panel-130"
-                      },
-                      "height": 8,
-                      "width": 12,
-                      "x": 0,
-                      "y": 24
-                    }
-                  },
-                  {
-                    "kind": "GridLayoutItem",
-                    "spec": {
-                      "element": {
-                        "kind": "ElementReference",
-                        "name": "panel-131"
-                      },
-                      "height": 8,
-                      "width": 12,
-                      "x": 12,
-                      "y": 24
+                      "height": 6,
+                      "width": 8,
+                      "x": 16,
+                      "y": 0
                     }
                   }
                 ]
               }
             },
-            "title": "--- NODE RESOURCE OBSERVATION (Visual Gauges) ---"
+            "title": "Overview Cluster"
           }
         },
         {
@@ -2439,10 +3080,37 @@
                     "spec": {
                       "element": {
                         "kind": "ElementReference",
-                        "name": "panel-pvc-bound"
+                        "name": "panel-6"
                       },
-                      "height": 4,
-                      "width": 3,
+                      "height": 9,
+                      "width": 24,
+                      "x": 0,
+                      "y": 0
+                    }
+                  }
+                ]
+              }
+            },
+            "title": "Node Resource Details"
+          }
+        },
+        {
+          "kind": "RowsLayoutRow",
+          "spec": {
+            "collapse": false,
+            "layout": {
+              "kind": "GridLayout",
+              "spec": {
+                "items": [
+                  {
+                    "kind": "GridLayoutItem",
+                    "spec": {
+                      "element": {
+                        "kind": "ElementReference",
+                        "name": "panel-2003"
+                      },
+                      "height": 10,
+                      "width": 16,
                       "x": 0,
                       "y": 0
                     }
@@ -2452,63 +3120,91 @@
                     "spec": {
                       "element": {
                         "kind": "ElementReference",
-                        "name": "panel-pvc-pending"
+                        "name": "panel-7"
                       },
-                      "height": 4,
-                      "width": 3,
-                      "x": 3,
+                      "height": 10,
+                      "width": 8,
+                      "x": 16,
                       "y": 0
                     }
-                  },
+                  }
+                ]
+              }
+            },
+            "title": "Pod Overview"
+          }
+        },
+        {
+          "kind": "RowsLayoutRow",
+          "spec": {
+            "collapse": false,
+            "layout": {
+              "kind": "GridLayout",
+              "spec": {
+                "items": [
                   {
                     "kind": "GridLayoutItem",
                     "spec": {
                       "element": {
                         "kind": "ElementReference",
-                        "name": "panel-pvc-lost"
+                        "name": "panel-8"
                       },
-                      "height": 4,
-                      "width": 3,
-                      "x": 6,
+                      "height": 9,
+                      "width": 24,
+                      "x": 0,
                       "y": 0
                     }
-                  },
+                  }
+                ]
+              }
+            },
+            "title": "Namespace Overview"
+          }
+        },
+        {
+          "kind": "RowsLayoutRow",
+          "spec": {
+            "collapse": false,
+            "layout": {
+              "kind": "AutoGridLayout",
+              "spec": {
+                "columnWidthMode": "standard",
+                "items": [
+                  {
+                    "kind": "AutoGridLayoutItem",
+                    "spec": {
+                      "element": {
+                        "kind": "ElementReference",
+                        "name": "panel-9"
+                      }
+                    }
+                  }
+                ],
+                "maxColumnCount": 3,
+                "rowHeightMode": "standard"
+              }
+            },
+            "title": "Alert Manager"
+          }
+        },
+        {
+          "kind": "RowsLayoutRow",
+          "spec": {
+            "collapse": false,
+            "layout": {
+              "kind": "GridLayout",
+              "spec": {
+                "items": [
                   {
                     "kind": "GridLayoutItem",
                     "spec": {
                       "element": {
                         "kind": "ElementReference",
-                        "name": "panel-pvc-inodes"
+                        "name": "panel-5"
                       },
                       "height": 4,
-                      "width": 3,
-                      "x": 9,
-                      "y": 0
-                    }
-                  },
-                  {
-                    "kind": "GridLayoutItem",
-                    "spec": {
-                      "element": {
-                        "kind": "ElementReference",
-                        "name": "panel-pvc-ns-distribution"
-                      },
-                      "height": 4,
-                      "width": 6,
-                      "x": 12,
-                      "y": 0
-                    }
-                  },
-                  {
-                    "kind": "GridLayoutItem",
-                    "spec": {
-                      "element": {
-                        "kind": "ElementReference",
-                        "name": "panel-pvc-health-pie"
-                      },
-                      "height": 4,
-                      "width": 6,
-                      "x": 18,
+                      "width": 24,
+                      "x": 0,
                       "y": 0
                     }
                   },
@@ -2528,7 +3224,51 @@
                 ]
               }
             },
-            "title": "--- STORAGE ---"
+            "title": "PVC Storage Usage"
+          }
+        },
+        {
+          "kind": "RowsLayoutRow",
+          "spec": {
+            "collapse": false,
+            "layout": {
+              "kind": "AutoGridLayout",
+              "spec": {
+                "columnWidthMode": "standard",
+                "items": [
+                  {
+                    "kind": "AutoGridLayoutItem",
+                    "spec": {
+                      "element": {
+                        "kind": "ElementReference",
+                        "name": "panel-2004"
+                      }
+                    }
+                  },
+                  {
+                    "kind": "AutoGridLayoutItem",
+                    "spec": {
+                      "element": {
+                        "kind": "ElementReference",
+                        "name": "panel-2005"
+                      }
+                    }
+                  },
+                  {
+                    "kind": "AutoGridLayoutItem",
+                    "spec": {
+                      "element": {
+                        "kind": "ElementReference",
+                        "name": "panel-2006"
+                      }
+                    }
+                  }
+                ],
+                "maxColumnCount": 3,
+                "rowHeightMode": "standard"
+              }
+            },
+            "title": "Cluster Network Overview"
           }
         }
       ]
@@ -2538,11 +3278,12 @@
   "liveNow": false,
   "preload": false,
   "tags": [
-    "k8s",
-    "infra"
+    "kubernetes",
+    "overview",
+    "sre"
   ],
   "timeSettings": {
-    "autoRefresh": "1m",
+    "autoRefresh": "10s",
     "autoRefreshIntervals": [
       "5s",
       "10s",
@@ -2556,11 +3297,11 @@
       "1d"
     ],
     "fiscalYearStartMonth": 0,
-    "from": "now-1h",
+    "from": "now-5m",
     "hideTimepicker": false,
     "timezone": "browser",
     "to": "now"
   },
-  "title": "K8s Infrastructure -Final",
+  "title": "K8s Cluster Overview (Detailed)",
   "variables": []
 }

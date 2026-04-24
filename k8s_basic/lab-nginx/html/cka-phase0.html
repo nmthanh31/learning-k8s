@@ -1,0 +1,1668 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CKA · Giai đoạn 0 — Xây Nền Tư Duy</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,400;0,700;0,900;1,300;1,400&family=DM+Mono:wght@300;400;500&family=Outfit:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:       #f5f0e8;
+  --bg2:      #ede8de;
+  --card:     #faf7f2;
+  --ink:      #1a1410;
+  --ink2:     #3d3530;
+  --dim:      #7a6e64;
+  --border:   #d4ccbf;
+  --border2:  #c4b8a8;
+  --red:      #c0392b;
+  --orange:   #d35400;
+  --green:    #1e6e3c;
+  --blue:     #1a4a7a;
+  --gold:     #8b6914;
+  --paper:    #fff9f0;
+}
+
+* { margin:0; padding:0; box-sizing:border-box }
+html { scroll-behavior:smooth }
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'Outfit', sans-serif;
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+/* Subtle paper texture */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+}
+
+.wrap { max-width: 960px; margin: 0 auto; padding: 0 28px; position: relative; z-index: 1 }
+
+/* ── HERO ── */
+.hero {
+  padding: 72px 0 56px;
+  border-bottom: 2px solid var(--ink);
+  position: relative;
+}
+
+.phase-eyebrow {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--dim);
+  margin-bottom: 24px;
+  display: flex; align-items: center; gap: 12px;
+}
+.phase-eyebrow::before { content:''; width:40px; height:1px; background:var(--dim) }
+
+.hero h1 {
+  font-family: 'Fraunces', serif;
+  font-size: clamp(48px, 7vw, 88px);
+  font-weight: 900;
+  line-height: 1.0;
+  letter-spacing: -2px;
+  margin-bottom: 20px;
+}
+.hero h1 em { font-style: italic; color: var(--orange) }
+
+.hero-desc {
+  font-size: 17px;
+  color: var(--ink2);
+  max-width: 600px;
+  line-height: 1.75;
+  margin-bottom: 36px;
+}
+
+.hero-pills {
+  display: flex; gap: 10px; flex-wrap: wrap;
+}
+.pill {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 6px 14px;
+  border: 1.5px solid var(--border2);
+  background: var(--card);
+  color: var(--ink2);
+}
+.pill.accent { border-color: var(--orange); color: var(--orange); background: #fff5ee }
+.pill.green  { border-color: var(--green);  color: var(--green);  background: #f0f8f4 }
+
+/* ── PHILOSOPHY BLOCK ── */
+.philosophy {
+  background: var(--ink);
+  color: var(--bg);
+  padding: 40px 44px;
+  margin: 56px 0;
+  position: relative;
+  overflow: hidden;
+}
+.philosophy::before {
+  content: '"';
+  position: absolute;
+  top: -20px; right: 24px;
+  font-family: 'Fraunces', serif;
+  font-size: 200px;
+  font-weight: 900;
+  color: rgba(255,255,255,0.04);
+  line-height: 1;
+}
+.phi-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.4);
+  margin-bottom: 16px;
+}
+.phi-text {
+  font-family: 'Fraunces', serif;
+  font-size: clamp(18px, 2.5vw, 24px);
+  font-weight: 300;
+  font-style: italic;
+  line-height: 1.65;
+  color: rgba(255,255,255,0.9);
+  max-width: 680px;
+}
+.phi-text strong {
+  font-weight: 700;
+  font-style: normal;
+  color: #fff;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+/* ── SECTION HEADERS ── */
+.sec-head {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  margin-bottom: 32px;
+  padding-bottom: 12px;
+  border-bottom: 1.5px solid var(--border);
+}
+.sec-num {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: var(--dim);
+  letter-spacing: 1px;
+}
+.sec-title {
+  font-family: 'Fraunces', serif;
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+/* ── THE SHIFT TABLE ── */
+.shift-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0 0 56px;
+  background: var(--card);
+  border: 1.5px solid var(--border2);
+}
+.shift-table thead tr {
+  background: var(--ink);
+  color: var(--bg);
+}
+.shift-table th {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  padding: 14px 20px;
+  text-align: left;
+  font-weight: 400;
+}
+.shift-table td {
+  padding: 14px 20px;
+  font-size: 14px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+  line-height: 1.55;
+}
+.shift-table tr:last-child td { border-bottom: none }
+.shift-table .old { color: var(--red); font-family: 'DM Mono', monospace; font-size: 12px }
+.shift-table .new { color: var(--green); font-family: 'DM Mono', monospace; font-size: 12px; font-weight: 500 }
+.shift-table tr:hover td { background: var(--bg2) }
+
+/* ── WEEK BLOCKS ── */
+.week-block {
+  margin-bottom: 64px;
+}
+
+.week-banner {
+  background: var(--ink2);
+  color: var(--bg);
+  padding: 20px 28px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 0;
+}
+.week-num-big {
+  font-family: 'Fraunces', serif;
+  font-size: 52px;
+  font-weight: 900;
+  font-style: italic;
+  line-height: 1;
+  color: rgba(255,255,255,0.15);
+  flex-shrink: 0;
+}
+.week-info { flex: 1 }
+.week-name {
+  font-family: 'Fraunces', serif;
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.week-theme {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: rgba(255,255,255,0.5);
+  letter-spacing: 1.5px;
+}
+.week-tag {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 5px 12px;
+  border: 1px solid rgba(255,255,255,0.2);
+  color: rgba(255,255,255,0.6);
+}
+
+/* ── DAILY CARDS ── */
+.days-wrap {
+  border: 1.5px solid var(--border2);
+  border-top: none;
+}
+
+.day-card {
+  border-bottom: 1px solid var(--border);
+  background: var(--card);
+}
+.day-card:last-child { border-bottom: none }
+
+.day-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 24px;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  user-select: none;
+  transition: background .15s;
+}
+.day-header:hover { background: var(--border) }
+
+.day-badge {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border: 1px solid;
+  flex-shrink: 0;
+}
+.day-title-text { font-size: 15px; font-weight: 600; flex: 1 }
+.day-meta { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--dim) }
+.day-toggle { color: var(--dim); font-size: 14px; transition: transform .25s }
+.day-card.open .day-toggle { transform: rotate(180deg) }
+
+.day-body {
+  display: none;
+  padding: 24px 28px;
+}
+.day-card.open .day-body { display: block }
+
+/* Day body content */
+.time-block {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px dashed var(--border);
+}
+.time-block:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0 }
+
+.time-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: var(--dim);
+  flex-shrink: 0;
+  width: 80px;
+  padding-top: 2px;
+  letter-spacing: .5px;
+}
+
+.time-content { flex: 1 }
+.time-title { font-size: 14px; font-weight: 700; margin-bottom: 8px; color: var(--ink) }
+.time-desc { font-size: 13px; color: var(--ink2); line-height: 1.65; margin-bottom: 8px }
+
+/* Why questions */
+.why-box {
+  background: #fff8e8;
+  border: 1.5px solid #e8d080;
+  border-left: 4px solid var(--gold);
+  padding: 14px 18px;
+  margin-top: 10px;
+}
+.why-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+.why-list { display: flex; flex-direction: column; gap: 6px }
+.why-item {
+  font-size: 13px;
+  color: var(--ink2);
+  padding-left: 16px;
+  position: relative;
+  line-height: 1.5;
+}
+.why-item::before { content: '?'; position: absolute; left: 0; color: var(--gold); font-weight: 700; font-family: 'DM Mono', monospace; font-size: 11px }
+
+/* Commands */
+.cmd-block {
+  background: var(--ink);
+  padding: 14px 18px;
+  margin-top: 10px;
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  color: #a8d8a8;
+  line-height: 2;
+  overflow-x: auto;
+}
+.cmd-comment { color: #666; font-size: 11px }
+.cmd-highlight { color: #ffd080 }
+
+/* Observe boxes */
+.observe-box {
+  background: #f0f8ff;
+  border: 1.5px solid #b8d4f0;
+  border-left: 4px solid var(--blue);
+  padding: 14px 18px;
+  margin-top: 10px;
+}
+.obs-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--blue);
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+.obs-list { display: flex; flex-direction: column; gap: 5px }
+.obs-item {
+  font-size: 13px;
+  color: var(--ink2);
+  padding-left: 16px;
+  position: relative;
+  line-height: 1.5;
+}
+.obs-item::before { content: '→'; position: absolute; left: 0; color: var(--blue); font-weight: 700; font-family: 'DM Mono', monospace; font-size: 11px }
+
+/* Mental model box */
+.mental-box {
+  background: #f4f0ff;
+  border: 1.5px solid #c8b8f0;
+  border-left: 4px solid #6633cc;
+  padding: 14px 18px;
+  margin-top: 10px;
+}
+.mental-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #6633cc;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+.mental-text { font-size: 13px; color: var(--ink2); line-height: 1.65 }
+.mental-text em { font-style: italic; color: #6633cc }
+
+/* ── CHECKLIST ── */
+.week-checklist {
+  background: var(--paper);
+  border: 1.5px solid var(--border2);
+  border-top: 3px solid var(--green);
+  padding: 24px 28px;
+  margin-top: 0;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+.chk-title {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--green);
+  margin-bottom: 14px;
+}
+.chk-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px }
+.chk-item {
+  display: flex;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--ink2);
+  align-items: flex-start;
+}
+.chk-box {
+  width: 16px; height: 16px;
+  border: 1.5px solid var(--border2);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+/* ── TRANSITION BRIDGE ── */
+.bridge {
+  background: var(--ink);
+  color: var(--bg);
+  padding: 48px 44px;
+  margin: 56px 0;
+}
+.bridge-title {
+  font-family: 'Fraunces', serif;
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+.bridge-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  margin-top: 24px;
+}
+.bridge-col-title {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+.bridge-col-title.p0 { color: rgba(255,255,255,0.4) }
+.bridge-col-title.p1 { color: #ffd080 }
+.bridge-items { display: flex; flex-direction: column; gap: 8px }
+.bridge-item {
+  font-size: 13px;
+  padding-left: 16px;
+  position: relative;
+  line-height: 1.5;
+}
+.bridge-item::before { position: absolute; left: 0; font-family: 'DM Mono', monospace; font-size: 11px }
+.bridge-col.p0 .bridge-item { color: rgba(255,255,255,0.6) }
+.bridge-col.p0 .bridge-item::before { content: '✓'; color: rgba(255,255,255,0.3) }
+.bridge-col.p1 .bridge-item { color: rgba(255,255,255,0.9) }
+.bridge-col.p1 .bridge-item::before { content: '→'; color: #ffd080 }
+
+/* ── SIDEBAR NOTE ── */
+.note-strip {
+  background: #fff8e8;
+  border: 1.5px solid #e8d080;
+  padding: 20px 24px;
+  margin: 32px 0;
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+.note-icon { font-size: 22px; flex-shrink: 0; margin-top: 2px }
+.note-content h4 { font-size: 14px; font-weight: 700; margin-bottom: 6px }
+.note-content p { font-size: 13px; color: var(--ink2); line-height: 1.6 }
+
+/* ── TIMELINE ── */
+.timeline {
+  display: flex;
+  gap: 0;
+  margin: 48px 0;
+  border: 1.5px solid var(--border2);
+  overflow: hidden;
+}
+.tl-item {
+  flex: 1;
+  padding: 20px 18px;
+  border-right: 1px solid var(--border);
+  position: relative;
+}
+.tl-item:last-child { border-right: none }
+.tl-item.current { background: var(--ink); color: var(--bg) }
+.tl-week {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--dim);
+  margin-bottom: 8px;
+}
+.tl-item.current .tl-week { color: rgba(255,255,255,0.4) }
+.tl-name { font-size: 13px; font-weight: 700; margin-bottom: 4px; line-height: 1.3 }
+.tl-item.current .tl-name { color: #ffd080 }
+.tl-tag {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  color: var(--dim);
+  letter-spacing: 1px;
+}
+.tl-item.current .tl-tag { color: rgba(255,255,255,0.4) }
+.tl-arrow {
+  position: absolute;
+  right: -12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 24px;
+  background: var(--border2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  z-index: 2;
+}
+
+@media(max-width: 640px) {
+  .chk-grid { grid-template-columns: 1fr }
+  .bridge-grid { grid-template-columns: 1fr }
+  .timeline { flex-direction: column }
+  .tl-arrow { display: none }
+  .shift-table { font-size: 12px }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- ══ HERO ══ -->
+<div class="hero">
+  <div class="phase-eyebrow">Giai đoạn 0 · Trước CKA</div>
+  <h1>Xây nền<br><em>tư duy</em><br>Kubernetes</h1>
+  <p class="hero-desc">
+    3 tuần không học để thi — học để <em>hiểu thật sự</em>. Mục tiêu duy nhất: chuyển từ người copy-paste sang người <em>biết tại sao mọi thứ hoạt động</em>.
+  </p>
+  <div class="hero-pills">
+    <span class="pill">3 tuần</span>
+    <span class="pill">8–10 giờ / tuần</span>
+    <span class="pill accent">không vội — hiểu kỹ</span>
+    <span class="pill green">→ bước vào 16 tuần CKA</span>
+  </div>
+</div>
+
+<!-- ══ PHILOSOPHY ══ -->
+<div class="philosophy">
+  <div class="phi-label">Tại sao cần Giai đoạn 0</div>
+  <div class="phi-text">
+    Người copy-paste biết <strong>cái gì hoạt động</strong>. CKA đòi hỏi bạn biết <strong>tại sao nó hoạt động</strong> — và quan trọng hơn, <strong>tại sao nó không hoạt động</strong>. Ba tuần này là để đặt lại tư duy, không phải học thêm lệnh mới.
+  </div>
+</div>
+
+<!-- ══ THE MINDSET SHIFT ══ -->
+<section style="margin-bottom:56px">
+  <div class="sec-head">
+    <span class="sec-num">01</span>
+    <h2 class="sec-title">Sự thay đổi tư duy cần có</h2>
+  </div>
+  <table class="shift-table">
+    <thead>
+      <tr>
+        <th>Tình huống</th>
+        <th>Copy-paste mindset (cũ)</th>
+        <th>CKA mindset (cần đạt)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Tạo một Deployment</td>
+        <td class="old">Google "k8s deployment yaml" → copy → apply</td>
+        <td class="new">Hiểu: Deployment tạo ReplicaSet, RS quản lý Pods. Tại sao cần 3 layer này?</td>
+      </tr>
+      <tr>
+        <td>Pod không start</td>
+        <td class="old">Slack đồng nghiệp hỏi / restart cluster</td>
+        <td class="new">kubectl describe pod → đọc Events → hiểu lý do → fix đúng chỗ</td>
+      </tr>
+      <tr>
+        <td>Service không connect được</td>
+        <td class="old">Thử đổi port / xóa tạo lại</td>
+        <td class="new">Check selector → check Endpoints → check targetPort → trace từng bước</td>
+      </tr>
+      <tr>
+        <td>Đọc YAML người khác viết</td>
+        <td class="old">Bỏ qua các field không hiểu</td>
+        <td class="new">Mỗi field đều có ý nghĩa — tự hỏi "field này làm gì nếu bỏ đi?"</td>
+      </tr>
+      <tr>
+        <td>Gặp lỗi lần đầu</td>
+        <td class="old">Copy error message vào Google</td>
+        <td class="new">Đọc error message kỹ — K8s error messages rất rõ ràng nếu bạn đọc hết</td>
+      </tr>
+      <tr>
+        <td>Học concept mới</td>
+        <td class="old">Xem video hướng dẫn → làm theo</td>
+        <td class="new">Làm thử → fail → đọc docs → hiểu → thử lại → giải thích được cho người khác</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ══ TIMELINE OVERVIEW ══ -->
+<div class="timeline">
+  <div class="tl-item current">
+    <div class="tl-week">Giai đoạn 0</div>
+    <div class="tl-name">Tuần 1–3<br>Xây nền tư duy</div>
+    <div class="tl-tag">// bạn đang ở đây</div>
+    <div class="tl-arrow">→</div>
+  </div>
+  <div class="tl-item">
+    <div class="tl-week">CKA Tuần 1–4</div>
+    <div class="tl-name">Workloads & Config</div>
+    <div class="tl-tag">pods · deploy · scheduling</div>
+    <div class="tl-arrow">→</div>
+  </div>
+  <div class="tl-item">
+    <div class="tl-week">CKA Tuần 5–8</div>
+    <div class="tl-name">Network & Storage & Security</div>
+    <div class="tl-tag">svc · pv · rbac</div>
+    <div class="tl-arrow">→</div>
+  </div>
+  <div class="tl-item">
+    <div class="tl-week">CKA Tuần 9–12</div>
+    <div class="tl-name">Cluster Admin</div>
+    <div class="tl-tag">kubeadm · etcd · upgrade</div>
+    <div class="tl-arrow">→</div>
+  </div>
+  <div class="tl-item">
+    <div class="tl-week">CKA Tuần 13–16</div>
+    <div class="tl-name">Troubleshoot & Mock</div>
+    <div class="tl-tag">debug · mock exams</div>
+  </div>
+</div>
+
+<!-- ══ WEEK 1 ══ -->
+<section class="week-block" id="week1">
+  <div class="sec-head">
+    <span class="sec-num">02</span>
+    <h2 class="sec-title">3 Tuần — Kế hoạch chi tiết từng ngày</h2>
+  </div>
+
+  <div class="week-banner">
+    <div class="week-num-big">1</div>
+    <div class="week-info">
+      <div class="week-name">Kiến trúc & Pod — "Mọi thứ bắt đầu từ đâu?"</div>
+      <div class="week-theme">// control plane · worker node · pod lifecycle · observe everything</div>
+    </div>
+    <span class="week-tag">8 giờ</span>
+  </div>
+
+  <div class="days-wrap">
+
+    <!-- MON W1 -->
+    <div class="day-card open">
+      <div class="day-header" onclick="toggleDay(this)">
+        <span class="day-badge" style="color:var(--blue);border-color:var(--blue)">Thứ 2</span>
+        <span class="day-title-text">Vẽ K8s bằng tay — không gõ lệnh nào</span>
+        <span class="day-meta">1.5 giờ · lý thuyết thuần</span>
+        <span class="day-toggle">▾</span>
+      </div>
+      <div class="day-body">
+        <div class="time-block">
+          <div class="time-label">60 phút</div>
+          <div class="time-content">
+            <div class="time-title">Đọc kiến trúc K8s — nhưng theo cách này</div>
+            <div class="time-desc">Mở kubernetes.io/docs/concepts/overview/components. Đọc từng component. Sau mỗi component, <strong>dừng lại và tự hỏi</strong>: "Nếu component này chết, điều gì xảy ra với cluster?"</div>
+            <div class="why-box">
+              <div class="why-label">Câu hỏi "tại sao" cần tự trả lời</div>
+              <div class="why-list">
+                <div class="why-item">Tại sao kube-apiserver lại là "cổng duy nhất"? Kubelet và kubectl có thể nói chuyện trực tiếp với nhau không?</div>
+                <div class="why-item">etcd lưu gì? Nếu etcd mất, cluster có còn chạy không? Pods đang chạy có bị dừng không?</div>
+                <div class="why-item">kube-scheduler chết thì pod hiện tại có bị kill không? Pod mới tạo thì sao?</div>
+                <div class="why-item">kubelet trên worker node không kết nối được apiserver thì node đó thế nào?</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="time-block">
+          <div class="time-label">30 phút</div>
+          <div class="time-content">
+            <div class="time-title">Vẽ sơ đồ tay — không tra thêm</div>
+            <div class="time-desc">Lấy giấy và bút, vẽ lại toàn bộ kiến trúc từ trí nhớ. Mục tiêu không phải vẽ đẹp — mục tiêu là biết chỗ nào bạn không nhớ (đó chính là chỗ cần học kỹ hơn).</div>
+            <div class="mental-box">
+              <div class="mental-label">Mental Model cần hình thành</div>
+              <div class="mental-text">K8s cluster = <em>2 loại máy tính</em>: "não" (control plane) và "tay chân" (workers). Não quyết định, tay chân thực hiện. Não không tự chạy container — chỉ ra lệnh. Tay chân không tự quyết định — chỉ nhận lệnh từ não qua kubelet.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TUE W1 -->
+    <div class="day-card">
+      <div class="day-header" onclick="toggleDay(this)">
+        <span class="day-badge" style="color:var(--green);border-color:var(--green)">Thứ 3</span>
+        <span class="day-title-text">Pod đầu tiên — quan sát mọi thứ</span>
+        <span class="day-meta">1.5 giờ · hands-on quan sát</span>
+        <span class="day-toggle">▾</span>
+      </div>
+      <div class="day-body">
+        <div class="time-block">
+          <div class="time-label">20 phút</div>
+          <div class="time-content">
+            <div class="time-title">Setup môi trường (nếu chưa có)</div>
+            <div class="cmd-block">
+<span class="cmd-comment"># Cài kind (Kubernetes in Docker)</span>
+curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.22.0/kind-linux-amd64
+chmod +x kind && mv kind /usr/local/bin/
+
+<span class="cmd-comment"># Tạo cluster đơn giản</span>
+kind create cluster --name phase0
+
+<span class="cmd-comment"># Verify</span>
+kubectl get nodes
+kubectl get pods -n kube-system
+            </div>
+          </div>
+        </div>
+        <div class="time-block">
+          <div class="time-label">70 phút</div>
+          <div class="time-content">
+            <div class="time-title">Tạo Pod — nhưng quan sát MỌI thứ</div>
+            <div class="time-desc">Đây không phải bài tập tạo pod. Đây là bài tập <strong>quan sát</strong>. Tạo pod rồi dừng lại xem từng bước.</div>
+            <div class="cmd-block">
+<span class="cmd-comment"># Bước 1: Tạo pod và watch realtime</span>
+kubectl run mypod --image=nginx <span class="cmd-highlight">&</span>
+kubectl get pod mypod -w
+<span class="cmd-comment"># Quan sát: Pending → ContainerCreating → Running</span>
+
+<span class="cmd-comment"># Bước 2: Đọc YAML hoàn chỉnh — mỗi field</span>
+kubectl get pod mypod -o yaml
+<span class="cmd-comment"># Đọc hết, kể cả phần status</span>
+
+<span class="cmd-comment"># Bước 3: Đọc Events — đây là "nhật ký" của pod</span>
+kubectl describe pod mypod
+<span class="cmd-comment"># Tìm section Events ở dưới cùng → đây là vàng để debug</span>
+
+<span class="cmd-comment"># Bước 4: Pod đang chạy trên node nào? Tại sao node đó?</span>
+kubectl get pod mypod -o wide
+            </div>
+            <div class="why-box">
+              <div class="why-label">Tự trả lời sau khi quan sát</div>
+              <div class="why-list">
+                <div class="why-item">Pod đang ở trạng thái Pending — nghĩa là gì? Ai đang xử lý nó lúc đó?</div>
+                <div class="why-item">ContainerCreating — container được tạo bởi ai? Ở đâu? Làm thế nào?</div>
+                <div class="why-item">Trong YAML output, phần <code>status.conditions</code> có mấy conditions? Mỗi cái nghĩa là gì?</div>
+                <div class="why-item">Event "Pulled image" — ai pull image? Kubelet hay apiserver?</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- WED W1 -->
+    <div class="day-card">
+      <div class="day-header" onclick="toggleDay(this)">
+        <span class="day-badge" style="color:var(--orange);border-color:var(--orange)">Thứ 4</span>
+        <span class="day-title-text">Pod lifecycle — tạo ra thứ lỗi và hiểu nó</span>
+        <span class="day-meta">1.5 giờ · intentional failure</span>
+        <span class="day-toggle">▾</span>
+      </div>
+      <div class="day-body">
+        <div class="time-block">
+          <div class="time-label">45 phút</div>
+          <div class="time-content">
+            <div class="time-title">Tạo 4 loại lỗi — đọc hiểu từng cái</div>
+            <div class="time-desc">Thay vì học "cách fix lỗi", hôm nay học "lỗi này nghĩa là gì và đến từ đâu".</div>
+            <div class="cmd-block">
+<span class="cmd-comment"># Lỗi 1: Image không tồn tại → ImagePullBackOff</span>
+kubectl run err1 --image=nginx:version-khong-ton-tai
+kubectl describe pod err1
+<span class="cmd-comment"># Đọc Events: "Failed to pull image" — ai báo lỗi này? Containerd hay kubelet?</span>
+
+<span class="cmd-comment"># Lỗi 2: Command sai → CrashLoopBackOff</span>
+kubectl run err2 --image=busybox -- /bin/lenh-khong-co
+kubectl describe pod err2
+kubectl logs err2
+<span class="cmd-comment"># Exit Code 127 nghĩa là gì? (command not found)</span>
+
+<span class="cmd-comment"># Lỗi 3: Thoát ngay lập tức → Completed hoặc Error</span>
+kubectl run err3 --image=busybox -- /bin/sh -c "echo hello && exit 0"
+<span class="cmd-comment"># Tại sao pod này không Running? RestartPolicy mặc định là gì?</span>
+
+<span class="cmd-comment"># Lỗi 4: Thiếu resource → Pending mãi</span>
+<span class="cmd-comment"># Tạo pod yêu cầu 999 CPU (không node nào có)</span>
+kubectl run err4 --image=nginx --overrides='{"spec":{"containers":[{"name":"nginx","image":"nginx","resources":{"requests":{"cpu":"999"}}}]}}'
+kubectl describe pod err4
+<span class="cmd-comment"># Event: "0/1 nodes are available: 1 Insufficient cpu"</span>
+            </div>
+            <div class="why-box">
+              <div class="why-label">Sau mỗi lỗi, tự trả lời</div>
+              <div class="why-list">
+                <div class="why-item">Lỗi này xảy ra ở bước nào trong lifecycle? (Scheduling? Image pull? Container start?)</div>
+                <div class="why-item">Component nào trong K8s phát hiện lỗi này?</div>
+                <div class="why-item">Nếu mình là on-call và thấy lỗi này lúc 2 giờ sáng, mình làm gì đầu tiên?</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="time-block">
+          <div class="time-label">45 phút</div>
+          <div class="time-content">
+            <div class="time-title">Đọc Exit Codes — bảng tra cứu sống</div>
+            <div class="time-desc">Exit codes không phải để nhớ — phải <strong>hiểu logic</strong> để suy ra được khi gặp lần đầu.</div>
+            <div class="observe-box">
+              <div class="obs-label">Exit codes quan trọng nhất</div>
+              <div class="obs-list">
+                <div class="obs-item"><strong>Exit 0</strong> — hoàn thành thành công (Completed)</div>
+                <div class="obs-item"><strong>Exit 1</strong> — lỗi chung của application</div>
+                <div class="obs-item"><strong>Exit 127</strong> — command not found (CrashLoopBackOff thường gặp)</div>
+                <div class="obs-item"><strong>Exit 137</strong> — bị kill bằng SIGKILL (128+9). Thường = OOMKilled</div>
+                <div class="obs-item"><strong>Exit 143</strong> — bị kill bằng SIGTERM (128+15). K8s graceful shutdown</div>
+              </div>
+            </div>
+            <div class="mental-box">
+              <div class="mental-label">Mental Model: Exit Code = 128 + Signal Number</div>
+              <div class="mental-text">Linux signals: SIGKILL=9, SIGTERM=15. Nếu thấy exit code >128, trừ đi 128 = số signal. Không cần nhớ bảng — chỉ cần hiểu logic này.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- THU W1 -->
+    <div class="day-card">
+      <div class="day-header" onclick="toggleDay(this)">
+        <span class="day-badge" style="color:var(--gold);border-color:var(--gold)">Thứ 5</span>
+        <span class="day-title-text">kubectl như một detective — lệnh investigate</span>
+        <span class="day-meta">1.5 giờ · kubectl mastery</span>
+        <span class="day-toggle">▾</span>
+      </div>
+      <div class="day-body">
+        <div class="time-block">
+          <div class="time-label">90 phút</div>
+          <div class="time-content">
+            <div class="time-title">Tập dùng kubectl để "đọc cluster" — không phải chỉ tạo/xóa</div>
+            <div class="time-desc">Phần lớn người mới chỉ biết <code>apply</code> và <code>delete</code>. CKA đòi hỏi bạn dùng kubectl để <strong>điều tra</strong>.</div>
+            <div class="cmd-block">
+<span class="cmd-comment"># === NHÓM 1: Lấy thông tin sâu hơn ===</span>
+kubectl get pod mypod -o yaml      <span class="cmd-comment"># full spec + status</span>
+kubectl get pod mypod -o json      <span class="cmd-comment"># JSON format</span>
+kubectl get pod mypod -o jsonpath='{.status.podIP}'    <span class="cmd-comment"># chỉ lấy IP</span>
+kubectl get pod mypod -o jsonpath='{.spec.containers[*].name}'   <span class="cmd-comment"># tên containers</span>
+kubectl get pods -o wide           <span class="cmd-comment"># xem pod đang ở node nào</span>
+kubectl get pods --show-labels     <span class="cmd-comment"># xem labels của pods</span>
+
+<span class="cmd-comment"># === NHÓM 2: Events — "nhật ký thật sự" ===</span>
+kubectl get events --sort-by=.lastTimestamp      <span class="cmd-comment"># events mới nhất cuối</span>
+kubectl get events -n default --field-selector involvedObject.name=mypod
+
+<span class="cmd-comment"># === NHÓM 3: Logs ===</span>
+kubectl logs mypod                 <span class="cmd-comment"># log hiện tại</span>
+kubectl logs mypod --previous      <span class="cmd-comment"># log lần chạy TRƯỚC (sau crash)</span>
+kubectl logs mypod -f              <span class="cmd-comment"># follow realtime</span>
+kubectl logs mypod --since=5m      <span class="cmd-comment"># chỉ 5 phút gần nhất</span>
+
+<span class="cmd-comment"># === NHÓM 4: Exec vào pod ===</span>
+kubectl exec -it mypod -- bash
+kubectl exec mypod -- cat /etc/nginx/nginx.conf    <span class="cmd-comment"># không cần -it</span>
+kubectl exec mypod -- env | grep HOSTNAME          <span class="cmd-comment"># xem biến môi trường</span>
+            </div>
+            <div class="why-box">
+              <div class="why-label">Thực hành điều tra — tự đặt câu hỏi</div>
+              <div class="why-list">
+                <div class="why-item">Tạo 3 pods, dùng <code>-o jsonpath</code> để in ra IP của tất cả pods cùng lúc</div>
+                <div class="why-item">Gây crash 1 pod (dùng lệnh sai), sau đó dùng <code>--previous</code> để đọc log trước crash</div>
+                <div class="why-item">Exec vào pod nginx đang chạy, đọc file <code>/etc/hosts</code> — có gì trong đó? Tại sao?</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FRI W1 -->
+    <div class="day-card">
+      <div class="day-header" onclick="toggleDay(this)">
+        <span class="day-badge" style="color:var(--red);border-color:var(--red)">Thứ 6</span>
+        <span class="day-title-text">YAML không phải để copy — để đọc và viết</span>
+        <span class="day-meta">1.5 giờ · YAML fluency</span>
+        <span class="day-toggle">▾</span>
+      </div>
+      <div class="day-body">
+        <div class="time-block">
+          <div class="time-label">45 phút</div>
+          <div class="time-content">
+            <div class="time-title">Phân tích YAML Pod từng field</div>
+            <div class="time-desc">Dùng lệnh này để xem YAML "thật" của pod đang chạy — không phải template copy từ Google.</div>
+            <div class="cmd-block">
+kubectl get pod mypod -o yaml > mypod-full.yaml
+<span class="cmd-comment"># Mở file, đọc từng dòng, tự giải thích</span>
+<span class="cmd-comment"># Đặc biệt chú ý: spec vs status</span>
+<span class="cmd-comment"># spec = bạn muốn gì (desired)</span>
+<span class="cmd-comment"># status = hiện thực đang là gì (actual)</span>
+            </div>
+            <div class="observe-box">
+              <div class="obs-label">Các field cần hiểu, không chỉ biết</div>
+              <div class="obs-list">
+                <div class="obs-item"><strong>spec.containers[].resources</strong> — requests vs limits, đơn vị CPU "100m" = 0.1 CPU</div>
+                <div class="obs-item"><strong>spec.volumes</strong> và <strong>spec.containers[].volumeMounts</strong> — phải match bằng tên</div>
+                <div class="obs-item"><strong>status.conditions</strong> — 4 conditions: Initialized, Ready, ContainersReady, PodScheduled</div>
+                <div class="obs-item"><strong>metadata.labels</strong> vs <strong>spec.selector</strong> trong Deployment — đây là cơ chế "nối" mọi thứ</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="time-block">
+          <div class="time-label">45 phút</div>
+          <div class="time-content">
+            <div class="time-title">Viết YAML từ đầu — không Google</div>
+            <div class="time-desc">Mục tiêu không phải viết đúng ngay lần đầu. Mục tiêu là biết chỗ nào mình còn thiếu.</div>
+            <div class="cmd-block">
+<span class="cmd-comment"># Thử viết từ đầu:</span>
+<span class="cmd-comment"># Pod có: 1 container nginx, resource limit cpu=200m mem=128Mi,</span>
+<span class="cmd-comment"># env var APP_ENV=production, mount 1 emptyDir vào /tmp/data</span>
+vim my-pod.yaml
+kubectl apply -f my-pod.yaml
+<span class="cmd-comment"># Xem lỗi nếu có, đọc hiểu lỗi, fix</span>
+            </div>
+            <div class="mental-box">
+              <div class="mental-label">Cách dùng --dry-run đúng cách</div>
+              <div class="mental-text">Dùng <em>kubectl run --dry-run=client -o yaml</em> để sinh template, sau đó <em>hiểu</em> từng field rồi edit. Không phải copy blindly — sinh ra → đọc → sửa theo ý mình → apply.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- WEEKEND W1 -->
+    <div class="day-card">
+      <div class="day-header" onclick="toggleDay(this)">
+        <span class="day-badge" style="color:var(--dim);border-color:var(--dim)">T7–CN</span>
+        <span class="day-title-text">Ôn — giải thích lại bằng lời của mình</span>
+        <span class="day-meta">1 giờ · consolidation</span>
+        <span class="day-toggle">▾</span>
+      </div>
+      <div class="day-body">
+        <div class="time-block">
+          <div class="time-label">60 phút</div>
+          <div class="time-content">
+            <div class="time-title">Feynman technique — giải thích như dạy người khác</div>
+            <div class="time-desc">Lấy giấy, viết (hoặc nói to) câu trả lời cho những câu hỏi này bằng <strong>ngôn ngữ của mình</strong>. Nếu không giải thích được = chưa hiểu thật.</div>
+            <div class="why-box">
+              <div class="why-label">5 câu hỏi cần giải thích được</div>
+              <div class="why-list">
+                <div class="why-item">Giải thích: "kubectl apply -f pod.yaml" → điều gì xảy ra bên trong cluster từng bước?</div>
+                <div class="why-item">Tại sao Pod có thể ở trạng thái Running nhưng vẫn không serve traffic được?</div>
+                <div class="why-item">Sự khác nhau giữa <code>kubectl logs</code> và <code>kubectl describe</code> — khi nào dùng cái nào?</div>
+                <div class="why-item">Nếu kubelet trên worker bị crash, pods đang chạy có dừng ngay không?</div>
+                <div class="why-item">Tại sao K8s cần cả "spec" và "status" trong mỗi object?</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Week 1 Checklist -->
+  <div class="week-checklist">
+    <div class="chk-title">✓ Checklist cuối tuần 1</div>
+    <div class="chk-grid">
+      <div class="chk-item"><div class="chk-box"></div>Vẽ được kiến trúc K8s từ trí nhớ</div>
+      <div class="chk-item"><div class="chk-box"></div>Giải thích được 4 trạng thái lỗi pod (không Google)</div>
+      <div class="chk-item"><div class="chk-box"></div>Biết đọc section Events trong kubectl describe</div>
+      <div class="chk-item"><div class="chk-box"></div>Hiểu sự khác nhau spec vs status</div>
+      <div class="chk-item"><div class="chk-box"></div>Dùng được jsonpath để trích xuất field cụ thể</div>
+      <div class="chk-item"><div class="chk-box"></div>Viết Pod YAML không Google (dù có thể sai syntax nhỏ)</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ WEEK 2 ══ -->
+<section class="week-block" id="week2">
+
+  <div class="week-banner" style="background:#1e3a2a">
+    <div class="week-num-big">2</div>
+    <div class="week-info">
+      <div class="week-name">Workload & Network — "Mọi thứ kết nối thế nào?"</div>
+      <div class="week-theme">// deployment · service · labels · selectors · the binding mechanism</div>
+    </div>
+    <span class="week-tag">9 giờ</span>
+  </div>
+
+  <div class="days-wrap">
+
+    <!-- MON W2 -->
+    <div class="day-card">
+      <div class="day-header" onclick="toggleDay(this)">
+        <span class="day-badge" style="color:var(--green);border-color:var(--green)">Thứ 2</span>
+        <span class="day-title-text">Deployment — tại sao cần 3 layer (Deployment → RS → Pod)?</span>
+        <span class="day-meta">1.5 giờ · workload deep dive</span>
+        <span class="day-toggle">▾</span>
+      </div>
+      <div class="day-body">
+        <div class="time-block">
+          <div class="time-label">30 phút</div>
+          <div class="time-content">
+            <div class="time-title">Tạo Deployment và observe layers</div>
+            <div class="cmd-block">
+kubectl create deploy web --image=nginx --replicas=3
+<span class="cmd-comment"># Nhìn cả 3 layers cùng lúc</span>
+kubectl get deploy,rs,pod -l app=web
+<span class="cmd-comment"># Đặt tên: Deployment quản lý ReplicaSet, RS quản lý Pods</span>
+<span class="cmd-comment"># RS tên: web-[hash] — hash từ pod template</span>
+<span class="cmd-comment"># Pod tên: web-[rs-hash]-[pod-hash]</span>
+            </div>
+            <div class="why-box">
+              <div class="why-label">Câu hỏi tư duy quan trọng</div>
+              <div class="why-list">
+                <div class="why-item">Xóa 1 pod thủ công → pod tự tái tạo. Ai tái tạo? ReplicaSet hay Deployment?</div>
+                <div class="why-item">Tại sao cần Deployment nếu ReplicaSet đã đảm bảo đủ số pods?</div>
+                <div class="why-item">Update image → Deployment tạo RS mới hay sửa RS cũ? Dùng kubectl get rs để kiểm tra.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="time-block">
+          <div class="time-label">60 phút</div>
+          <div class="time-content">
+            <div class="time-title">Rolling update — quan sát từng bước</div>
+            <div class="cmd-block">
+<span class="cmd-comment"># Mở 2 terminal: terminal 1 watch, terminal 2 execute</span>
+<span class="cmd-comment"># Terminal 1:</span>
+kubectl get pod -w
+
+<span class="cmd-comment"># Terminal 2:</span>
+kubectl set image deploy/web nginx=nginx:1.25
+<span class="cmd-comment"># Quan sát: pods cũ Terminating, pods mới ContainerCreating</span>
+<span class="cmd-comment"># Đây là Rolling Update: không down toàn bộ cùng lúc</span>
+
+kubectl rollout history deploy/web    <span class="cmd-comment"># xem lịch sử</span>
+kubectl rollout undo deploy/web       <span class="cmd-comment"># rollback về trước</span>
+kubectl rollout status deploy/web     <span class="cmd-comment"># xem tiến trình rollout</span>
+            </div>
+            <div class="mental-box">
+              <div class="mental-label">Mental Model: Deployment = Time Machine cho Pods</div>
+              <div class="mental-text">Deployment giữ lịch sử các ReplicaSet (mỗi RS = 1 version). Rollback = chuyển về RS cũ. <em>Đây là lý do tại sao cần 3 layer</em> — RS không có khái niệm history, Deployment có.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TUE W2 -->
+    <div class="day-card">
+      <div class="day-header" onclick="toggleDay(this)">
+        <span class="day-badge" style="color:var(--blue);border-color:var(--blue)">Thứ 3</span>
+        <span class="day-title-text">Labels & Selectors — cơ chế kết nối MỌI THỨ trong K8s</span>
+        <span class="day-meta">1.5 giờ · the glue of K8s</span>
+        <span class="day-toggle">▾</span>
+      </div>
+      <div class="day-body">
+        <div class="time-block">
+          <div class="time-label">90 phút</div>
+          <div class="time-content">
+            <div class="time-title">Labels không phải metadata — labels là cơ chế binding</div>
+            <div class="time-desc">Đây là concept quan trọng nhất trong K8s mà người copy-paste hay bỏ qua. <strong>Mọi thứ trong K8s kết nối với nhau qua labels + selectors</strong>.</div>
+            <div class="cmd-block">
+<span class="cmd-comment"># Tạo pods với labels khác nhau</span>
+kubectl run web1 --image=nginx --labels=app=web,tier=frontend,env=prod
+kubectl run web2 --image=nginx --labels=app=web,tier=frontend,env=staging
+kubectl run db1  --image=postgres --labels=app=db,tier=backend,env=prod
+
+<span class="cmd-comment"># Filter bằng selector</span>
+kubectl get pods -l app=web                    <span class="cmd-comment"># app=web</span>
+kubectl get pods -l app=web,env=prod           <span class="cmd-comment"># AND condition</span>
+kubectl get pods -l 'env in (prod,staging)'    <span class="cmd-comment"># OR condition</span>
+kubectl get pods -l env!=staging               <span class="cmd-comment"># NOT condition</span>
+
+<span class="cmd-comment"># Service kết nối pods qua label selector</span>
+kubectl expose pod web1 --port=80 --name=web-svc
+kubectl get svc web-svc -o yaml | grep -A3 selector
+<span class="cmd-comment"># selector: app=web → Service sẽ route đến MỌI pod có label app=web</span>
+
+<span class="cmd-comment"># Xem Endpoints — đây là danh sách IP thực của pods</span>
+kubectl get endpoints web-svc
+<span class="cmd-comment"># Thêm label app=web vào db1 → nó sẽ xuất hiện trong Endpoints!</span>
+kubectl label pod db1 app=web
+kubectl get endpoints web-svc    <span class="cmd-comment"># bây giờ có 2 IPs</span>
+            </div>
+            <div class="why-box">
+              <div class="why-label">Bài học từ lab này</div>
+              <div class="why-list">
+                <div class="why-item">Service không biết pod nào là "đúng" — nó chỉ route đến bất kỳ pod nào có label match. Đây là bug phổ biến nhất trong K8s production.</div>
+                <div class="why-item">Deployment selector vs Service selector — đây là 2 selectors riêng biệt, có thể khác nhau.</div>
+                <div class="why-item">Tại sao khi debug service không hoạt động, bước đầu tiên luôn là: kubectl get endpoints?</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- WED W2 -->
+    <div class="day-card">
+      <div class="day-header" onclick="toggleDay(this)">
+        <span class="day-badge" style="color:var(--orange);border-color:var(--orange)">Thứ 4</span>
+        <span class="day-title-text">Service — từ ClusterIP đến DNS, hiểu chuỗi hoàn chỉnh</span>
+        <span class="day-meta">1.5 giờ · service networking</span>
+        <span class="day-toggle">▾</span>
+      </div>
+      <div class="day-body">
+        <div class="time-block">
+          <div class="time-label">90 phút</div>
+          <div class="time-content">
+            <div class="time-title">Trace một request từ đầu đến cuối</div>
+            <div class="time-desc">Tạo web app + service, sau đó trace đường đi của một HTTP request từ bên trong cluster.</div>
+            <div class="cmd-block">
+<span class="cmd-comment"># Setup</span>
+kubectl create deploy backend --image=nginx --replicas=2
+kubectl expose deploy backend --port=80 --name=backend-svc
+
+<span class="cmd-comment"># Xem "bản đồ" kết nối</span>
+kubectl get svc backend-svc     <span class="cmd-comment"># CLUSTER-IP: 10.x.x.x</span>
+kubectl get endpoints backend-svc    <span class="cmd-comment"># Pod IPs thực</span>
+
+<span class="cmd-comment"># Test từ pod khác — trace DNS → ClusterIP → Pod</span>
+kubectl run client --image=busybox:1.28 --rm -it -- sh
+
+<span class="cmd-comment"># Bên trong pod client:</span>
+<span class="cmd-comment"># Bước 1: DNS lookup</span>
+nslookup backend-svc
+nslookup backend-svc.default.svc.cluster.local
+
+<span class="cmd-comment"># Bước 2: HTTP request qua service name</span>
+wget -qO- backend-svc
+
+<span class="cmd-comment"># Bước 3: HTTP request qua ClusterIP trực tiếp</span>
+wget -qO- 10.x.x.x    <span class="cmd-comment"># thay bằng IP thực</span>
+
+<span class="cmd-comment"># Bước 4: HTTP request thẳng vào Pod IP</span>
+wget -qO- POD_IP    <span class="cmd-comment"># thay bằng IP pod thực</span>
+            </div>
+            <div class="mental-box">
+              <div class="mental-label">Mental Model: Request flow trong K8s</div>
+              <div class="mental-text">
+                <em>Service name</em> → CoreDNS resolve → <em>ClusterIP</em> → kube-proxy iptables → <em>Pod IP</em> (random load balance). ClusterIP là virtual IP — không có process nào "lắng nghe" ở đó. kube-proxy dùng iptables DNAT rule để redirect.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- THU W2 -->
+    <div class="day-card">
+      <div class="day-header" onclick="toggleDay(this)">
+        <span class="day-badge" style="color:var(--gold);border-color:var(--gold)">Thứ 5</span>
+        <span class="day-title-text">ConfigMap & Secret — hiểu khi nào dùng cái nào và tại sao</span>
+        <span class="day-meta">1.5 giờ · configuration management</span>
+        <span class="day-toggle">▾</span>
+      </div>
+      <div class="day-body">
+        <div class="time-block">
+          <div class="time-label">90 phút</div>
+          <div class="time-content">
+            <div class="time-title">3 cách inject config — biết khi nào dùng cái nào</div>
+            <div class="cmd-block">
+<span class="cmd-comment"># Tạo ConfigMap</span>
+kubectl create cm app-config \
+  --from-literal=DB_HOST=mysql \
+  --from-literal=APP_PORT=8080
+
+<span class="cmd-comment"># Cách 1: envFrom — inject TOÀN BỘ keys thành env vars</span>
+<span class="cmd-comment"># Dùng khi: cần nhiều vars, không muốn list từng cái</span>
+
+<span class="cmd-comment"># Cách 2: env.valueFrom — inject từng key</span>
+<span class="cmd-comment"># Dùng khi: chỉ cần 1-2 keys, muốn đổi tên env var</span>
+
+<span class="cmd-comment"># Cách 3: volume mount — mount thành file</span>
+<span class="cmd-comment"># Dùng khi: config là file (nginx.conf, app.properties)</span>
+<span class="cmd-comment"># ⭐ Ưu điểm: khi update ConfigMap, file trong pod tự update (sau ~1 phút)</span>
+<span class="cmd-comment"># Cách 1&2 KHÔNG tự update — phải restart pod</span>
+            </div>
+            <div class="why-box">
+              <div class="why-label">Câu hỏi phân biệt sâu</div>
+              <div class="why-list">
+                <div class="why-item">Secret và ConfigMap về cơ bản cùng cơ chế — vậy tại sao cần Secret riêng?</div>
+                <div class="why-item">Secret "base64 encoded" không phải encrypted. Vậy nó có an toàn hơn ConfigMap thật sự không?</div>
+                <div class="why-item">Khi update ConfigMap và mount bằng volume, pod có cần restart không? Thử xem.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FRI W2 -->
+    <div class="day-card">
+      <div class="day-header" onclick="toggleDay(this)">
+        <span class="day-badge" style="color:var(--red);border-color:var(--red)">Thứ 6</span>
+        <span class="day-title-text">Storage cơ bản — tại sao Pod cần PersistentVolume?</span>
+        <span class="day-meta">1.5 giờ · storage fundamentals</span>
+        <span class="day-toggle">▾</span>
+      </div>
+      <div class="day-body">
+        <div class="time-block">
+          <div class="time-label">40 phút</div>
+          <div class="time-content">
+            <div class="time-title">Chứng minh tại sao cần persistent storage</div>
+            <div class="cmd-block">
+<span class="cmd-comment"># Bước 1: Tạo pod, ghi dữ liệu vào container filesystem</span>
+kubectl run testpod --image=busybox -- sleep 3600
+kubectl exec testpod -- sh -c "echo 'important data' > /data/file.txt"
+kubectl exec testpod -- cat /data/file.txt    <span class="cmd-comment"># OK</span>
+
+<span class="cmd-comment"># Bước 2: Xóa pod và tạo lại</span>
+kubectl delete pod testpod
+kubectl run testpod --image=busybox -- sleep 3600
+kubectl exec testpod -- cat /data/file.txt    <span class="cmd-comment"># FILE KHÔNG CÒN!</span>
+
+<span class="cmd-comment"># → Đây là lý do cần PersistentVolume</span>
+            </div>
+          </div>
+        </div>
+        <div class="time-block">
+          <div class="time-label">50 phút</div>
+          <div class="time-content">
+            <div class="time-title">PV + PVC — hiểu mô hình 2 layer</div>
+            <div class="cmd-block">
+<span class="cmd-comment"># Tạo PersistentVolume (admin làm)</span>
+cat &lt;&lt;EOF | kubectl apply -f -
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: my-pv
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes: [ReadWriteOnce]
+  hostPath:
+    path: /data/my-pv
+  persistentVolumeReclaimPolicy: Retain
+EOF
+
+<span class="cmd-comment"># Tạo PVC (developer làm — không biết về PV cụ thể)</span>
+kubectl create -f - &lt;&lt;EOF
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: my-pvc
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 500Mi
+EOF
+
+kubectl get pv,pvc   <span class="cmd-comment"># STATUS: Bound</span>
+            </div>
+            <div class="mental-box">
+              <div class="mental-label">Mental Model: Tại sao cần 2 layer PV/PVC?</div>
+              <div class="mental-text">PV = kho vật lý (admin quản lý, biết về hardware, NFS, cloud disk...). PVC = yêu cầu của developer (chỉ cần biết "tôi cần 500Mi ReadWriteOnce"). <em>Sự phân tách này</em> cho phép developer không cần biết infrastructure đang dùng gì.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- WEEKEND W2 -->
+    <div class="day-card">
+      <div class="day-header" onclick="toggleDay(this)">
+        <span class="day-badge" style="color:var(--dim);border-color:var(--dim)">T7–CN</span>
+        <span class="day-title-text">Consolidation — kết nối tất cả lại</span>
+        <span class="day-meta">1 giờ · synthesis</span>
+        <span class="day-toggle">▾</span>
+      </div>
+      <div class="day-body">
+        <div class="time-block">
+          <div class="time-label">60 phút</div>
+          <div class="time-content">
+            <div class="time-title">Mini project: Deploy app có đầy đủ thành phần</div>
+            <div class="time-desc">Không dùng tutorial. Tự nghĩ ra các bước để tạo một ứng dụng hoàn chỉnh.</div>
+            <div class="why-box">
+              <div class="why-label">Yêu cầu — làm theo thứ tự tự nghĩ ra</div>
+              <div class="why-list">
+                <div class="why-item">1 Deployment nginx 2 replicas, với ConfigMap inject env var APP_ENV=production</div>
+                <div class="why-item">1 ClusterIP Service cho phép pods trong cluster curl đến</div>
+                <div class="why-item">1 PVC 100Mi mounted vào /usr/share/nginx/html, ghi 1 file index.html</div>
+                <div class="why-item">Test: tạo 1 pod client, curl đến Service → nhận được file index.html vừa tạo</div>
+              </div>
+            </div>
+            <div class="note-strip" style="margin-top:12px">
+              <span class="note-icon">💡</span>
+              <div class="note-content">
+                <h4>Nếu bị stuck</h4>
+                <p>Đừng Google ngay. Dùng <code>kubectl explain pod.spec</code> hoặc <code>kubectl explain deployment.spec.template</code> — đây là docs ngay trong terminal, được phép dùng trong thi CKA.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="week-checklist">
+    <div class="chk-title">✓ Checklist cuối tuần 2</div>
+    <div class="chk-grid">
+      <div class="chk-item"><div class="chk-box"></div>Giải thích tại sao cần 3 layer Deployment→RS→Pod</div>
+      <div class="chk-item"><div class="chk-box"></div>Debug service không route được — tự tìm nguyên nhân</div>
+      <div class="chk-item"><div class="chk-box"></div>Hiểu labels là cơ chế binding, không chỉ là metadata</div>
+      <div class="chk-item"><div class="chk-box"></div>Trace request: DNS → ClusterIP → Pod</div>
+      <div class="chk-item"><div class="chk-box"></div>Biết 3 cách inject ConfigMap và khi nào dùng cái nào</div>
+      <div class="chk-item"><div class="chk-box"></div>Tạo PV+PVC+mount không tra Google</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ WEEK 3 ══ -->
+<section class="week-block" id="week3">
+
+  <div class="week-banner" style="background:#2a1a3a">
+    <div class="week-num-big">3</div>
+    <div class="week-info">
+      <div class="week-name">Security & Cluster Thinking — "Ai được phép làm gì?"</div>
+      <div class="week-theme">// rbac · serviceaccount · the reconciliation loop · K8s as a system</div>
+    </div>
+    <span class="week-tag">9 giờ</span>
+  </div>
+
+  <div class="days-wrap">
+
+    <!-- MON W3 -->
+    <div class="day-card">
+      <div class="day-header" onclick="toggleDay(this)">
+        <span class="day-badge" style="color:#9944cc;border-color:#9944cc">Thứ 2</span>
+        <span class="day-title-text">RBAC — K8s là một hệ thống có xác thực, không phải "free-for-all"</span>
+        <span class="day-meta">1.5 giờ · security mindset</span>
+        <span class="day-toggle">▾</span>
+      </div>
+      <div class="day-body">
+        <div class="time-block">
+          <div class="time-label">90 phút</div>
+          <div class="time-content">
+            <div class="time-title">Hiểu RBAC từ nguyên tắc, không từ YAML</div>
+            <div class="time-desc">Trước khi viết YAML, hiểu câu hỏi: <strong>"Ai (Subject) được làm gì (Verb) với cái gì (Resource)?"</strong></div>
+            <div class="cmd-block">
+<span class="cmd-comment"># Tạo ServiceAccount</span>
+kubectl create sa reader-sa -n default
+
+<span class="cmd-comment"># Tạo Role: được phép get/list pods</span>
+kubectl create role pod-reader \
+  --verb=get,list,watch \
+  --resource=pods
+
+<span class="cmd-comment"># Bind SA với Role</span>
+kubectl create rolebinding reader-bind \
+  --role=pod-reader \
+  --serviceaccount=default:reader-sa
+
+<span class="cmd-comment"># ⭐ Verify bằng can-i — đây là lệnh CKA hay dùng nhất</span>
+kubectl auth can-i list pods \
+  --as=system:serviceaccount:default:reader-sa
+<span class="cmd-comment"># → yes</span>
+
+kubectl auth can-i delete pods \
+  --as=system:serviceaccount:default:reader-sa
+<span class="cmd-comment"># → no (chưa được cấp quyền delete)</span>
+
+kubectl auth can-i list nodes \
+  --as=system:serviceaccount:default:reader-sa
+<span class="cmd-comment"># → no (Role chỉ áp dụng trong namespace, không phải cluster-wide)</span>
+            </div>
+            <div class="why-box">
+              <div class="why-label">Câu hỏi phân biệt Role vs ClusterRole</div>
+              <div class="why-list">
+                <div class="why-item">Tại sao cần ClusterRole? Có những resource nào không thuộc namespace (nodes, pv, namespaces...)?</div>
+                <div class="why-item">Có thể dùng ClusterRole + RoleBinding (không phải ClusterRoleBinding) không? Khi nào hữu ích?</div>
+                <div class="why-item">Mọi pod đều có ServiceAccount mặc định là "default" — SA này có quyền gì? Thử kubectl auth can-i list pods --as=system:serviceaccount:default:default</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TUE W3 -->
+    <div class="day-card">
+      <div class="day-header" onclick="toggleDay(this)">
+        <span class="day-badge" style="color:var(--blue);border-color:var(--blue)">Thứ 3</span>
+        <span class="day-title-text">Reconciliation Loop — trái tim của K8s</span>
+        <span class="day-meta">1.5 giờ · how K8s really works</span>
+        <span class="day-toggle">▾</span>
+      </div>
+      <div class="day-body">
+        <div class="time-block">
+          <div class="time-label">90 phút</div>
+          <div class="time-content">
+            <div class="time-title">K8s không "làm theo lệnh" — K8s "đạt trạng thái mong muốn"</div>
+            <div class="time-desc">Đây là concept khó nhất nhưng quan trọng nhất để hiểu K8s. Một khi hiểu điều này, mọi thứ khác sẽ tự nhiên có logic.</div>
+            <div class="cmd-block">
+<span class="cmd-comment"># Thí nghiệm 1: ReplicaSet reconciliation</span>
+kubectl create deploy demo --image=nginx --replicas=3
+kubectl get pods -l app=demo   <span class="cmd-comment"># 3 pods</span>
+
+<span class="cmd-comment"># Xóa 1 pod thủ công</span>
+kubectl delete pod demo-xxxx-yyyy
+kubectl get pods -l app=demo   <span class="cmd-comment"># vẫn 3 pods! (pod mới tạo)</span>
+<span class="cmd-comment"># → Ai tạo lại? ReplicaSet controller đang WATCH và RECONCILE</span>
+
+<span class="cmd-comment"># Thí nghiệm 2: Desired vs Actual</span>
+kubectl scale deploy demo --replicas=5   <span class="cmd-comment"># desired = 5</span>
+<span class="cmd-comment"># K8s thấy: actual=3, desired=5 → tạo thêm 2 pods</span>
+
+kubectl scale deploy demo --replicas=2   <span class="cmd-comment"># desired = 2</span>
+<span class="cmd-comment"># K8s thấy: actual=5, desired=2 → xóa 3 pods</span>
+
+<span class="cmd-comment"># Thí nghiệm 3: Edit trực tiếp spec.replicas</span>
+kubectl edit deploy demo   <span class="cmd-comment"># thay replicas: 4</span>
+<span class="cmd-comment"># Lưu lại → K8s scale ngay</span>
+            </div>
+            <div class="mental-box">
+              <div class="mental-label">Mental Model: Declarative vs Imperative</div>
+              <div class="mental-text">Bạn không nói "hãy tạo 2 pods mới". Bạn nói "trạng thái mong muốn là 5 pods". K8s <em>liên tục so sánh</em> desired state (trong etcd) với actual state (thực tế) và tự điều chỉnh. Đây là tại sao gọi là "declarative" — bạn khai báo kết quả, không khai báo quy trình.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- WED W3 -->
+    <div class="day-card">
+      <div class="day-header" onclick="toggleDay(this)">
+        <span class="day-badge" style="color:var(--orange);border-color:var(--orange)">Thứ 4</span>
+        <span class="day-title-text">Debug như pro — xây dựng quy trình cá nhân</span>
+        <span class="day-meta">2 giờ · debug methodology</span>
+        <span class="day-toggle">▾</span>
+      </div>
+      <div class="day-body">
+        <div class="time-block">
+          <div class="time-label">120 phút</div>
+          <div class="time-content">
+            <div class="time-title">Tạo 6 lỗi khác nhau — tự debug không xem solution</div>
+            <div class="time-desc">Hôm nay không có "hướng dẫn debug". Bạn tự tạo lỗi, tự tìm cách debug. Đây là cách duy nhất để xây cơ bắp debug.</div>
+            <div class="cmd-block">
+<span class="cmd-comment"># Lỗi 1: Service không reach được</span>
+kubectl create deploy app --image=nginx
+kubectl expose deploy app --port=80 --name=app-svc
+<span class="cmd-comment"># Thay đổi label của deployment để KHÔNG match service selector</span>
+kubectl label deploy app app=wrong-app --overwrite
+<span class="cmd-comment"># → Debug: tại sao curl app-svc fail?</span>
+
+<span class="cmd-comment"># Lỗi 2: Pod không schedule</span>
+kubectl run unschedulable --image=nginx \
+  --overrides='{"spec":{"nodeSelector":{"disk":"ssd-that-doesnt-exist"}}}'
+<span class="cmd-comment"># → Debug: tại sao pod Pending?</span>
+
+<span class="cmd-comment"># Lỗi 3: Wrong env var</span>
+kubectl create cm broken-cm --from-literal=DB_URL=wrong-url
+<span class="cmd-comment"># Pod reference ConfigMap này → app lỗi vì sai URL</span>
+<span class="cmd-comment"># → Debug: tìm giá trị env var đang inject vào pod</span>
+
+<span class="cmd-comment"># Lỗi 4: Volume mount sai path</span>
+<span class="cmd-comment"># PVC mount vào /data nhưng app đọc từ /app/data</span>
+<span class="cmd-comment"># → Debug: exec vào pod, kiểm tra file system</span>
+            </div>
+            <div class="observe-box">
+              <div class="obs-label">Quy trình debug — hình thành thói quen này</div>
+              <div class="obs-list">
+                <div class="obs-item"><strong>kubectl get [resource]</strong> — xem trạng thái tổng quan</div>
+                <div class="obs-item"><strong>kubectl describe [resource]</strong> — xem Events và Conditions</div>
+                <div class="obs-item"><strong>kubectl logs [pod]</strong> — xem application logs</div>
+                <div class="obs-item"><strong>kubectl exec [pod] -- env</strong> — verify config đang inject</div>
+                <div class="obs-item"><strong>kubectl get endpoints</strong> — verify service routing</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- THU W3 -->
+    <div class="day-card">
+      <div class="day-header" onclick="toggleDay(this)">
+        <span class="day-badge" style="color:var(--gold);border-color:var(--gold)">Thứ 5</span>
+        <span class="day-title-text">kubectl explain — tra cứu không cần Google</span>
+        <span class="day-meta">1 giờ · self-sufficiency</span>
+        <span class="day-toggle">▾</span>
+      </div>
+      <div class="day-body">
+        <div class="time-block">
+          <div class="time-label">60 phút</div>
+          <div class="time-content">
+            <div class="time-title">kubectl explain là docs trong terminal — dùng được trong thi</div>
+            <div class="cmd-block">
+<span class="cmd-comment"># Xem structure của bất kỳ resource</span>
+kubectl explain pod
+kubectl explain pod.spec
+kubectl explain pod.spec.containers
+kubectl explain pod.spec.containers.livenessProbe
+kubectl explain pod.spec.containers.resources
+
+<span class="cmd-comment"># Xem toàn bộ fields (recursive)</span>
+kubectl explain pod --recursive | grep -i probe
+kubectl explain deployment --recursive | grep -i strategy
+
+<span class="cmd-comment"># Thực hành: Viết Pod YAML với livenessProbe</span>
+<span class="cmd-comment"># CHỈ dùng kubectl explain, không Google</span>
+kubectl explain pod.spec.containers.livenessProbe
+<span class="cmd-comment"># → viết YAML đúng từ output này</span>
+            </div>
+            <div class="why-box">
+              <div class="why-label">Challenge: viết 3 YAML chỉ dùng kubectl explain</div>
+              <div class="why-list">
+                <div class="why-item">Pod với startupProbe (khác livenessProbe chỗ nào? kubectl explain để trả lời)</div>
+                <div class="why-item">Deployment với podAntiAffinity (prefer không chạy 2 pods cùng node)</div>
+                <div class="why-item">CronJob với concurrencyPolicy=Forbid và successfulJobsHistoryLimit=3</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FRI W3 -->
+    <div class="day-card">
+      <div class="day-header" onclick="toggleDay(this)">
+        <span class="day-badge" style="color:var(--red);border-color:var(--red)">Thứ 6</span>
+        <span class="day-title-text">Self-assessment — bạn đã sẵn sàng vào CKA roadmap chưa?</span>
+        <span class="day-meta">1.5 giờ · readiness check</span>
+        <span class="day-toggle">▾</span>
+      </div>
+      <div class="day-body">
+        <div class="time-block">
+          <div class="time-label">90 phút</div>
+          <div class="time-content">
+            <div class="time-title">10 câu hỏi không được tra Google — tự chấm điểm</div>
+            <div class="time-desc">Làm từng câu, ghi thời gian. Mục tiêu: trả lời được 7/10, không phải 10/10.</div>
+            <div class="why-box">
+              <div class="why-label">10 câu tự kiểm tra</div>
+              <div class="why-list">
+                <div class="why-item">Tạo Pod có 2 containers chia sẻ 1 emptyDir volume. Container 1 ghi file, container 2 đọc. Viết YAML hoàn chỉnh.</div>
+                <div class="why-item">Service của bạn không route traffic. Liệt kê 3 nguyên nhân phổ biến nhất và cách check từng cái.</div>
+                <div class="why-item">Giải thích: khi bạn chạy kubectl apply -f, thứ tự các component xử lý request là gì?</div>
+                <div class="why-item">Tạo ServiceAccount, Role cho phép chỉ get và list pods, bind cho SA đó. Viết 3 commands.</div>
+                <div class="why-item">Pod exit code 137 nghĩa là gì? Nguyên nhân phổ biến và cách kiểm tra?</div>
+                <div class="why-item">Sự khác nhau giữa readinessProbe và livenessProbe — khi nào dùng cái nào?</div>
+                <div class="why-item">Tại sao Pod đang Running nhưng kubectl get endpoints service-name lại trả về empty?</div>
+                <div class="why-item">emptyDir vs PersistentVolume — data trong emptyDir mất khi nào? Data trong PV mất khi nào?</div>
+                <div class="why-item">Giải thích Reconciliation Loop. Tại sao khi xóa 1 pod trong Deployment, pod mới tự tạo?</div>
+                <div class="why-item">Tìm xem Pod đang chạy trên node nào và IP của nó là bao nhiêu — 1 lệnh.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- WEEKEND W3 -->
+    <div class="day-card">
+      <div class="day-header" onclick="toggleDay(this)">
+        <span class="day-badge" style="color:var(--dim);border-color:var(--dim)">T7–CN</span>
+        <span class="day-title-text">Đánh giá & lập kế hoạch bước vào 16 tuần CKA</span>
+        <span class="day-meta">1 giờ · transition planning</span>
+        <span class="day-toggle">▾</span>
+      </div>
+      <div class="day-body">
+        <div class="time-block">
+          <div class="time-label">60 phút</div>
+          <div class="time-content">
+            <div class="time-title">Review kết quả 10 câu + lập kế hoạch cá nhân</div>
+            <div class="observe-box">
+              <div class="obs-label">Đánh giá kết quả và bước tiếp theo</div>
+              <div class="obs-list">
+                <div class="obs-item"><strong>8–10/10 đúng:</strong> Bạn sẵn sàng. Bước thẳng vào Tuần 1 CKA roadmap. Tốc độ học: có thể đẩy lên 12h/tuần.</div>
+                <div class="obs-item"><strong>5–7/10 đúng:</strong> Sẵn sàng vào CKA nhưng nên làm chậm ở Phase 1 (4 tuần đầu). Với mỗi lab, dành thêm thời gian giải thích "tại sao" trước khi làm tiếp.</div>
+                <div class="obs-item"><strong>Dưới 5/10 đúng:</strong> Làm thêm 1 tuần Phase 0. Tập trung vào những câu sai — đọc docs, thực hành, giải thích lại.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="week-checklist">
+    <div class="chk-title">✓ Checklist cuối tuần 3 — sẵn sàng CKA</div>
+    <div class="chk-grid">
+      <div class="chk-item"><div class="chk-box"></div>Giải thích Reconciliation Loop bằng lời của mình</div>
+      <div class="chk-item"><div class="chk-box"></div>RBAC: SA+Role+RoleBinding+verify không tra docs</div>
+      <div class="chk-item"><div class="chk-box"></div>Debug service trong &lt;5 phút không Google</div>
+      <div class="chk-item"><div class="chk-box"></div>Dùng kubectl explain thay Google cho K8s YAML</div>
+      <div class="chk-item"><div class="chk-box"></div>Đạt ≥7/10 câu self-assessment</div>
+      <div class="chk-item"><div class="chk-box"></div>Tư duy: "tại sao" thay vì "cái gì"</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ BRIDGE TO CKA ══ -->
+<div class="bridge">
+  <div class="bridge-title">Từ Phase 0 → Bước vào 16 tuần CKA</div>
+  <p style="font-size:14px;color:rgba(255,255,255,0.6);margin-bottom:0">Sau 3 tuần này, bạn không cần thay đổi gì trong lộ trình CKA 16 tuần — chỉ cần mang theo tư duy mới này vào từng lab.</p>
+  <div class="bridge-grid">
+    <div class="bridge-col p0">
+      <div class="bridge-col-title p0">Giai đoạn 0 đã cho bạn</div>
+      <div class="bridge-items">
+        <div class="bridge-item">Mental model kiến trúc K8s rõ ràng</div>
+        <div class="bridge-item">Quy trình debug 5 bước có hệ thống</div>
+        <div class="bridge-item">Hiểu labels là cơ chế kết nối cốt lõi</div>
+        <div class="bridge-item">Tư duy "tại sao" thay vì "cái gì"</div>
+        <div class="bridge-item">kubectl explain thay Google</div>
+        <div class="bridge-item">Reconciliation loop — linh hồn K8s</div>
+      </div>
+    </div>
+    <div class="bridge-col p1">
+      <div class="bridge-col-title p1">CKA 16 tuần sẽ build thêm</div>
+      <div class="bridge-items">
+        <div class="bridge-item">Scheduling: Affinity, Taint, Static Pods</div>
+        <div class="bridge-item">Networking: Ingress, NetworkPolicy, CNI</div>
+        <div class="bridge-item">Storage: StorageClass, dynamic provisioning</div>
+        <div class="bridge-item">Security: RBAC nâng cao, SecurityContext, TLS</div>
+        <div class="bridge-item">Cluster Admin: kubeadm, upgrade, etcd</div>
+        <div class="bridge-item">Troubleshooting: 38 scenarios thực tế</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="text-align:center;padding:0 0 64px">
+  <div style="font-family:'Fraunces',serif;font-size:18px;font-weight:300;font-style:italic;color:var(--dim);margin-bottom:20px">
+    "Hiểu 20% core thật sự → giải được 80% vấn đề thực tế"
+  </div>
+  <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+    <a href="cka-part1.html" style="display:inline-flex;align-items:center;gap:10px;background:var(--ink);color:var(--bg);padding:14px 28px;font-family:'DM Mono',monospace;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;text-decoration:none;border:2px solid var(--ink)">
+      Tiếp → CKA Phần 1 (Tuần 1–8)
+    </a>
+    <a href="cka-part2.html" style="display:inline-flex;align-items:center;gap:10px;background:transparent;color:var(--ink2);padding:14px 28px;font-family:'DM Mono',monospace;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;text-decoration:none;border:2px solid var(--border2)">
+      CKA Phần 2 (Tuần 9–16)
+    </a>
+  </div>
+</div>
+
+</div><!-- /wrap -->
+
+<script>
+function toggleDay(header) {
+  const card = header.parentElement;
+  card.classList.toggle('open');
+}
+// Open first day of week 1 by default
+document.querySelector('.day-card').classList.add('open');
+</script>
+</body>
+</html>

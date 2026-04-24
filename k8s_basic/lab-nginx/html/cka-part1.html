@@ -1,0 +1,1315 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CKA Intensive · Phần 1: Tuần 1–8</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Barlow:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #080b10;
+  --bg2: #0c1018;
+  --card: #0f1520;
+  --card2: #141c2a;
+  --border: #1a2540;
+  --border2: #243050;
+  --cyan: #00e5ff;
+  --orange: #ff7043;
+  --green: #69ff47;
+  --yellow: #ffe57f;
+  --purple: #b388ff;
+  --red: #ff5252;
+  --text: #dce6f5;
+  --dim: #5a7090;
+  --muted: #2a3850;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;line-height:1.6;overflow-x:hidden}
+
+/* Scanline overlay */
+body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,229,255,0.012) 2px,rgba(0,229,255,0.012) 4px);pointer-events:none;z-index:999}
+
+/* Dot grid */
+body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(circle,rgba(0,229,255,0.08) 1px,transparent 1px);background-size:28px 28px;pointer-events:none;z-index:0}
+
+.wrap{max-width:1080px;margin:0 auto;padding:0 20px;position:relative;z-index:1}
+
+/* ═══ HERO ═══ */
+.hero{padding:56px 0 48px;border-bottom:1px solid var(--border)}
+.part-badge{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--cyan);letter-spacing:3px;text-transform:uppercase;margin-bottom:18px;display:flex;align-items:center;gap:10px}
+.part-badge::before{content:'';width:32px;height:1px;background:var(--cyan)}
+.hero h1{font-size:clamp(38px,6vw,72px);font-weight:800;line-height:1.05;font-family:'Rajdhani',sans-serif;letter-spacing:-1px;margin-bottom:12px}
+.hero h1 em{font-style:normal;color:var(--cyan)}
+.hero h1 s{text-decoration:none;color:var(--orange)}
+.tagline{font-size:15px;color:var(--dim);font-family:'JetBrains Mono',monospace;max-width:580px;margin-bottom:28px}
+
+.stat-bar{display:flex;gap:0;border:1px solid var(--border2);overflow:hidden;width:fit-content;margin-top:24px}
+.stat{padding:12px 24px;border-right:1px solid var(--border2);background:var(--card)}
+.stat:last-child{border-right:none}
+.stat-n{font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;color:var(--cyan);display:block}
+.stat-l{font-size:11px;color:var(--dim);letter-spacing:1.5px;text-transform:uppercase;display:block;margin-top:2px}
+
+/* ═══ NAV ═══ */
+.sticky-nav{position:sticky;top:0;z-index:100;background:rgba(8,11,16,0.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:10px 0}
+.nav-inner{display:flex;gap:4px;overflow-x:auto;padding:0 20px}
+.nav-inner::-webkit-scrollbar{display:none}
+.nav-btn{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;padding:6px 14px;border:1px solid transparent;background:transparent;cursor:pointer;white-space:nowrap;text-decoration:none;transition:.2s}
+.nav-btn:hover,.nav-btn.active{color:var(--cyan);border-color:rgba(0,229,255,0.3);background:rgba(0,229,255,0.05)}
+
+/* ═══ WEEK SECTION ═══ */
+.week-section{margin:0;border-bottom:1px solid var(--border)}
+.week-header{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:20px;padding:28px 24px;cursor:pointer;background:var(--bg2);transition:background .2s;user-select:none}
+.week-header:hover{background:var(--card)}
+.wk-num{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:var(--bg);background:var(--wk-color,var(--cyan));padding:6px 14px;letter-spacing:1px}
+.wk-meta{display:flex;flex-direction:column;gap:3px}
+.wk-title{font-size:19px;font-weight:700;font-family:'Rajdhani',sans-serif;letter-spacing:.3px}
+.wk-subtitle{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--dim)}
+.wk-badges{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.badge{font-family:'JetBrains Mono',monospace;font-size:10px;padding:3px 9px;letter-spacing:1px;text-transform:uppercase;border:1px solid}
+.toggle-icon{font-size:18px;color:var(--dim);transition:transform .3s;padding-right:4px}
+.week-section.open .toggle-icon{transform:rotate(180deg)}
+
+.week-body{display:none;background:var(--bg)}
+.week-section.open .week-body{display:block}
+
+/* ═══ DAY LAYOUT ═══ */
+.days-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:0;border-top:1px solid var(--border)}
+.day-col{border-right:1px solid var(--border);padding:0}
+.day-col:last-child{border-right:none}
+
+.day-head{padding:14px 18px;background:var(--card2);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.day-label{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--day-color,var(--cyan));letter-spacing:2px;text-transform:uppercase;font-weight:700}
+.day-type{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--dim);padding:2px 6px;border:1px solid var(--border2);margin-left:auto}
+
+.day-content{padding:16px 18px}
+.day-focus{font-size:13px;font-weight:700;color:var(--text);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--muted)}
+
+/* ═══ TASKS ═══ */
+.task-list{display:flex;flex-direction:column;gap:8px}
+.task{display:flex;gap:10px;align-items:flex-start}
+.task-dot{width:18px;height:18px;flex-shrink:0;border:1.5px solid var(--dot-color,var(--cyan));display:flex;align-items:center;justify-content:center;margin-top:2px;font-size:9px;color:var(--dot-color,var(--cyan));font-family:'JetBrains Mono',monospace;font-weight:700}
+.task-body{flex:1}
+.task-text{font-size:13px;color:var(--dim);line-height:1.55}
+.task-text strong{color:var(--text);font-weight:600}
+.cmd{display:block;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--green);background:rgba(105,255,71,0.06);border-left:2px solid var(--green);padding:5px 10px;margin-top:5px;word-break:break-all}
+.warn{display:block;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--orange);margin-top:4px}
+.note-box{background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.15);border-left:3px solid var(--cyan);padding:10px 14px;margin-top:12px;font-size:12px;color:var(--dim);font-family:'JetBrains Mono',monospace;line-height:1.7}
+
+/* ═══ THEORY BLOCK ═══ */
+.theory-block{background:var(--card);border:1px solid var(--border2);border-top:2px solid var(--cyan);padding:20px;margin:0}
+.theory-title{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--cyan);letter-spacing:2px;text-transform:uppercase;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.theory-title::after{content:'';flex:1;height:1px;background:var(--border2)}
+.theory-points{display:flex;flex-direction:column;gap:8px}
+.tp{display:flex;gap:12px;font-size:13px;color:var(--dim);line-height:1.5}
+.tp-mark{color:var(--cyan);font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;flex-shrink:0;padding-top:1px}
+
+/* ═══ LABS BLOCK ═══ */
+.labs-block{background:rgba(105,255,71,0.03);border:1px solid rgba(105,255,71,0.12);border-top:2px solid var(--green);padding:20px;margin-top:0}
+.labs-title{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--green);letter-spacing:2px;text-transform:uppercase;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.labs-title::after{content:'';flex:1;height:1px;background:rgba(105,255,71,0.15)}
+.lab-item{display:flex;gap:12px;margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--muted)}
+.lab-item:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
+.lab-n{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--orange);font-weight:700;min-width:26px;padding-top:1px}
+.lab-body{flex:1}
+.lab-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:5px}
+.lab-desc{font-size:12px;color:var(--dim);line-height:1.55;margin-bottom:6px}
+.lab-steps{list-style:none;display:flex;flex-direction:column;gap:3px}
+.lab-steps li{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--green);padding-left:14px;position:relative;line-height:1.5}
+.lab-steps li::before{content:'$';position:absolute;left:0;color:var(--orange)}
+.lab-verify{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--yellow);margin-top:6px;padding:4px 8px;background:rgba(255,229,127,0.05);border:1px solid rgba(255,229,127,0.1)}
+.lab-verify::before{content:'✓ verify: '}
+
+/* ═══ WEEK SUMMARY ═══ */
+.week-summary{background:var(--card2);border-top:1px solid var(--border);padding:20px 24px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px}
+.sum-block h5{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px}
+.sum-block.theory h5{color:var(--cyan)}
+.sum-block.practice h5{color:var(--green)}
+.sum-block.goal h5{color:var(--yellow)}
+.sum-items{display:flex;flex-direction:column;gap:4px}
+.sum-item{font-size:12px;color:var(--dim);padding-left:10px;position:relative}
+.sum-item::before{content:'·';position:absolute;left:0;font-weight:700}
+.sum-block.theory .sum-item::before{color:var(--cyan)}
+.sum-block.practice .sum-item::before{color:var(--green)}
+.sum-block.goal .sum-item::before{color:var(--yellow)}
+
+/* ═══ PHASE DIVIDER ═══ */
+.phase-divider{padding:48px 0 24px;text-align:center;position:relative}
+.phase-divider::before{content:'';position:absolute;left:0;right:0;top:50%;height:1px;background:var(--border)}
+.phase-inner{display:inline-flex;align-items:center;gap:16px;background:var(--bg);padding:0 24px;position:relative}
+.phase-label{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--dim)}
+.phase-name{font-family:'Rajdhani',sans-serif;font-size:22px;font-weight:700;color:var(--ph-color,var(--cyan))}
+
+/* ═══ CHECKPOINT ═══ */
+.checkpoint{background:linear-gradient(135deg,rgba(0,229,255,0.06),rgba(105,255,71,0.04));border:1px solid var(--border2);border-left:4px solid var(--cyan);padding:24px 28px;margin:24px 0}
+.cp-title{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--cyan);letter-spacing:2px;text-transform:uppercase;margin-bottom:14px}
+.cp-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.cp-item{display:flex;gap:8px;font-size:13px;color:var(--dim)}
+.cp-check{color:var(--green);font-weight:700;flex-shrink:0}
+
+@media(max-width:640px){
+  .days-grid{grid-template-columns:1fr}
+  .day-col{border-right:none;border-bottom:1px solid var(--border)}
+  .week-summary{grid-template-columns:1fr}
+  .cp-grid{grid-template-columns:1fr}
+  .stat-bar{flex-wrap:wrap}
+}
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="wrap">
+<div class="hero">
+  <div class="part-badge">CKA INTENSIVE ROADMAP</div>
+  <h1>Phần <em>01</em><br>Tuần <s>1</s> đến <s>8</s></h1>
+  <div class="tagline">// Nền tảng → Networking → Storage → Security<br>// Mỗi ngày có mục tiêu rõ ràng. Không bỏ ngày nào.</div>
+  <div class="stat-bar">
+    <div class="stat"><span class="stat-n">8</span><span class="stat-l">Tuần</span></div>
+    <div class="stat"><span class="stat-n">56</span><span class="stat-l">Ngày học</span></div>
+    <div class="stat"><span class="stat-n">120+</span><span class="stat-l">Bài lab</span></div>
+    <div class="stat"><span class="stat-n">15h</span><span class="stat-l">/ Tuần</span></div>
+  </div>
+</div>
+</div>
+
+<!-- NAV -->
+<div class="sticky-nav">
+  <div class="nav-inner">
+    <a class="nav-btn" href="#w1">W1</a>
+    <a class="nav-btn" href="#w2">W2</a>
+    <a class="nav-btn" href="#w3">W3</a>
+    <a class="nav-btn" href="#w4">W4</a>
+    <a class="nav-btn" href="#w5">W5</a>
+    <a class="nav-btn" href="#w6">W6</a>
+    <a class="nav-btn" href="#w7">W7</a>
+    <a class="nav-btn" href="#w8">W8</a>
+    <a class="nav-btn" href="cka-part2.html" style="color:var(--orange);border-color:rgba(255,112,67,0.3)">→ Phần 2</a>
+  </div>
+</div>
+
+<div class="wrap">
+
+<!-- ════════════════════════════════════
+  PHASE 1: FOUNDATION
+════════════════════════════════════ -->
+<div class="phase-divider">
+  <div class="phase-inner">
+    <span class="phase-label">Phase 01 ·</span>
+    <span class="phase-name" style="--ph-color:#00e5ff">FOUNDATION</span>
+    <span class="phase-label">· Tuần 1–4</span>
+  </div>
+</div>
+
+<!-- ══ WEEK 1 ══ -->
+<div class="week-section open" id="w1">
+  <div class="week-header" onclick="toggleWeek(this)">
+    <span class="wk-num" style="--wk-color:#00e5ff">W01</span>
+    <div class="wk-meta">
+      <div class="wk-title">Kiến trúc Kubernetes & Pod Mastery</div>
+      <div class="wk-subtitle">// control plane · worker node · pod lifecycle · multi-container patterns</div>
+    </div>
+    <div class="wk-badges">
+      <span class="badge" style="color:#00e5ff;border-color:rgba(0,229,255,0.3)">THEORY</span>
+      <span class="badge" style="color:#69ff47;border-color:rgba(105,255,71,0.3)">18 LABS</span>
+    </div>
+    <span class="toggle-icon">▾</span>
+  </div>
+  <div class="week-body">
+
+    <div class="theory-block">
+      <div class="theory-title">Lý thuyết tuần 1 — phải thuộc trước khi thực hành</div>
+      <div class="theory-points">
+        <div class="tp"><span class="tp-mark">01</span><span><strong>Control Plane components:</strong> kube-apiserver (cổng vào duy nhất, RESTful, xác thực/uỷ quyền), etcd (key-value store, source of truth), kube-scheduler (chọn node cho pod dựa trên resource/taint/affinity), kube-controller-manager (chạy nhiều controller: replication, node, endpoints...)</span></div>
+        <div class="tp"><span class="tp-mark">02</span><span><strong>Worker Node components:</strong> kubelet (agent trên mỗi node, nhận PodSpec từ apiserver, tạo/monitor container), kube-proxy (quản lý iptables/ipvs rules cho Service networking), container runtime (containerd/CRI-O)</span></div>
+        <div class="tp"><span class="tp-mark">03</span><span><strong>Pod là đơn vị nhỏ nhất</strong> trong K8s. Một Pod = 1 hoặc nhiều container chia sẻ network namespace (cùng IP, cùng port space) và có thể chia sẻ storage volumes.</span></div>
+        <div class="tp"><span class="tp-mark">04</span><span><strong>Pod lifecycle:</strong> Pending → Running → Succeeded/Failed. Container states: Waiting, Running, Terminated. Pod conditions: PodScheduled, ContainersReady, Initialized, Ready.</span></div>
+        <div class="tp"><span class="tp-mark">05</span><span><strong>Multi-container patterns:</strong> Sidecar (log shipper, proxy), Ambassador (proxy external services), Adapter (transform output). InitContainers chạy tuần tự trước main containers, phải exit 0 mới tiếp tục.</span></div>
+        <div class="tp"><span class="tp-mark">06</span><span><strong>Namespace:</strong> Phân vùng logical trong cluster. Default namespaces: default, kube-system, kube-public, kube-node-lease. DNS pattern: service-name.namespace.svc.cluster.local</span></div>
+      </div>
+    </div>
+
+    <div class="days-grid">
+      <!-- MON -->
+      <div class="day-col">
+        <div class="day-head" style="--day-color:#00e5ff">
+          <span class="day-label">Thứ 2</span>
+          <span class="day-type">SETUP + THEORY</span>
+        </div>
+        <div class="day-content">
+          <div class="day-focus">Cài môi trường + kiến trúc K8s</div>
+          <div class="task-list">
+            <div class="task"><div class="task-dot" style="--dot-color:#00e5ff">T</div><div class="task-body"><div class="task-text"><strong>Cài kind</strong> (Kubernetes in Docker) và tạo cluster 1 control-plane + 2 workers<span class="cmd">kind create cluster --config kind-config.yaml --name cka-lab</span></div></div></div>
+            <div class="task"><div class="task-dot" style="--dot-color:#00e5ff">T</div><div class="task-body"><div class="task-text"><strong>Cài kubectl</strong>, thiết lập alias và autocomplete<span class="cmd">alias k=kubectl
+source &lt;(kubectl completion bash)
+complete -F __start_kubectl k</span></div></div></div>
+            <div class="task"><div class="task-dot" style="--dot-color:#b388ff">R</div><div class="task-body"><div class="task-text"><strong>Đọc/xem:</strong> Kubernetes Components (kubernetes.io/docs/concepts/overview/components) — vẽ sơ đồ tay kiến trúc master-worker</div></div></div>
+            <div class="task"><div class="task-dot" style="--dot-color:#b388ff">R</div><div class="task-body"><div class="task-text"><strong>Kiểm tra các component</strong> đang chạy trong cluster<span class="cmd">kubectl get pods -n kube-system
+kubectl get componentstatuses</span></div></div></div>
+          </div>
+          <div class="note-box">kind-config.yaml: 1 control-plane node + 2 worker nodes. Đây là môi trường chuẩn nhất để luyện CKA.</div>
+        </div>
+      </div>
+
+      <!-- TUE -->
+      <div class="day-col">
+        <div class="day-head" style="--day-color:#69ff47">
+          <span class="day-label">Thứ 3</span>
+          <span class="day-type">LAB: PODS BASIC</span>
+        </div>
+        <div class="day-content">
+          <div class="day-focus">Pod tạo, inspect, debug cơ bản</div>
+          <div class="task-list">
+            <div class="task"><div class="task-dot" style="--dot-color:#69ff47">1</div><div class="task-body"><div class="task-text"><strong>Lab 1:</strong> Tạo pod imperative vs declarative<span class="cmd">k run nginx --image=nginx:1.21
+k run nginx2 --image=nginx --dry-run=client -o yaml > pod.yaml
+k apply -f pod.yaml</span></div></div></div>
+            <div class="task"><div class="task-dot" style="--dot-color:#69ff47">2</div><div class="task-body"><div class="task-text"><strong>Lab 2:</strong> Inspect pod đầy đủ<span class="cmd">k describe pod nginx
+k get pod nginx -o yaml
+k get pod nginx -o jsonpath='{.status.podIP}'</span></div></div></div>
+            <div class="task"><div class="task-dot" style="--dot-color:#69ff47">3</div><div class="task-body"><div class="task-text"><strong>Lab 3:</strong> Exec vào pod, chạy lệnh<span class="cmd">k exec -it nginx -- bash
+k exec nginx -- cat /etc/nginx/nginx.conf</span></div></div></div>
+            <div class="task"><div class="task-dot" style="--dot-color:#69ff47">4</div><div class="task-body"><div class="task-text"><strong>Lab 4:</strong> Port-forward và test<span class="cmd">k port-forward pod/nginx 8080:80
+# mở tab khác: curl localhost:8080</span></div></div></div>
+            <div class="task"><div class="task-dot" style="--dot-color:#ff5252">5</div><div class="task-body"><div class="task-text"><strong>Lab 5 (debug):</strong> Tạo pod với image không tồn tại, debug ImagePullBackOff<span class="cmd">k run broken --image=nginx:nonexistent999
+k describe pod broken   # xem Events</span><span class="warn">⚠ Phải hiểu được Events section trong describe</span></div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- WED -->
+      <div class="day-col">
+        <div class="day-head" style="--day-color:#ff7043">
+          <span class="day-label">Thứ 4</span>
+          <span class="day-type">LAB: MULTI-CONTAINER</span>
+        </div>
+        <div class="day-content">
+          <div class="day-focus">Multi-container & Init containers</div>
+          <div class="task-list">
+            <div class="task"><div class="task-dot" style="--dot-color:#ff7043">6</div><div class="task-body"><div class="task-text"><strong>Lab 6 — Sidecar pattern:</strong> Pod với nginx + busybox sidecar đọc log<span class="cmd"># pod yaml: 2 containers share emptyDir volume
+# nginx ghi access.log → busybox tail -f log</span></div></div></div>
+            <div class="task"><div class="task-dot" style="--dot-color:#ff7043">7</div><div class="task-body"><div class="task-text"><strong>Lab 7 — initContainer:</strong> Init download file config, main container dùng file đó<span class="cmd"># initContainer: busybox wget -O /config/app.conf URL
+# mainContainer: nginx mount /config volume</span></div></div></div>
+            <div class="task"><div class="task-dot" style="--dot-color:#ff7043">8</div><div class="task-body"><div class="task-text"><strong>Lab 8 — Init fail:</strong> Init container exit non-zero → Pod stuck Init:0/1<span class="cmd">k get pod -w   # watch trạng thái
+k logs pod-name -c init-container-name</span></div></div></div>
+            <div class="task"><div class="task-dot" style="--dot-color:#ff7043">9</div><div class="task-body"><div class="task-text"><strong>Lab 9 — Shared network:</strong> Chứng minh 2 containers trong pod dùng chung IP<span class="cmd"># Container1: nginx port 80
+# Container2: curl localhost:80 (thành công!)</span></div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- THU -->
+      <div class="day-col">
+        <div class="day-head" style="--day-color:#b388ff">
+          <span class="day-label">Thứ 5</span>
+          <span class="day-type">LAB: LIFECYCLE</span>
+        </div>
+        <div class="day-content">
+          <div class="day-focus">Pod lifecycle, restartPolicy, probes</div>
+          <div class="task-list">
+            <div class="task"><div class="task-dot" style="--dot-color:#b388ff">10</div><div class="task-body"><div class="task-text"><strong>Lab 10 — restartPolicy:</strong> Tạo pod với restartPolicy Never/OnFailure/Always. Quan sát hành vi khi container crash<span class="cmd">k run test --image=busybox --restart=Never -- /bin/false
+k get pod test   # Status: Error (không restart)</span></div></div></div>
+            <div class="task"><div class="task-dot" style="--dot-color:#b388ff">11</div><div class="task-body"><div class="task-text"><strong>Lab 11 — Liveness probe:</strong> HTTP liveness probe với path sai → pod restart<span class="cmd"># livenessProbe: httpGet path: /healthz port: 80
+# failureThreshold: 3, periodSeconds: 5
+k get pod -w   # thấy RESTARTS tăng</span></div></div></div>
+            <div class="task"><div class="task-dot" style="--dot-color:#b388ff">12</div><div class="task-body"><div class="task-text"><strong>Lab 12 — Readiness probe:</strong> Pod running nhưng readiness fail → không nhận traffic<span class="cmd">k get pod   # READY: 0/1
+k describe pod | grep Readiness</span></div></div></div>
+            <div class="task"><div class="task-dot" style="--dot-color:#b388ff">13</div><div class="task-body"><div class="task-text"><strong>Lab 13 — postStart/preStop:</strong> Hook exec khi container start/stop<span class="cmd"># lifecycle.postStart.exec.command: ["touch", "/tmp/started"]
+# lifecycle.preStop.exec.command: ["sleep", "5"]</span></div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- FRI -->
+      <div class="day-col">
+        <div class="day-head" style="--day-color:#ffe57f">
+          <span class="day-label">Thứ 6</span>
+          <span class="day-type">LAB: NAMESPACE</span>
+        </div>
+        <div class="day-content">
+          <div class="day-focus">Namespace, labels, selectors</div>
+          <div class="task-list">
+            <div class="task"><div class="task-dot" style="--dot-color:#ffe57f">14</div><div class="task-body"><div class="task-text"><strong>Lab 14 — Namespace setup:</strong> Tạo namespace dev/staging/prod<span class="cmd">k create ns dev
+k create ns staging
+k create ns prod
+k get ns</span></div></div></div>
+            <div class="task"><div class="task-dot" style="--dot-color:#ffe57f">15</div><div class="task-body"><div class="task-text"><strong>Lab 15 — Deploy multi-namespace:</strong> Mỗi namespace chạy 1 pod nginx với label app=web<span class="cmd">k run web --image=nginx -n dev --labels=app=web,env=dev
+k run web --image=nginx -n prod --labels=app=web,env=prod</span></div></div></div>
+            <div class="task"><div class="task-dot" style="--dot-color:#ffe57f">16</div><div class="task-body"><div class="task-text"><strong>Lab 16 — Label selectors:</strong> Lọc pod theo label<span class="cmd">k get pods --all-namespaces -l app=web
+k get pods -l 'env in (dev,staging)'
+k get pods -l app=web,env!=prod</span></div></div></div>
+            <div class="task"><div class="task-dot" style="--dot-color:#ffe57f">17</div><div class="task-body"><div class="task-text"><strong>Lab 17 — Annotate & label:</strong> Add/remove labels runtime<span class="cmd">k label pod web -n dev tier=frontend
+k label pod web -n dev tier-   # xóa label
+k annotate pod web -n dev contact=devteam</span></div></div></div>
+            <div class="task"><div class="task-dot" style="--dot-color:#ffe57f">18</div><div class="task-body"><div class="task-text"><strong>Lab 18 — Cross-namespace DNS:</strong> Pod trong dev curl service trong prod<span class="cmd">curl http://web-svc.prod.svc.cluster.local:80</span></div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SAT/SUN -->
+      <div class="day-col">
+        <div class="day-head" style="--day-color:#ff5252">
+          <span class="day-label">Thứ 7–CN</span>
+          <span class="day-type">REVIEW + DRILL</span>
+        </div>
+        <div class="day-content">
+          <div class="day-focus">Ôn tập + speed drill pods</div>
+          <div class="task-list">
+            <div class="task"><div class="task-dot" style="--dot-color:#ff5252">◆</div><div class="task-body"><div class="task-text"><strong>Speed drill:</strong> Tạo pod có: 2 containers, 1 initContainer, liveness probe, resource limit — trong vòng 5 phút<span class="cmd">k run complex --image=nginx --dry-run=client -o yaml > c.yaml
+# edit yaml tay thêm các field</span></div></div></div>
+            <div class="task"><div class="task-dot" style="--dot-color:#ff5252">◆</div><div class="task-body"><div class="task-text"><strong>Tái hiện 5 trạng thái lỗi:</strong> ImagePullBackOff, CrashLoopBackOff, Pending, OOMKilled, CreateContainerConfigError — debug từng cái</div></div></div>
+            <div class="task"><div class="task-dot" style="--dot-color:#ff5252">◆</div><div class="task-body"><div class="task-text"><strong>Viết từ trí nhớ:</strong> YAML đầy đủ cho pod với initContainer + sidecar + probes (không tra tài liệu)</div></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="week-summary">
+      <div class="sum-block theory">
+        <h5>Lý thuyết</h5>
+        <div class="sum-items">
+          <div class="sum-item">Kiến trúc Control Plane</div>
+          <div class="sum-item">Pod lifecycle states</div>
+          <div class="sum-item">Multi-container patterns</div>
+          <div class="sum-item">Namespace & DNS</div>
+        </div>
+      </div>
+      <div class="sum-block practice">
+        <h5>18 labs thực hành</h5>
+        <div class="sum-items">
+          <div class="sum-item">Pod CRUD đầy đủ</div>
+          <div class="sum-item">Multi-container + initContainer</div>
+          <div class="sum-item">Liveness/readiness probes</div>
+          <div class="sum-item">Labels, selectors, namespaces</div>
+        </div>
+      </div>
+      <div class="sum-block goal">
+        <h5>Mục tiêu cuối tuần</h5>
+        <div class="sum-items">
+          <div class="sum-item">Tạo bất kỳ pod trong &lt;3 phút</div>
+          <div class="sum-item">Debug 5 trạng thái lỗi pod</div>
+          <div class="sum-item">Thuộc cú pháp probe không cần tra</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ WEEK 2 ══ -->
+<div class="week-section" id="w2">
+  <div class="week-header" onclick="toggleWeek(this)">
+    <span class="wk-num" style="--wk-color:#ff7043">W02</span>
+    <div class="wk-meta">
+      <div class="wk-title">Deployments, ReplicaSets & Workloads</div>
+      <div class="wk-subtitle">// rolling update · rollback · DaemonSet · StatefulSet · Job · CronJob</div>
+    </div>
+    <div class="wk-badges">
+      <span class="badge" style="color:#ff7043;border-color:rgba(255,112,67,0.3)">WORKLOADS</span>
+      <span class="badge" style="color:#69ff47;border-color:rgba(105,255,71,0.3)">20 LABS</span>
+    </div>
+    <span class="toggle-icon">▾</span>
+  </div>
+  <div class="week-body">
+    <div class="theory-block">
+      <div class="theory-title">Lý thuyết tuần 2</div>
+      <div class="theory-points">
+        <div class="tp"><span class="tp-mark">01</span><span><strong>Deployment</strong> quản lý ReplicaSet, đảm bảo desired state. Hỗ trợ rolling update (maxSurge, maxUnavailable) và rollback qua revision history.</span></div>
+        <div class="tp"><span class="tp-mark">02</span><span><strong>ReplicaSet</strong> đảm bảo số lượng pod replicas. Selector label phải match pod template labels. Deployment tạo RS mới khi update image.</span></div>
+        <div class="tp"><span class="tp-mark">03</span><span><strong>DaemonSet</strong> đảm bảo mỗi node chạy đúng 1 pod. Dùng cho: log collectors (fluentd), monitoring agents (node-exporter), CNI plugins. Khi add node mới, DS tự tạo pod.</span></div>
+        <div class="tp"><span class="tp-mark">04</span><span><strong>StatefulSet</strong> cho stateful apps (databases). Pod có stable hostname (pod-0, pod-1...), persistent storage riêng từng pod, ordered deployment/scaling.</span></div>
+        <div class="tp"><span class="tp-mark">05</span><span><strong>Job</strong> chạy pod cho đến khi hoàn thành (exit 0). completions, parallelism, backoffLimit. <strong>CronJob</strong> tạo Job theo schedule (cron format). concurrencyPolicy: Allow/Forbid/Replace.</span></div>
+      </div>
+    </div>
+    <div class="labs-block">
+      <div class="labs-title">20 Labs — Workloads</div>
+
+      <div class="lab-item">
+        <span class="lab-n">L01</span>
+        <div class="lab-body">
+          <div class="lab-title">Deployment CRUD cơ bản</div>
+          <div class="lab-desc">Tạo, scale, update, xóa deployment. Quan sát ReplicaSet được tạo.</div>
+          <ul class="lab-steps">
+            <li>k create deploy web --image=nginx:1.19 --replicas=3</li>
+            <li>k get deploy,rs,pod -l app=web</li>
+            <li>k scale deploy web --replicas=5</li>
+            <li>k delete deploy web</li>
+          </ul>
+          <div class="lab-verify">Sau scale: 5 pods Running. RS gốc vẫn còn.</div>
+        </div>
+      </div>
+
+      <div class="lab-item">
+        <span class="lab-n">L02</span>
+        <div class="lab-body">
+          <div class="lab-title">Rolling Update & Rollback</div>
+          <div class="lab-desc">Update image nginx:1.19 → 1.21 → 1.22. Xem lịch sử, rollback về 1.19.</div>
+          <ul class="lab-steps">
+            <li>k set image deploy/web nginx=nginx:1.21 --record</li>
+            <li>k rollout status deploy/web</li>
+            <li>k rollout history deploy/web</li>
+            <li>k rollout undo deploy/web --to-revision=1</li>
+          </ul>
+          <div class="lab-verify">k get deploy web -o jsonpath='{.spec.template.spec.containers[0].image}' = nginx:1.19</div>
+        </div>
+      </div>
+
+      <div class="lab-item">
+        <span class="lab-n">L03</span>
+        <div class="lab-body">
+          <div class="lab-title">Tùy chỉnh Rolling Update Strategy</div>
+          <div class="lab-desc">Set maxSurge=2, maxUnavailable=0 (zero-downtime deployment). Quan sát pods trong khi update.</div>
+          <ul class="lab-steps">
+            <li>k patch deploy web -p '{"spec":{"strategy":{"rollingUpdate":{"maxSurge":2,"maxUnavailable":0}}}}'</li>
+            <li>k set image deploy/web nginx=nginx:1.21 &amp;</li>
+            <li>k get pods -w   # watch pods cũ/mới</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="lab-item">
+        <span class="lab-n">L04</span>
+        <div class="lab-body">
+          <div class="lab-title">Pause/Resume Deployment</div>
+          <div class="lab-desc">Pause deployment, thực hiện nhiều thay đổi, resume để apply tất cả 1 lần.</div>
+          <ul class="lab-steps">
+            <li>k rollout pause deploy/web</li>
+            <li>k set image deploy/web nginx=nginx:1.21</li>
+            <li>k set resources deploy/web -c nginx --limits=cpu=200m</li>
+            <li>k rollout resume deploy/web</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="lab-item">
+        <span class="lab-n">L05</span>
+        <div class="lab-body">
+          <div class="lab-title">Recreate Strategy</div>
+          <div class="lab-desc">Đổi strategy sang Recreate. Update image, quan sát tất cả pods cũ xóa trước rồi tạo mới.</div>
+          <ul class="lab-steps">
+            <li>k patch deploy web -p '{"spec":{"strategy":{"type":"Recreate"}}}'</li>
+            <li>k set image deploy/web nginx=nginx:1.23 &amp;</li>
+            <li>k get pods -w</li>
+          </ul>
+          <div class="lab-verify">Thấy rõ: tất cả pods Terminating trước, sau đó mới tạo pods mới</div>
+        </div>
+      </div>
+
+      <div class="lab-item">
+        <span class="lab-n">L06–L07</span>
+        <div class="lab-body">
+          <div class="lab-title">DaemonSet — Log Collector Simulation</div>
+          <div class="lab-desc">Tạo DaemonSet fluentd-like chạy trên mọi node. Verify 1 pod/node.</div>
+          <ul class="lab-steps">
+            <li>Tạo DaemonSet YAML với image=busybox, command: sleep infinity</li>
+            <li>k get ds fluentd → DESIRED=số nodes</li>
+            <li>k get pods -o wide   # mỗi node 1 pod</li>
+            <li>Update DaemonSet image (RollingUpdate), verify từng pod update</li>
+          </ul>
+          <div class="lab-verify">DESIRED = CURRENT = READY = số worker nodes</div>
+        </div>
+      </div>
+
+      <div class="lab-item">
+        <span class="lab-n">L08–L09</span>
+        <div class="lab-body">
+          <div class="lab-title">StatefulSet với Headless Service</div>
+          <div class="lab-desc">Tạo StatefulSet 3 replicas, headless service. Verify stable hostname.</div>
+          <ul class="lab-steps">
+            <li>Tạo headless service (clusterIP: None)</li>
+            <li>Tạo StatefulSet với serviceName reference</li>
+            <li>k get pods → web-0, web-1, web-2 (ordered)</li>
+            <li>Exec vào pod: nslookup web-0.web-svc.default.svc.cluster.local</li>
+          </ul>
+          <div class="lab-verify">Mỗi pod có DNS name riêng, stable qua restart</div>
+        </div>
+      </div>
+
+      <div class="lab-item">
+        <span class="lab-n">L10–L12</span>
+        <div class="lab-body">
+          <div class="lab-title">Jobs — Completions & Parallelism</div>
+          <div class="lab-desc">3 loại Job: single completion, fixed completions=5, parallel jobs.</div>
+          <ul class="lab-steps">
+            <li>Job 1: completions=1 (default) — in "Hello CKA"</li>
+            <li>Job 2: completions=5, parallelism=1 — 5 lần tuần tự</li>
+            <li>Job 3: completions=6, parallelism=3 — 6 lần, 3 cái song song</li>
+            <li>k get jobs,pods -w   # theo dõi tiến trình</li>
+          </ul>
+          <div class="lab-verify">Job COMPLETIONS: 5/5. Pods ở trạng thái Completed.</div>
+        </div>
+      </div>
+
+      <div class="lab-item">
+        <span class="lab-n">L13–L15</span>
+        <div class="lab-body">
+          <div class="lab-title">CronJob — Schedule & Policy</div>
+          <div class="lab-desc">Tạo CronJob với concurrencyPolicy khác nhau. Kiểm soát số job history.</div>
+          <ul class="lab-steps">
+            <li>CronJob 1: schedule="*/2 * * * *", in timestamp</li>
+            <li>k get cronjob -w   # xem LAST SCHEDULE</li>
+            <li>CronJob 2: concurrencyPolicy=Forbid — nếu job cũ chưa xong, skip job mới</li>
+            <li>Set successfulJobsHistoryLimit=3, failedJobsHistoryLimit=2</li>
+          </ul>
+          <div class="lab-verify">CronJob tạo Job đúng schedule. History không vượt limit.</div>
+        </div>
+      </div>
+
+      <div class="lab-item">
+        <span class="lab-n">L16–L20</span>
+        <div class="lab-body">
+          <div class="lab-title">HPA — Horizontal Pod Autoscaler (Bonus)</div>
+          <div class="lab-desc">Tạo HPA dựa trên CPU. Generate load, xem pods scale up.</div>
+          <ul class="lab-steps">
+            <li>k autoscale deploy web --cpu-percent=50 --min=2 --max=10</li>
+            <li>k run load --image=busybox --rm -it -- sh -c "while true; do wget -qO- http://web-svc; done"</li>
+            <li>k get hpa -w   # xem REPLICAS tăng</li>
+            <li>Dừng load, xem scale down (mất ~5 phút)</li>
+          </ul>
+          <div class="lab-verify">Khi CPU > 50%, replicas tự tăng đến max=10</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="week-summary">
+      <div class="sum-block theory"><h5>Lý thuyết</h5><div class="sum-items"><div class="sum-item">Deployment strategies</div><div class="sum-item">DaemonSet vs StatefulSet</div><div class="sum-item">Job types & CronJob</div></div></div>
+      <div class="sum-block practice"><h5>20 labs</h5><div class="sum-items"><div class="sum-item">Rolling update + rollback</div><div class="sum-item">DaemonSet management</div><div class="sum-item">Job parallelism</div></div></div>
+      <div class="sum-block goal"><h5>Mục tiêu</h5><div class="sum-items"><div class="sum-item">Deploy + rollback &lt;2 phút</div><div class="sum-item">Biết khi nào dùng DS/SS/Job</div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ WEEK 3 ══ -->
+<div class="week-section" id="w3">
+  <div class="week-header" onclick="toggleWeek(this)">
+    <span class="wk-num" style="--wk-color:#ffe57f">W03</span>
+    <div class="wk-meta">
+      <div class="wk-title">ConfigMap, Secret & Resource Management</div>
+      <div class="wk-subtitle">// env injection · volume mount · requests/limits · LimitRange · ResourceQuota</div>
+    </div>
+    <div class="wk-badges">
+      <span class="badge" style="color:#ffe57f;border-color:rgba(255,229,127,0.3)">CONFIG</span>
+      <span class="badge" style="color:#69ff47;border-color:rgba(105,255,71,0.3)">18 LABS</span>
+    </div>
+    <span class="toggle-icon">▾</span>
+  </div>
+  <div class="week-body">
+    <div class="theory-block">
+      <div class="theory-title">Lý thuyết tuần 3</div>
+      <div class="theory-points">
+        <div class="tp"><span class="tp-mark">01</span><span><strong>ConfigMap</strong> lưu non-sensitive config data. 4 cách tạo: literal, from-file, from-env-file, YAML. 3 cách dùng: envFrom, env[].valueFrom, volume mount.</span></div>
+        <div class="tp"><span class="tp-mark">02</span><span><strong>Secret</strong> lưu sensitive data (base64 encoded, NOT encrypted by default). Types: Opaque, kubernetes.io/tls, kubernetes.io/dockerconfigjson. Inject giống ConfigMap.</span></div>
+        <div class="tp"><span class="tp-mark">03</span><span><strong>Resource Requests</strong> là lượng tài nguyên scheduler dùng để chọn node. <strong>Limits</strong> là mức tối đa container được dùng. CPU throttle khi vượt limit. Memory OOMKill khi vượt limit.</span></div>
+        <div class="tp"><span class="tp-mark">04</span><span><strong>LimitRange</strong> set default/min/max cho containers trong namespace. <strong>ResourceQuota</strong> giới hạn tổng tài nguyên trong namespace (pods, CPU, memory, PVC...).</span></div>
+        <div class="tp"><span class="tp-mark">05</span><span><strong>Quality of Service classes:</strong> BestEffort (no requests/limits), Burstable (requests ≠ limits), Guaranteed (requests = limits). Thứ tự bị evict: BestEffort → Burstable → Guaranteed.</span></div>
+      </div>
+    </div>
+    <div class="labs-block">
+      <div class="labs-title">18 Labs — Config & Resources</div>
+
+      <div class="lab-item">
+        <span class="lab-n">L01–L04</span>
+        <div class="lab-body">
+          <div class="lab-title">ConfigMap — 4 cách tạo + 3 cách inject</div>
+          <div class="lab-desc">Master toàn bộ cách tạo và sử dụng ConfigMap.</div>
+          <ul class="lab-steps">
+            <li>k create cm app-config --from-literal=DB_HOST=mysql --from-literal=DB_PORT=3306</li>
+            <li>k create cm nginx-conf --from-file=nginx.conf</li>
+            <li>k create cm env-file --from-env-file=app.env</li>
+            <li># inject: envFrom (toàn bộ), env.valueFrom (từng key), volume (mount file)</li>
+          </ul>
+          <div class="lab-verify">exec vào pod: env | grep DB_HOST → DB_HOST=mysql</div>
+        </div>
+      </div>
+
+      <div class="lab-item">
+        <span class="lab-n">L05–L08</span>
+        <div class="lab-body">
+          <div class="lab-title">Secret — Opaque, TLS, Registry</div>
+          <div class="lab-desc">Tạo 3 loại Secret, inject vào pod, verify decode.</div>
+          <ul class="lab-steps">
+            <li>k create secret generic db-creds --from-literal=password=S3cr3t!</li>
+            <li>k create secret tls tls-secret --cert=cert.pem --key=key.pem</li>
+            <li>k create secret docker-registry regcred --docker-server=... --docker-username=...</li>
+            <li>Inject db-creds vào pod qua env, exec vào pod: echo $DB_PASSWORD</li>
+          </ul>
+          <div class="lab-verify">Secret value trong pod decoded đúng. TLS secret dùng được cho Ingress.</div>
+        </div>
+      </div>
+
+      <div class="lab-item">
+        <span class="lab-n">L09–L12</span>
+        <div class="lab-body">
+          <div class="lab-title">Resource Requests & Limits</div>
+          <div class="lab-desc">Cài đặt resource cho pod, quan sát OOMKill và CPU throttling.</div>
+          <ul class="lab-steps">
+            <li>Pod với limits.memory=50Mi, chạy stress --vm 1 --vm-bytes 100M → OOMKilled</li>
+            <li>Pod với limits.cpu=100m, chạy CPU stress → CPU throttled, pod không bị kill</li>
+            <li>k top pod (cần metrics-server) để xem actual usage</li>
+            <li>So sánh 3 QoS class: xem k get pod -o yaml | grep qosClass</li>
+          </ul>
+          <div class="lab-verify">OOMKilled pod RESTARTS tăng. QoS = Guaranteed khi request=limit.</div>
+        </div>
+      </div>
+
+      <div class="lab-item">
+        <span class="lab-n">L13–L15</span>
+        <div class="lab-body">
+          <div class="lab-title">LimitRange — Default & Constraints</div>
+          <div class="lab-desc">Set LimitRange cho namespace, test default injection và constraint enforcement.</div>
+          <ul class="lab-steps">
+            <li>Tạo LimitRange: default cpu=200m mem=128Mi, max cpu=1 mem=512Mi</li>
+            <li>Tạo pod KHÔNG set resource → tự nhận default từ LimitRange</li>
+            <li>Tạo pod set limits vượt max → rejected: Error from server (403)</li>
+          </ul>
+          <div class="lab-verify">k describe pod → Resources.Limits phản ánh LimitRange default</div>
+        </div>
+      </div>
+
+      <div class="lab-item">
+        <span class="lab-n">L16–L18</span>
+        <div class="lab-body">
+          <div class="lab-title">ResourceQuota — Hard Limits per Namespace</div>
+          <div class="lab-desc">Set quota, test vượt quota, check quota usage.</div>
+          <ul class="lab-steps">
+            <li>k create quota dev-quota -n dev --hard=pods=5,requests.cpu=2,requests.memory=2Gi</li>
+            <li>Tạo 6 pods → pod thứ 6 bị reject: exceeded quota</li>
+            <li>k describe quota dev-quota -n dev → Used vs Hard</li>
+          </ul>
+          <div class="lab-verify">k describe quota → Used resources tăng khi tạo pod thành công</div>
+        </div>
+      </div>
+    </div>
+    <div class="week-summary">
+      <div class="sum-block theory"><h5>Lý thuyết</h5><div class="sum-items"><div class="sum-item">ConfigMap vs Secret</div><div class="sum-item">Resource QoS classes</div><div class="sum-item">LimitRange vs Quota</div></div></div>
+      <div class="sum-block practice"><h5>18 labs</h5><div class="sum-items"><div class="sum-item">4 cách tạo ConfigMap</div><div class="sum-item">3 loại Secret</div><div class="sum-item">OOMKill reproduction</div></div></div>
+      <div class="sum-block goal"><h5>Mục tiêu</h5><div class="sum-items"><div class="sum-item">Inject config không tra docs</div><div class="sum-item">Set resource limits thành thạo</div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ WEEK 4 ══ -->
+<div class="week-section" id="w4">
+  <div class="week-header" onclick="toggleWeek(this)">
+    <span class="wk-num" style="--wk-color:#b388ff">W04</span>
+    <div class="wk-meta">
+      <div class="wk-title">Scheduling Chuyên Sâu</div>
+      <div class="wk-subtitle">// nodeSelector · affinity · taints · tolerations · static pods · priority</div>
+    </div>
+    <div class="wk-badges">
+      <span class="badge" style="color:#b388ff;border-color:rgba(179,136,255,0.3)">SCHEDULING</span>
+      <span class="badge" style="color:#69ff47;border-color:rgba(105,255,71,0.3)">20 LABS</span>
+    </div>
+    <span class="toggle-icon">▾</span>
+  </div>
+  <div class="week-body">
+    <div class="theory-block">
+      <div class="theory-title">Lý thuyết tuần 4 — Scheduling pipeline</div>
+      <div class="theory-points">
+        <div class="tp"><span class="tp-mark">01</span><span><strong>Scheduler pipeline:</strong> Filter (loại node không đủ điều kiện) → Score (rank node còn lại) → Bind (gán pod vào node cao điểm nhất)</span></div>
+        <div class="tp"><span class="tp-mark">02</span><span><strong>nodeSelector</strong> — đơn giản nhất. Label node → set nodeSelector trong pod spec. <strong>nodeAffinity</strong> — mạnh hơn: requiredDuring (hard) vs preferredDuring (soft). Hỗ trợ operators: In, NotIn, Exists, DoesNotExist, Gt, Lt.</span></div>
+        <div class="tp"><span class="tp-mark">03</span><span><strong>podAffinity/podAntiAffinity</strong> — schedule pod gần/tránh xa pod khác. Dùng topologyKey (thường là kubernetes.io/hostname). Use case: co-locate app+cache, tách replica ra nhiều node.</span></div>
+        <div class="tp"><span class="tp-mark">04</span><span><strong>Taints &amp; Tolerations:</strong> Taint trên node ngăn pod không có toleration lên. 3 effects: NoSchedule (cứng), PreferNoSchedule (mềm), NoExecute (evict cả pod đang chạy). Toleration trong pod để bypass taint.</span></div>
+        <div class="tp"><span class="tp-mark">05</span><span><strong>Static Pods:</strong> Manifest đặt trong /etc/kubernetes/manifests/ → kubelet tự tạo, không qua API server. Control plane components (apiserver, etcd, scheduler, controller-manager) đều là static pods.</span></div>
+        <div class="tp"><span class="tp-mark">06</span><span><strong>Manual scheduling:</strong> Set spec.nodeName trong pod YAML. Scheduler bị bypass hoàn toàn. Nếu node không tồn tại, pod Pending mãi.</span></div>
+      </div>
+    </div>
+    <div class="labs-block">
+      <div class="labs-title">20 Labs — Scheduling</div>
+
+      <div class="lab-item">
+        <span class="lab-n">L01–L04</span>
+        <div class="lab-body">
+          <div class="lab-title">nodeSelector & nodeAffinity</div>
+          <div class="lab-desc">Label nodes, deploy pods với constraints khác nhau.</div>
+          <ul class="lab-steps">
+            <li>k label node worker1 disk=ssd env=production</li>
+            <li>k label node worker2 disk=hdd env=staging</li>
+            <li>Pod với nodeSelector: disk=ssd → chỉ lên worker1</li>
+            <li>Pod với requiredDuringScheduling + NotIn(env, [production]) → chỉ lên worker2</li>
+            <li>Pod với preferredDuringScheduling: prefer ssd (weight=100)</li>
+          </ul>
+          <div class="lab-verify">k get pod -o wide → NODE column = expected node</div>
+        </div>
+      </div>
+
+      <div class="lab-item">
+        <span class="lab-n">L05–L07</span>
+        <div class="lab-body">
+          <div class="lab-title">podAffinity & podAntiAffinity</div>
+          <div class="lab-desc">Co-location và spread scenarios.</div>
+          <ul class="lab-steps">
+            <li>Deploy web pod (app=web) lên worker1</li>
+            <li>Deploy cache pod với podAffinity: run trên cùng node với app=web</li>
+            <li>Deploy 3 web replicas với podAntiAffinity: spread ra các node khác nhau</li>
+          </ul>
+          <div class="lab-verify">Cache pod: cùng NODE với web pod. AntiAffinity: mỗi node tối đa 1 replica.</div>
+        </div>
+      </div>
+
+      <div class="lab-item">
+        <span class="lab-n">L08–L12</span>
+        <div class="lab-body">
+          <div class="lab-title">Taints & Tolerations — 3 Effects</div>
+          <div class="lab-desc">Test từng effect, observe behavior.</div>
+          <ul class="lab-steps">
+            <li>k taint node worker1 gpu=true:NoSchedule → pods không có toleration → Pending</li>
+            <li>Tạo pod với toleration gpu=true:NoSchedule → scheduled lên worker1</li>
+            <li>k taint node worker1 gpu=true:NoExecute → existing pods bị evict</li>
+            <li>Pod với toleration effect=NoExecute + tolerationSeconds=60 → chạy thêm 60s</li>
+            <li>Xóa taint: k taint node worker1 gpu=true:NoSchedule-</li>
+          </ul>
+          <div class="lab-verify">NoExecute evicts running pods. tolerationSeconds delay eviction.</div>
+        </div>
+      </div>
+
+      <div class="lab-item">
+        <span class="lab-n">L13–L15</span>
+        <div class="lab-body">
+          <div class="lab-title">Static Pods</div>
+          <div class="lab-desc">Tạo static pod bằng tay, observe, delete.</div>
+          <ul class="lab-steps">
+            <li>SSH vào worker1: cat /var/lib/kubelet/config.yaml | grep staticPodPath</li>
+            <li>cp pod.yaml /etc/kubernetes/manifests/static-web.yaml</li>
+            <li>kubectl get pod → static-web-worker1 xuất hiện (auto-created)</li>
+            <li>k delete pod static-web-worker1 → pod tái tạo ngay (không thể xóa qua kubectl)</li>
+            <li>Xóa thật: rm /etc/kubernetes/manifests/static-web.yaml → pod biến mất</li>
+          </ul>
+          <div class="lab-verify">Static pod luôn có suffix là tên node. Không xóa được qua kubectl.</div>
+        </div>
+      </div>
+
+      <div class="lab-item">
+        <span class="lab-n">L16–L18</span>
+        <div class="lab-body">
+          <div class="lab-title">Manual Scheduling & PriorityClass</div>
+          <div class="lab-desc">Bypass scheduler, tạo priority classes.</div>
+          <ul class="lab-steps">
+            <li>Tạo pod với spec.nodeName: worker2 (manual schedule)</li>
+            <li>Tạo PriorityClass high-priority value=1000000</li>
+            <li>Tạo nhiều pods đầy cluster, deploy high-priority pod → evict pod thấp hơn</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="lab-item">
+        <span class="lab-n">L19–L20</span>
+        <div class="lab-body">
+          <div class="lab-title">Drain, Cordon, Uncordon</div>
+          <div class="lab-desc">Simulate node maintenance workflow.</div>
+          <ul class="lab-steps">
+            <li>k cordon worker1 → node unschedulable (existing pods không bị evict)</li>
+            <li>k drain worker1 --ignore-daemonsets --delete-emptydir-data</li>
+            <li>Verify pods di chuyển sang worker2</li>
+            <li>k uncordon worker1 → node schedulable lại</li>
+          </ul>
+          <div class="lab-verify">Sau drain: k get pods -o wide → không có pod nào trên worker1</div>
+        </div>
+      </div>
+    </div>
+    <div class="week-summary">
+      <div class="sum-block theory"><h5>Lý thuyết</h5><div class="sum-items"><div class="sum-item">Scheduler pipeline</div><div class="sum-item">Affinity types</div><div class="sum-item">Taint effects</div></div></div>
+      <div class="sum-block practice"><h5>20 labs</h5><div class="sum-items"><div class="sum-item">Node labeling + affinity</div><div class="sum-item">3 taint effects</div><div class="sum-item">Static pods lifecycle</div></div></div>
+      <div class="sum-block goal"><h5>Mục tiêu</h5><div class="sum-items"><div class="sum-item">Biết khi nào pod Pending & tại sao</div><div class="sum-item">Drain node thành thạo</div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- CHECKPOINT PHASE 1 -->
+<div class="checkpoint">
+  <div class="cp-title">✦ Checkpoint Phase 1 — Cuối tuần 4</div>
+  <div class="cp-grid">
+    <div class="cp-item"><span class="cp-check">✓</span>Tạo pod với bất kỳ config trong &lt;3 phút</div>
+    <div class="cp-item"><span class="cp-check">✓</span>Debug 5 trạng thái lỗi pod thành thục</div>
+    <div class="cp-item"><span class="cp-check">✓</span>Rolling update + rollback Deployment &lt;2 phút</div>
+    <div class="cp-item"><span class="cp-check">✓</span>Biết tất cả cách inject ConfigMap/Secret</div>
+    <div class="cp-item"><span class="cp-check">✓</span>Giải thích được tại sao pod Pending</div>
+    <div class="cp-item"><span class="cp-check">✓</span>Taint/toleration: reproduce 3 effects</div>
+    <div class="cp-item"><span class="cp-check">✓</span>Static pod: tạo, verify, xóa đúng cách</div>
+    <div class="cp-item"><span class="cp-check">✓</span>Drain node chuẩn quy trình</div>
+  </div>
+</div>
+
+<!-- PHASE 2 DIVIDER -->
+<div class="phase-divider">
+  <div class="phase-inner">
+    <span class="phase-label">Phase 02 ·</span>
+    <span class="phase-name" style="--ph-color:#ff7043">NETWORKING & STORAGE</span>
+    <span class="phase-label">· Tuần 5–8</span>
+  </div>
+</div>
+
+<!-- ══ WEEK 5 ══ -->
+<div class="week-section" id="w5">
+  <div class="week-header" onclick="toggleWeek(this)">
+    <span class="wk-num" style="--wk-color:#00e5ff">W05</span>
+    <div class="wk-meta">
+      <div class="wk-title">Services & DNS Mastery</div>
+      <div class="wk-subtitle">// ClusterIP · NodePort · LoadBalancer · ExternalName · Headless · CoreDNS</div>
+    </div>
+    <div class="wk-badges">
+      <span class="badge" style="color:#00e5ff;border-color:rgba(0,229,255,0.3)">NETWORKING</span>
+      <span class="badge" style="color:#69ff47;border-color:rgba(105,255,71,0.3)">22 LABS</span>
+    </div>
+    <span class="toggle-icon">▾</span>
+  </div>
+  <div class="week-body">
+    <div class="theory-block">
+      <div class="theory-title">Lý thuyết tuần 5</div>
+      <div class="theory-points">
+        <div class="tp"><span class="tp-mark">01</span><span><strong>Service types:</strong> ClusterIP (virtual IP internal, default), NodePort (expose port 30000-32767 trên tất cả nodes), LoadBalancer (cloud LB), ExternalName (CNAME alias).</span></div>
+        <div class="tp"><span class="tp-mark">02</span><span><strong>Endpoint:</strong> Khi tạo Service, Endpoint object được tạo tự động chứa IP:Port của pods matching selector. Nếu selector không match → Endpoints rỗng → service không route được.</span></div>
+        <div class="tp"><span class="tp-mark">03</span><span><strong>CoreDNS:</strong> DNS server trong kube-system. Mỗi Service có DNS record: [service].[namespace].svc.cluster.local. Pod có DNS: [pod-ip-dashes].[namespace].pod.cluster.local</span></div>
+        <div class="tp"><span class="tp-mark">04</span><span><strong>kube-proxy:</strong> Chạy trên mỗi node, sync iptables/IPVS rules từ Service/Endpoint objects. Actual packet routing do kernel handle, không đi qua kube-proxy process.</span></div>
+        <div class="tp"><span class="tp-mark">05</span><span><strong>Headless Service</strong> (clusterIP: None): Không có virtual IP. DNS trả về IP trực tiếp của pods. Dùng với StatefulSet để access từng pod riêng lẻ.</span></div>
+      </div>
+    </div>
+    <div class="labs-block">
+      <div class="labs-title">22 Labs — Services & Networking</div>
+
+      <div class="lab-item">
+        <span class="lab-n">L01–L05</span>
+        <div class="lab-body">
+          <div class="lab-title">ClusterIP — Internal Service</div>
+          <div class="lab-desc">Tạo deployment + ClusterIP service. Test connectivity từ pod khác.</div>
+          <ul class="lab-steps">
+            <li>k create deploy backend --image=nginx --replicas=3</li>
+            <li>k expose deploy backend --port=80 --target-port=80 --name=backend-svc</li>
+            <li>k run client --image=busybox --rm -it -- wget -qO- backend-svc</li>
+            <li>k run client --image=busybox --rm -it -- wget -qO- backend-svc.default.svc.cluster.local</li>
+            <li>k get endpoints backend-svc   # xem 3 IPs của pods</li>
+          </ul>
+          <div class="lab-verify">wget thành công từ pod khác. Endpoints có 3 IPs.</div>
+        </div>
+      </div>
+
+      <div class="lab-item">
+        <span class="lab-n">L06–L08</span>
+        <div class="lab-body">
+          <div class="lab-title">NodePort — External Access</div>
+          <div class="lab-desc">Expose service ra ngoài cluster.</div>
+          <ul class="lab-steps">
+            <li>k expose deploy backend --type=NodePort --port=80 --name=backend-nodeport</li>
+            <li>k get svc backend-nodeport   # xem NodePort (3xxxx)</li>
+            <li>curl http://$(kubectl get nodes -o jsonpath='{.items[0].status.addresses[0].address}'):NodePort</li>
+          </ul>
+          <div class="lab-verify">curl thành công từ máy host qua IP:NodePort</div>
+        </div>
+      </div>
+
+      <div class="lab-item">
+        <span class="lab-n">L09–L11</span>
+        <div class="lab-body">
+          <div class="lab-title">Service Selector Issues — Debug</div>
+          <div class="lab-desc">Tạo service với selector sai, debug và fix.</div>
+          <ul class="lab-steps">
+            <li>Tạo service với selector: app=backend-WRONG</li>
+            <li>k get endpoints svc-name   # Endpoints: &lt;none&gt;</li>
+            <li>curl → Connection refused</li>
+            <li>k edit svc svc-name → fix selector</li>
+          </ul>
+          <div class="lab-verify">Sau fix: Endpoints có IPs. curl hoạt động.</div>
+        </div>
+      </div>
+
+      <div class="lab-item">
+        <span class="lab-n">L12–L15</span>
+        <div class="lab-body">
+          <div class="lab-title">DNS Deep Dive với CoreDNS</div>
+          <div class="lab-desc">Test các DNS record formats, debug DNS failures.</div>
+          <ul class="lab-steps">
+            <li>k run dns-test --image=busybox:1.28 --rm -it -- nslookup backend-svc</li>
+            <li>nslookup backend-svc.default.svc.cluster.local</li>
+            <li>nslookup backend-svc.other-namespace.svc.cluster.local</li>
+            <li>Simulate CoreDNS down: k scale deploy coredns -n kube-system --replicas=0</li>
+            <li>Verify DNS fail → restore: --replicas=2</li>
+          </ul>
+          <div class="lab-verify">DNS resolution hoạt động trong cùng namespace và cross-namespace</div>
+        </div>
+      </div>
+
+      <div class="lab-item">
+        <span class="lab-n">L16–L18</span>
+        <div class="lab-body">
+          <div class="lab-title">Headless Service & Pod DNS</div>
+          <div class="lab-desc">Tạo headless service, verify DNS trả về pod IPs.</div>
+          <ul class="lab-steps">
+            <li>Tạo headless service (clusterIP: None) cho StatefulSet</li>
+            <li>nslookup web.default.svc.cluster.local → trả về 3 IPs (1/pod)</li>
+            <li>nslookup web-0.web.default.svc.cluster.local → IP của pod web-0 riêng</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="lab-item">
+        <span class="lab-n">L19–L22</span>
+        <div class="lab-body">
+          <div class="lab-title">ExternalName & Multi-port Services</div>
+          <div class="lab-desc">Alias external service, service với nhiều ports.</div>
+          <ul class="lab-steps">
+            <li>Tạo ExternalName service trỏ đến api.external.com</li>
+            <li>Pod curl service-name → resolved to external host</li>
+            <li>Tạo service với 2 ports: http:80 và https:443, đặt tên từng port</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="week-summary">
+      <div class="sum-block theory"><h5>Lý thuyết</h5><div class="sum-items"><div class="sum-item">4 Service types</div><div class="sum-item">Endpoints mechanism</div><div class="sum-item">CoreDNS records</div></div></div>
+      <div class="sum-block practice"><h5>22 labs</h5><div class="sum-items"><div class="sum-item">Service CRUD đủ loại</div><div class="sum-item">DNS debug</div><div class="sum-item">Endpoint troubleshoot</div></div></div>
+      <div class="sum-block goal"><h5>Mục tiêu</h5><div class="sum-items"><div class="sum-item">Debug service trong &lt;5 phút</div><div class="sum-item">Thuộc DNS format</div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ WEEK 6 ══ -->
+<div class="week-section" id="w6">
+  <div class="week-header" onclick="toggleWeek(this)">
+    <span class="wk-num" style="--wk-color:#69ff47">W06</span>
+    <div class="wk-meta">
+      <div class="wk-title">Ingress & Network Policies</div>
+      <div class="wk-subtitle">// ingress controller · path routing · TLS · NetworkPolicy ingress/egress</div>
+    </div>
+    <div class="wk-badges">
+      <span class="badge" style="color:#69ff47;border-color:rgba(105,255,71,0.3)">NETWORK</span>
+      <span class="badge" style="color:#69ff47;border-color:rgba(105,255,71,0.3)">18 LABS</span>
+    </div>
+    <span class="toggle-icon">▾</span>
+  </div>
+  <div class="week-body">
+    <div class="theory-block">
+      <div class="theory-title">Lý thuyết tuần 6</div>
+      <div class="theory-points">
+        <div class="tp"><span class="tp-mark">01</span><span><strong>Ingress</strong> là API object quản lý external HTTP/HTTPS access vào services. Cần Ingress Controller (nginx, traefik...) để implement. Ingress define rules; Controller thực hiện.</span></div>
+        <div class="tp"><span class="tp-mark">02</span><span><strong>Ingress rules:</strong> Host-based routing (app1.example.com → svc1), Path-based routing (/api → svc2, / → svc3), TLS termination với Secret.</span></div>
+        <div class="tp"><span class="tp-mark">03</span><span><strong>NetworkPolicy</strong> control traffic ở Layer 3/4. Default: tất cả traffic cho phép. Sau khi tạo NetworkPolicy, chỉ traffic match rules mới được phép. Áp dụng cho pods qua podSelector.</span></div>
+        <div class="tp"><span class="tp-mark">04</span><span><strong>NetworkPolicy selectors:</strong> podSelector (pods trong namespace), namespaceSelector (toàn namespace), ipBlock (CIDR ranges). Có thể kết hợp với AND/OR logic.</span></div>
+      </div>
+    </div>
+    <div class="labs-block">
+      <div class="labs-title">18 Labs — Ingress & NetworkPolicy</div>
+
+      <div class="lab-item">
+        <span class="lab-n">L01–L04</span>
+        <div class="lab-body">
+          <div class="lab-title">Ingress Controller Setup + Basic Routing</div>
+          <div class="lab-desc">Cài nginx ingress controller, tạo path-based và host-based routing.</div>
+          <ul class="lab-steps">
+            <li>kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/.../deploy.yaml</li>
+            <li>Deploy app1-svc, app2-svc</li>
+            <li>Tạo Ingress: /app1 → app1-svc, /app2 → app2-svc</li>
+            <li>curl http://localhost/app1 và /app2 → test routing</li>
+          </ul>
+          <div class="lab-verify">curl /app1 trả về app1 content. curl /app2 trả về app2 content.</div>
+        </div>
+      </div>
+
+      <div class="lab-item">
+        <span class="lab-n">L05–L07</span>
+        <div class="lab-body">
+          <div class="lab-title">Ingress TLS Termination</div>
+          <div class="lab-desc">Tạo self-signed cert, configure TLS Ingress.</div>
+          <ul class="lab-steps">
+            <li>openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout tls.key -out tls.crt</li>
+            <li>k create secret tls myapp-tls --key=tls.key --cert=tls.crt</li>
+            <li>Thêm tls section vào Ingress: host: myapp.local, secretName: myapp-tls</li>
+            <li>curl -k https://myapp.local/app1</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="lab-item">
+        <span class="lab-n">L08–L12</span>
+        <div class="lab-body">
+          <div class="lab-title">NetworkPolicy — Deny All + Whitelist</div>
+          <div class="lab-desc">Default deny, sau đó mở từng rule cần thiết.</div>
+          <ul class="lab-steps">
+            <li>Tạo 3 pods: frontend, backend, database</li>
+            <li>Verify: mọi pod curl được nhau (no policy)</li>
+            <li>Apply deny-all-ingress policy cho namespace → tất cả blocked</li>
+            <li>Add policy: cho phép frontend → backend:8080</li>
+            <li>Add policy: cho phép backend → database:5432</li>
+          </ul>
+          <div class="lab-verify">frontend → database bị BLOCK. frontend → backend → database: hoạt động.</div>
+        </div>
+      </div>
+
+      <div class="lab-item">
+        <span class="lab-n">L13–L15</span>
+        <div class="lab-body">
+          <div class="lab-title">NetworkPolicy Egress Control</div>
+          <div class="lab-desc">Giới hạn traffic đi ra từ pods.</div>
+          <ul class="lab-steps">
+            <li>Deny all egress từ backend pods</li>
+            <li>Allow egress: backend → database:5432</li>
+            <li>Allow egress: backend → DNS (port 53 UDP/TCP)</li>
+            <li>Test: backend curl google.com → blocked. backend curl db → ok.</li>
+          </ul>
+          <div class="lab-verify">DNS egress là bẫy hay quên — phải allow port 53!</div>
+        </div>
+      </div>
+
+      <div class="lab-item">
+        <span class="lab-n">L16–L18</span>
+        <div class="lab-body">
+          <div class="lab-title">Cross-namespace NetworkPolicy</div>
+          <div class="lab-desc">Allow traffic từ namespace khác.</div>
+          <ul class="lab-steps">
+            <li>Tạo namespace monitoring, deploy prometheus pod</li>
+            <li>NetworkPolicy cho backend: allow ingress từ namespace monitoring</li>
+            <li>Test: prometheus scrape backend metrics → ok</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="week-summary">
+      <div class="sum-block theory"><h5>Lý thuyết</h5><div class="sum-items"><div class="sum-item">Ingress vs Service</div><div class="sum-item">NetworkPolicy rules</div></div></div>
+      <div class="sum-block practice"><h5>18 labs</h5><div class="sum-items"><div class="sum-item">Path + host routing</div><div class="sum-item">Deny-all + whitelist pattern</div><div class="sum-item">Egress control với DNS</div></div></div>
+      <div class="sum-block goal"><h5>Mục tiêu</h5><div class="sum-items"><div class="sum-item">Viết NetworkPolicy YAML không tra docs</div><div class="sum-item">Debug Ingress 502/503</div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ WEEK 7 ══ -->
+<div class="week-section" id="w7">
+  <div class="week-header" onclick="toggleWeek(this)">
+    <span class="wk-num" style="--wk-color:#ff7043">W07</span>
+    <div class="wk-meta">
+      <div class="wk-title">Storage: PV, PVC & StorageClass</div>
+      <div class="wk-subtitle">// persistent volumes · claims · access modes · reclaim policy · dynamic provisioning</div>
+    </div>
+    <div class="wk-badges">
+      <span class="badge" style="color:#ff7043;border-color:rgba(255,112,67,0.3)">STORAGE</span>
+      <span class="badge" style="color:#69ff47;border-color:rgba(105,255,71,0.3)">16 LABS</span>
+    </div>
+    <span class="toggle-icon">▾</span>
+  </div>
+  <div class="week-body">
+    <div class="theory-block">
+      <div class="theory-title">Lý thuyết tuần 7</div>
+      <div class="theory-points">
+        <div class="tp"><span class="tp-mark">01</span><span><strong>Volume vs PersistentVolume:</strong> Volume gắn vào Pod, mất khi Pod xóa. PersistentVolume (PV) tồn tại độc lập, tạo bởi admin. PersistentVolumeClaim (PVC) là "yêu cầu" storage của user.</span></div>
+        <div class="tp"><span class="tp-mark">02</span><span><strong>Binding:</strong> PVC bind với PV theo capacity (PVC ≤ PV), access modes (phải match), storageClassName (phải match hoặc cả 2 empty). Sau bind: 1-to-1 (1 PV chỉ bind 1 PVC).</span></div>
+        <div class="tp"><span class="tp-mark">03</span><span><strong>Access Modes:</strong> ReadWriteOnce (RWO) — 1 node read+write, ReadOnlyMany (ROX) — nhiều node read-only, ReadWriteMany (RWX) — nhiều node read+write. Phụ thuộc storage backend hỗ trợ gì.</span></div>
+        <div class="tp"><span class="tp-mark">04</span><span><strong>Reclaim Policy:</strong> Retain (PV không bị xóa, status Released, data còn), Delete (PV + underlying storage bị xóa), Recycle (deprecated, xóa data rồi Available lại).</span></div>
+        <div class="tp"><span class="tp-mark">05</span><span><strong>StorageClass:</strong> Cho phép dynamic provisioning. Admin tạo StorageClass với provisioner. User tạo PVC reference StorageClass → PV tự động tạo. Mặc định StorageClass có annotation storageclass.kubernetes.io/is-default-class.</span></div>
+      </div>
+    </div>
+    <div class="labs-block">
+      <div class="labs-title">16 Labs — Storage</div>
+
+      <div class="lab-item">
+        <span class="lab-n">L01–L04</span>
+        <div class="lab-body">
+          <div class="lab-title">PV/PVC Static Provisioning</div>
+          <div class="lab-desc">Tạo PV hostPath, PVC bind, mount vào pod.</div>
+          <ul class="lab-steps">
+            <li>Tạo PV: hostPath /data/pv1, capacity 1Gi, RWO, Retain</li>
+            <li>Tạo PVC: 500Mi, RWO → bind với PV</li>
+            <li>k get pv,pvc → STATUS: Bound</li>
+            <li>Deploy pod mount PVC → /data</li>
+            <li>Exec pod: echo "test" > /data/file.txt</li>
+            <li>Delete pod, recreate pod, exec: cat /data/file.txt → vẫn còn!</li>
+          </ul>
+          <div class="lab-verify">Data persists qua pod restart. PV STATUS = Bound khi có PVC.</div>
+        </div>
+      </div>
+
+      <div class="lab-item">
+        <span class="lab-n">L05–L08</span>
+        <div class="lab-body">
+          <div class="lab-title">Reclaim Policy — Retain vs Delete</div>
+          <div class="lab-desc">Quan sát PV lifecycle khi PVC bị xóa.</div>
+          <ul class="lab-steps">
+            <li>PV1 với Retain: xóa PVC → PV status = Released (không Available lại)</li>
+            <li>PV2 với Delete: xóa PVC → PV bị xóa luôn</li>
+            <li>Để reuse Retained PV: xóa claimRef trong PV spec (k edit pv)</li>
+          </ul>
+          <div class="lab-verify">Released PV không bind với PVC mới cho đến khi xóa claimRef.</div>
+        </div>
+      </div>
+
+      <div class="lab-item">
+        <span class="lab-n">L09–L12</span>
+        <div class="lab-body">
+          <div class="lab-title">Volume Types — emptyDir, hostPath, configMap, secret</div>
+          <div class="lab-desc">Thực hành từng loại volume.</div>
+          <ul class="lab-steps">
+            <li>emptyDir: 2 containers share temp storage, container1 write, container2 read</li>
+            <li>hostPath: mount /var/log từ host vào pod để đọc node logs</li>
+            <li>configMap as volume: nginx.conf từ ConfigMap mount vào /etc/nginx/</li>
+            <li>secret as volume: TLS cert/key mount vào /etc/ssl/</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="lab-item">
+        <span class="lab-n">L13–L16</span>
+        <div class="lab-body">
+          <div class="lab-title">StorageClass & Dynamic Provisioning</div>
+          <div class="lab-desc">Cài local-path provisioner, test dynamic PV creation.</div>
+          <ul class="lab-steps">
+            <li>Cài rancher local-path-provisioner (hoạt động tốt với kind)</li>
+            <li>Set làm default StorageClass</li>
+            <li>Tạo PVC không specify storageClassName → dynamic PV tạo tự động</li>
+            <li>k get pv → thấy PV mới với suffix random</li>
+          </ul>
+          <div class="lab-verify">PVC → Bound trong vài giây. PV tự tạo match đúng size.</div>
+        </div>
+      </div>
+    </div>
+    <div class="week-summary">
+      <div class="sum-block theory"><h5>Lý thuyết</h5><div class="sum-items"><div class="sum-item">PV/PVC binding rules</div><div class="sum-item">Access modes</div><div class="sum-item">Reclaim policies</div></div></div>
+      <div class="sum-block practice"><h5>16 labs</h5><div class="sum-items"><div class="sum-item">Static + dynamic provisioning</div><div class="sum-item">Volume types thực tế</div><div class="sum-item">Reclaim policy behavior</div></div></div>
+      <div class="sum-block goal"><h5>Mục tiêu</h5><div class="sum-items"><div class="sum-item">PVC binding không tra docs</div><div class="sum-item">Biết khi nào PVC Pending</div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ WEEK 8 ══ -->
+<div class="week-section" id="w8">
+  <div class="week-header" onclick="toggleWeek(this)">
+    <span class="wk-num" style="--wk-color:#b388ff">W08</span>
+    <div class="wk-meta">
+      <div class="wk-title">Security — RBAC, ServiceAccount, SecurityContext</div>
+      <div class="wk-subtitle">// role · clusterrole · bindings · serviceaccount · pod security · TLS</div>
+    </div>
+    <div class="wk-badges">
+      <span class="badge" style="color:#b388ff;border-color:rgba(179,136,255,0.3)">SECURITY</span>
+      <span class="badge" style="color:#69ff47;border-color:rgba(105,255,71,0.3)">20 LABS</span>
+    </div>
+    <span class="toggle-icon">▾</span>
+  </div>
+  <div class="week-body">
+    <div class="theory-block">
+      <div class="theory-title">Lý thuyết tuần 8</div>
+      <div class="theory-points">
+        <div class="tp"><span class="tp-mark">01</span><span><strong>RBAC flow:</strong> Subject (User/Group/ServiceAccount) → RoleBinding/ClusterRoleBinding → Role/ClusterRole → Resources + Verbs. Role là namespace-scoped, ClusterRole là cluster-wide.</span></div>
+        <div class="tp"><span class="tp-mark">02</span><span><strong>Verbs:</strong> get, list, watch, create, update, patch, delete, deletecollection. Aggregated verbs: * = tất cả.</span></div>
+        <div class="tp"><span class="tp-mark">03</span><span><strong>ServiceAccount:</strong> Identity của pod khi giao tiếp với API server. Default SA trong mỗi namespace. Token tự mount vào /var/run/secrets/kubernetes.io/serviceaccount/</span></div>
+        <div class="tp"><span class="tp-mark">04</span><span><strong>SecurityContext:</strong> Pod-level và container-level. runAsUser/runAsGroup (UID/GID), fsGroup (volume ownership), runAsNonRoot, readOnlyRootFilesystem, allowPrivilegeEscalation, capabilities.</span></div>
+        <div class="tp"><span class="tp-mark">05</span><span><strong>kubectl auth can-i:</strong> Check permission của user/SA. --as flag để impersonate. --as-group để test group permissions.</span></div>
+      </div>
+    </div>
+    <div class="labs-block">
+      <div class="labs-title">20 Labs — Security</div>
+
+      <div class="lab-item">
+        <span class="lab-n">L01–L05</span>
+        <div class="lab-body">
+          <div class="lab-title">RBAC — Role & RoleBinding</div>
+          <div class="lab-desc">Tạo Role với permissions cụ thể, bind cho SA.</div>
+          <ul class="lab-steps">
+            <li>k create sa dev-reader -n dev</li>
+            <li>k create role pod-reader --verb=get,list,watch --resource=pods -n dev</li>
+            <li>k create rolebinding dev-rb --role=pod-reader --serviceaccount=dev:dev-reader -n dev</li>
+            <li>k auth can-i list pods --as=system:serviceaccount:dev:dev-reader -n dev → yes</li>
+            <li>k auth can-i delete pods --as=system:serviceaccount:dev:dev-reader -n dev → no</li>
+          </ul>
+          <div class="lab-verify">can-i trả về đúng theo permissions đã set.</div>
+        </div>
+      </div>
+
+      <div class="lab-item">
+        <span class="lab-n">L06–L09</span>
+        <div class="lab-body">
+          <div class="lab-title">ClusterRole & ClusterRoleBinding</div>
+          <div class="lab-desc">Cluster-wide permissions cho SA.</div>
+          <ul class="lab-steps">
+            <li>k create clusterrole node-reader --verb=get,list,watch --resource=nodes</li>
+            <li>k create clusterrolebinding node-rb --clusterrole=node-reader --serviceaccount=default:default</li>
+            <li>Tạo pod dùng default SA, exec vào, curl API server với token</li>
+            <li>curl https://kubernetes/api/v1/nodes -H "Authorization: Bearer $TOKEN" --cacert /run/secrets/.../ca.crt</li>
+          </ul>
+          <div class="lab-verify">API call trả về node list. Non-permitted endpoints trả về 403.</div>
+        </div>
+      </div>
+
+      <div class="lab-item">
+        <span class="lab-n">L10–L13</span>
+        <div class="lab-body">
+          <div class="lab-title">ServiceAccount — Custom SA cho Pod</div>
+          <div class="lab-desc">Tạo SA với min permissions, gắn vào pod.</div>
+          <ul class="lab-steps">
+            <li>Tạo SA backend-sa với Role: get/list/watch pods,services</li>
+            <li>Tạo pod với serviceAccountName: backend-sa</li>
+            <li>automountServiceAccountToken: false cho pods không cần API access</li>
+            <li>Exec pod: ls /run/secrets/kubernetes.io/serviceaccount/</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="lab-item">
+        <span class="lab-n">L14–L17</span>
+        <div class="lab-body">
+          <div class="lab-title">SecurityContext — Pod & Container Level</div>
+          <div class="lab-desc">Harden pods với security constraints.</div>
+          <ul class="lab-steps">
+            <li>Pod securityContext: runAsUser=1000, fsGroup=2000</li>
+            <li>Exec pod: id → uid=1000. ls -la /data → group=2000</li>
+            <li>Container: readOnlyRootFilesystem=true → touch /tmp/test → permission denied</li>
+            <li>Container: allowPrivilegeEscalation=false, drop capability NET_RAW</li>
+          </ul>
+          <div class="lab-verify">Processes run as non-root. Write to rootfs fails.</div>
+        </div>
+      </div>
+
+      <div class="lab-item">
+        <span class="lab-n">L18–L20</span>
+        <div class="lab-body">
+          <div class="lab-title">Certificate & kubeconfig</div>
+          <div class="lab-desc">Tạo user certificate, cấu hình kubeconfig.</div>
+          <ul class="lab-steps">
+            <li>openssl genrsa -out dev.key 2048</li>
+            <li>openssl req -new -key dev.key -out dev.csr -subj "/CN=dev-user/O=developers"</li>
+            <li>Tạo CertificateSigningRequest object trong K8s, approve</li>
+            <li>k config set-credentials dev-user --client-certificate=dev.crt --client-key=dev.key</li>
+            <li>k config set-context dev-context --cluster=... --user=dev-user --namespace=dev</li>
+          </ul>
+          <div class="lab-verify">k --context=dev-context get pods → hoạt động với permissions của dev-user</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="week-summary">
+      <div class="sum-block theory"><h5>Lý thuyết</h5><div class="sum-items"><div class="sum-item">RBAC hierarchy</div><div class="sum-item">SA token mechanism</div><div class="sum-item">SecurityContext options</div></div></div>
+      <div class="sum-block practice"><h5>20 labs</h5><div class="sum-items"><div class="sum-item">Role + Binding đủ loại</div><div class="sum-item">can-i verification</div><div class="sum-item">Hardened pod config</div></div></div>
+      <div class="sum-block goal"><h5>Mục tiêu</h5><div class="sum-items"><div class="sum-item">RBAC troubleshoot &lt;3 phút</div><div class="sum-item">Tạo kubeconfig không tra docs</div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- CHECKPOINT PHASE 2 -->
+<div class="checkpoint">
+  <div class="cp-title">✦ Checkpoint Phase 2 — Cuối tuần 8</div>
+  <div class="cp-grid">
+    <div class="cp-item"><span class="cp-check">✓</span>Debug service connectivity trong &lt;5 phút</div>
+    <div class="cp-item"><span class="cp-check">✓</span>Viết NetworkPolicy deny-all + whitelist không tra docs</div>
+    <div class="cp-item"><span class="cp-check">✓</span>PVC binding: biết tại sao Pending và cách fix</div>
+    <div class="cp-item"><span class="cp-check">✓</span>RBAC: tạo role + binding + verify can-i &lt;3 phút</div>
+    <div class="cp-item"><span class="cp-check">✓</span>Ingress với TLS hoạt động</div>
+    <div class="cp-item"><span class="cp-check">✓</span>StorageClass dynamic provisioning</div>
+    <div class="cp-item"><span class="cp-check">✓</span>SecurityContext: pod run as non-root, readOnly FS</div>
+    <div class="cp-item"><span class="cp-check">✓</span>kubeconfig: thêm user, switch context</div>
+  </div>
+</div>
+
+<div style="text-align:center;padding:48px 0 32px">
+  <a href="cka-part2.html" style="display:inline-flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--border2);padding:16px 32px;color:var(--orange);font-family:'JetBrains Mono',monospace;font-size:13px;letter-spacing:1.5px;text-transform:uppercase;text-decoration:none;transition:.2s">
+    <span>Tiếp tục Phần 2: Tuần 9–16</span>
+    <span style="font-size:18px">→</span>
+  </a>
+</div>
+
+</div><!-- /wrap -->
+
+<script>
+function toggleWeek(header){
+  const section = header.parentElement;
+  section.classList.toggle('open');
+}
+// open first week by default
+document.querySelectorAll('.week-section').forEach((s,i)=>{
+  if(i===0) s.classList.add('open');
+});
+</script>
+</body>
+</html>

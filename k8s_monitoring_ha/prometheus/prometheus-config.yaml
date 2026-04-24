@@ -20,41 +20,50 @@ data:
     scrape_configs:
       # Job 1: Node Exporter - Sửa lỗi lặp bằng cách chuyển sang role: pod (1 pod/node)
       - job_name: 'node-exporter'
-        kubernetes_sd_configs: [{role: pod}]
+        kubernetes_sd_configs:
+          - role: pod
         relabel_configs:
           - source_labels: [__meta_kubernetes_pod_label_app]
             action: keep
             regex: node-exporter
+
+          # giữ instance đúng nghĩa (ip:port)
           - source_labels: [__meta_kubernetes_pod_ip]
             target_label: __address__
             replacement: ${1}:9100
+
+          # chuẩn hoá node để join
           - source_labels: [__meta_kubernetes_pod_node_name]
             target_label: node
-          - source_labels: [__meta_kubernetes_pod_node_name]
-            target_label: instance
+
+          # KHÔNG override instance nữa
+
           - source_labels: [__meta_kubernetes_namespace]
             target_label: namespace
+
           - source_labels: [__meta_kubernetes_pod_name]
             target_label: pod
+
           - replacement: production
             target_label: cluster
         metric_relabel_configs:
           - source_labels: [__name__]
             action: keep
-            regex: 'node_cpu_seconds_total|node_memory_MemAvailable_bytes|node_memory_MemTotal_bytes|node_filesystem_avail_bytes|node_filesystem_size_bytes|up'
+            regex: 'node_cpu_seconds_total|node_memory_MemAvailable_bytes|node_memory_MemTotal_bytes|node_filesystem_avail_bytes|node_filesystem_size_bytes|node_filesystem_files_free|node_filesystem_files|node_filesystem_readonly|node_vmstat_oom_kill|node_nf_conntrack_entries|node_nf_conntrack_entries_limit|up'
 
       # Job 2: Kube State Metrics - Chắt lọc metrics logic
       - job_name: 'kube-state-metrics'
-        static_configs: [{targets: ['kube-state-metrics.monitoring.svc.cluster.local:8080']}]
+        static_configs:
+          - targets: ['kube-state-metrics.monitoring.svc.cluster.local:8080']
         relabel_configs:
           - replacement: production
             target_label: cluster
         metric_relabel_configs:
           - source_labels: [__name__]
             action: keep
-            regex: 'kube_node_status_condition|kube_pod_status_phase|kube_node_status_allocatable|kube_node_status_capacity|kube_pod_container_status_waiting_reason|kube_pod_container_status_restarts_total|kube_pod_container_status_last_terminated_reason|kube_node_info|kube_pod_info|kube_pod_container_resource_limits|kube_persistentvolumeclaim_info|kube_persistentvolumeclaim_status_phase|kube_persistentvolume_info|kube_persistentvolume_status_phase|kube_pod_container_status_terminated_reason_total|up'
+            regex: 'kube_node_status_condition|kube_pod_status_phase|kube_node_status_allocatable|kube_node_status_capacity|kube_pod_container_status_waiting_reason|kube_pod_container_status_restarts_total|kube_pod_container_status_last_terminated_reason|kube_node_info|kube_pod_info|kube_pod_container_resource_limits|kube_persistentvolumeclaim_info|kube_persistentvolumeclaim_status_phase|kube_persistentvolume_info|kube_persistentvolume_status_phase|kube_pod_container_status_terminated_reason_total|kube_deployment_status_observed_generation|kube_deployment_metadata_generation|kube_statefulset_status_observed_generation|kube_statefulset_metadata_generation|kube_deployment_spec_replicas|kube_deployment_status_replicas_available|kube_statefulset_status_replicas_ready|kube_statefulset_status_replicas|kube_daemonset_status_number_ready|kube_daemonset_status_desired_number_scheduled|kube_namespace_labels|kube_namespace_created|up'
 
-      # Job 3: Kubelet - Chỉ lấy Volume stats (PVC)
+      # Job 3: Kubelet - Metric hiệu năng và Volume
       - job_name: 'kubelet'
         scheme: https
         tls_config: {insecure_skip_verify: true}
@@ -69,38 +78,45 @@ data:
             replacement: /api/v1/nodes/${1}/proxy/metrics
           - source_labels: [__meta_kubernetes_node_name]
             target_label: node
-          - source_labels: [__meta_kubernetes_node_name]
-            target_label: instance
           - replacement: production
             target_label: cluster
         metric_relabel_configs:
           - source_labels: [__name__]
             action: keep
-            regex: 'kubelet_volume_stats_capacity_bytes|kubelet_volume_stats_used_bytes|up'
+            regex: 'kubelet_volume_stats_capacity_bytes|kubelet_volume_stats_available_bytes|kubelet_volume_stats_used_bytes|rest_client_requests_total|up'
 
-      # Job 4: cAdvisor - Chỉ lấy Pod CPU/RAM
-      - job_name: 'kubelet-cadvisor'
+      # Job 4: cAdvisor - Pod CPU/RAM/Network
+      - job_name: kubelet-cadvisor
         scheme: https
-        tls_config: {insecure_skip_verify: true}
+        kubernetes_sd_configs:
+          - role: node
+
+        tls_config:
+          insecure_skip_verify: true
+
         bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
-        kubernetes_sd_configs: [{role: node}]
+
         relabel_configs:
+          - action: labelmap
+            regex: __meta_kubernetes_node_label_(.+)
+
           - target_label: __address__
             replacement: kubernetes.default.svc:443
+
           - source_labels: [__meta_kubernetes_node_name]
             regex: (.+)
             target_label: __metrics_path__
             replacement: /api/v1/nodes/${1}/proxy/metrics/cadvisor
+
           - source_labels: [__meta_kubernetes_node_name]
             target_label: node
-          - source_labels: [__meta_kubernetes_node_name]
-            target_label: instance
-          - replacement: production
-            target_label: cluster
+
+          - target_label: cluster
+            replacement: production
         metric_relabel_configs:
           - source_labels: [__name__]
+            regex: 'container_cpu_usage_seconds_total|container_memory_working_set_bytes|container_network_receive_bytes_total|container_network_transmit_bytes_total|container_fs_usage_bytes'
             action: keep
-            regex: 'container_cpu_usage_seconds_total|container_memory_working_set_bytes|kubelet_volume_stats_.*|up'
 
       # Job 5: API Server
       - job_name: 'kubernetes-apiservers'
@@ -117,15 +133,67 @@ data:
         metric_relabel_configs:
           - source_labels: [__name__]
             action: keep
-            regex: 'up'
+            regex: 'apiserver_request_total|apiserver_request_duration_seconds_bucket|apiserver_client_certificate_expiration_seconds_bucket|up'
 
+      # Job 6: Prometheus Self
+      - job_name: 'prometheus'
+        static_configs: [{targets: ['localhost:9090']}]
+        relabel_configs:
+          - replacement: production
+            target_label: cluster
+        metric_relabel_configs:
+          - source_labels: [__name__]
+            action: keep
+            regex: 'up|prometheus_notifications_alertmanagers_discovered|alertmanager_notifications_failed_total|prometheus_rule_evaluation_failures_total|prometheus_tsdb_checkpoint_creations_failed_total|prometheus_tsdb_wal_corruptions_total'
+
+      # Job 7: CoreDNS
+      - job_name: 'coredns'
+        kubernetes_sd_configs: [{role: pod}]
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_label_k8s_app]
+            action: keep
+            regex: kube-dns
+          - source_labels: [__meta_kubernetes_pod_ip]
+            target_label: __address__
+            replacement: ${1}:9153
+          - replacement: production
+            target_label: cluster
+        metric_relabel_configs:
+          - source_labels: [__name__]
+            action: keep
+            regex: 'up|coredns_dns_requests_total|coredns_dns_responses_total|coredns_panics_total'
+
+      # Job 8: Kube Proxy
+      - job_name: 'kube-proxy'
+        kubernetes_sd_configs: [{role: pod}]
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_label_k8s_app]
+            action: keep
+            regex: kube-proxy
+          - source_labels: [__meta_kubernetes_pod_ip]
+            target_label: __address__
+            replacement: ${1}:10249
+          - replacement: production
+            target_label: cluster
+        metric_relabel_configs:
+          - source_labels: [__name__]
+            action: keep
+            regex: 'up|kubeproxy_sync_proxy_rules_duration_seconds_bucket|kubeproxy_network_programming_duration_seconds_bucket'
+
+      # Job 9: Pyroscope
+      - job_name: 'pyroscope'
+        static_configs: [{targets: ['pyroscope.monitoring.svc.cluster.local:4040']}]
+        relabel_configs:
+          - replacement: production
+            target_label: cluster
+  
   recording.rules.yml: |
     groups:
       - name: sre-recording
         rules:
-          # Ép lọc job để chống lặp số liệu từ Prometheus khác trong cụm
+          # --- Node level ---
           - record: node:cpu_usage:rate5m
-            expr: 100 - (avg by (instance) (rate(node_cpu_seconds_total{job="node-exporter", mode="idle"}[5m])) * 100)
+            expr: 100 - (avg by (cluster, node, instance) (rate(node_cpu_seconds_total{job="node-exporter", mode="idle"}[5m])) * 100)
           
           - record: node:memory_usage:percent
             expr: ((node_memory_MemTotal_bytes{job="node-exporter"} - node_memory_MemAvailable_bytes{job="node-exporter"}) / node_memory_MemTotal_bytes{job="node-exporter"}) * 100
@@ -133,35 +201,338 @@ data:
           - record: node:disk_usage:percent
             expr: 100 * (1 - node_filesystem_avail_bytes{job="node-exporter", mountpoint="/"} / node_filesystem_size_bytes{job="node-exporter", mountpoint="/"})
 
+          # --- Cluster level ---
+          - record: cluster:cpu_usage:cores
+            expr: sum(rate(container_cpu_usage_seconds_total{job="kubelet-cadvisor", container!="", image!=""}[5m]))
+          
+          - record: cluster:memory_usage:bytes
+            expr: sum(container_memory_working_set_bytes{job="kubelet-cadvisor", container!="", image!=""})
+
           - record: cluster:pods_capacity:total
             expr: sum(kube_node_status_allocatable{job="kube-state-metrics", resource="pods"})
           
           - record: cluster:pods_usage:total
-            expr: sum(kube_pod_status_phase{job="kube-state-metrics", phase="Running"})
+            expr: sum(kube_pod_status_phase{job="kube-state-metrics", phase=~"Running|Pending"})
 
           - record: cluster:apiserver:up
             expr: avg(up{job="kubernetes-apiservers"})
 
+          # --- Namespace level ---
+          - record: namespace:cpu_usage:cores
+            expr: sum by (cluster, namespace) (rate(container_cpu_usage_seconds_total{job="kubelet-cadvisor", container!="", image!=""}[5m]))
+
+          - record: namespace:memory_usage:bytes
+            expr: sum by (cluster, namespace) (container_memory_working_set_bytes{job="kubelet-cadvisor", container!="", image!=""})
+
+          # --- Pod level ---
+          - record: pod:cpu_usage:cores
+            expr: sum by (cluster, namespace, pod) (rate(container_cpu_usage_seconds_total{job="kubelet-cadvisor", container!="", image!=""}[5m]))
+
+          - record: pod:memory_usage:bytes
+            expr: sum by (cluster, namespace, pod) (container_memory_working_set_bytes{job="kubelet-cadvisor", container!="", image!=""})
+
+          # --- API Server performance ---
+          - record: cluster:apiserver_request_duration_seconds:99quantile
+            expr: histogram_quantile(0.99, sum by (le, cluster) (rate(apiserver_request_duration_seconds_bucket[5m])))
+
+          - record: cluster:apiserver_request_error:rate2m
+            expr: sum(rate(apiserver_request_total{code=~"5.."}[2m])) / sum(rate(apiserver_request_total[2m])) * 100
+
+          - record: cluster:rest_client_request_error:rate2m
+            expr: sum(rate(rest_client_requests_total{code=~"(4|5).."}[2m])) / sum(rate(rest_client_requests_total[2m])) * 100
+
+
   alert.rules.yml: |
     groups:
-    - name: sre-alerts
+    - name: self-monitoring-alerts
       rules:
-      - alert: NodeDiskFull
-        expr: avg_over_time(node:disk_usage:percent[5m]) > 90
-        for: 10m
-        labels: {severity: critical}
+      - alert: PrometheusJobMissing
+        expr: absent(up{job="prometheus"})
+        for: 0m
+        labels:
+          severity: warning
+        annotations:
+          summary: Prometheus job missing (instance {{ $labels.instance }})
+          description: "A Prometheus job has disappeared\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
 
-      - alert: PodCrashLooping
-        expr: increase(kube_pod_container_status_restarts_total{job="kube-state-metrics", container!=""}[15m]) > 5
-        for: 10m
-        labels: {severity: warning}
+      - alert: PrometheusTargetMissing
+        expr: up == 0 unless on(job) (sum by (job) (up) == 0)
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: Prometheus target missing (instance {{ $labels.instance }})
+          description: "A Prometheus target has disappeared. An exporter might be crashed.\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
+      
+      - alert: PrometheusNotConnectedToAlertmanager
+        expr: prometheus_notifications_alertmanagers_discovered < 1
+        for: 0m
+        labels:
+          severity: critical
+        annotations:
+          summary: Prometheus not connected to alertmanager (instance {{ $labels.instance }})
+          description: "Prometheus cannot connect the alertmanager\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
 
-      - alert: ContainerOOMKilled
-        expr: increase(kube_pod_container_status_last_terminated_reason{job="kube-state-metrics", reason="OOMKilled"}[5m]) > 0
+      - alert: PrometheusAlertManagerNotificationFailing
+        expr: rate(alertmanager_notifications_failed_total[3m]) > 0.05
+        for: 0m
+        labels:
+          severity: critical
+        annotations:
+          summary: Prometheus AlertManager notification failing (instance {{ $labels.instance }})
+          description: "Alertmanager is failing sending notifications ({{ $value }} notifications/s)\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
+      
+      - alert: PrometheusRuleEvaluationFailures
+        expr: increase(prometheus_rule_evaluation_failures_total[3m]) > 0
+        for: 0m
+        labels:
+          severity: critical
+        annotations:
+          summary: Prometheus rule evaluation failures (instance {{ $labels.instance }})
+          description: "Prometheus encountered {{ $value }} rule evaluation failures, leading to potentially ignored alerts.\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
+      
+      - alert: PrometheusTSDBCheckpointCreationFailures
+        expr: increase(prometheus_tsdb_checkpoint_creations_failed_total[1m]) > 0
+        for: 0m
+        labels:
+          severity: critical
+        annotations:
+          summary: Prometheus TSDB checkpoint creation failures (instance {{ $labels.instance }})
+          description: "Prometheus encountered {{ $value }} checkpoint creation failures\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
+      
+      - alert: PrometheusTSDBWALCorruptions
+        expr: increase(prometheus_tsdb_wal_corruptions_total[1m]) > 0
+        for: 0m
+        labels:
+          severity: critical
+        annotations:
+          summary: Prometheus TSDB WAL corruptions (instance {{ $labels.instance }})
+          description: "Prometheus encountered {{ $value }} TSDB WAL corruptions\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
+    - name: node-exporter-alert
+      rules:
+      - alert: HostOutOfDiskSpace
+        expr: (node_filesystem_avail_bytes{fstype!~"^(fuse.*|tmpfs|cifs|nfs)"} / node_filesystem_size_bytes < .10 and on (instance, device, mountpoint) node_filesystem_readonly == 0)
         for: 2m
-        labels: {severity: critical}
+        labels:
+          severity: critical
+        annotations:
+          summary: Host out of disk space (instance {{ $labels.instance }})
+          description: "Disk is almost full (< 10% left)\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
+      
+      - alert: HostDiskMayFillIn24Hours
+        expr: predict_linear(node_filesystem_avail_bytes{fstype!~"^(fuse.*|tmpfs|cifs|nfs)"}[3h], 86400) <= 0 and node_filesystem_avail_bytes > 0
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: Host disk may fill in 24 hours (instance {{ $labels.instance }})
+          description: "Filesystem will likely run out of space within the next 24 hours.\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
+      
+      - alert: HostOutOfInodes
+        expr: (node_filesystem_files_free / node_filesystem_files < .10 and ON (instance, device, mountpoint) node_filesystem_readonly == 0) and node_filesystem_files > 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: Host out of inodes (instance {{ $labels.instance }})
+          description: "Disk is almost running out of available inodes (< 10% left)\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
 
-      - alert: APIServerDown
-        expr: avg_over_time(cluster:apiserver:up[5m]) < 0.5
+      - alert: HostOutOfMemory
+        expr: (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes < .10)
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: Host out of memory (instance {{ $labels.instance }})
+          description: "Node memory is filling up (< 10% left)\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
+
+      # - alert: HostOOMKillDetected
+      #   expr: (delta(node_vmstat_oom_kill[30m]) > 0)
+      #   for: 1m
+      #   labels:
+      #     severity: warning
+      #   annotations:
+      #     summary: Host OOM kill detected (instance {{ $labels.instance }})
+      #     description: "OOM kill detected\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
+
+      - alert: HostHighCPULoad
+        expr: 1 - (avg without (cpu) (rate(node_cpu_seconds_total{mode="idle"}[5m]))) > .80
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: Host high CPU load (instance {{ $labels.instance }})
+          description: "CPU load is > 80%\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
+
+      - alert: HostCPUHighIowait
+        expr: avg without (cpu) (rate(node_cpu_seconds_total{mode="iowait"}[5m])) > .10
+        for: 0m
+        labels:
+          severity: warning
+        annotations:
+          summary: Host CPU high iowait (instance {{ $labels.instance }})
+          description: "CPU iowait > 10%. Your CPU is idling waiting for storage to respond.\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
+
+    - name: kube-state-metrics-alert
+      rules:
+      - alert: KubernetesNodeNotReady
+        expr: kube_node_status_condition{condition="Ready",status="true"} == 0
+        for: 10m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Node not ready ({{ $labels.node }})"
+          description: "Node {{ $labels.node }} is not ready.\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
+
+      - alert: KubernetesNodeMemoryPressure
+        expr: kube_node_status_condition{condition="MemoryPressure",status="true"} == 1
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Node Memory Pressure ({{ $labels.node }})"
+          description: "Node {{ $labels.node }} is under memory pressure.\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
+
+      - alert: KubernetesNodeDiskPressure
+        expr: kube_node_status_condition{condition="DiskPressure",status="true"} == 1
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Node Disk Pressure ({{ $labels.node }})"
+          description: "Node {{ $labels.node }} is under disk pressure.\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
+
+      - alert: KubernetesNodeNetworkUnavailable
+        expr: kube_node_status_condition{condition="NetworkUnavailable",status="true"} == 1
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Node Network Unavailable ({{ $labels.node }})"
+          description: "Node {{ $labels.node }} network is unavailable.\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
+
+      - alert: KubernetesPodNotHealthy
+        expr: sum by (namespace, pod) (kube_pod_status_phase{phase=~"Pending|Unknown|Failed"}) > 0
+        for: 15m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Pod not healthy (Namespace: {{ $labels.namespace }}, Pod: {{ $labels.pod }})"
+          description: "Pod {{ $labels.pod }} in namespace {{ $labels.namespace }} has been in a non-ready state for longer than 15 minutes.\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
+
+      - alert: KubernetesDeploymentGenerationMismatch
+        expr: kube_deployment_status_observed_generation != kube_deployment_metadata_generation
+        for: 10m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Deployment generation mismatch (Namespace: {{ $labels.namespace }}, Deployment: {{ $labels.deployment }})"
+          description: "A deployment {{ $labels.deployment }} in namespace {{ $labels.namespace }} has failed to roll out.\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
+
+      - alert: KubernetesStatefulSetGenerationMismatch
+        expr: kube_statefulset_status_observed_generation != kube_statefulset_metadata_generation
+        for: 10m
+        labels:
+          severity: critical
+        annotations:
+          summary: "StatefulSet generation mismatch (Namespace: {{ $labels.namespace }}, StatefulSet: {{ $labels.statefulset }})"
+          description: "A statefulset {{ $labels.statefulset }} in namespace {{ $labels.namespace }} has failed to roll out.\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
+
+      - alert: KubernetesPersistentVolumeError
+        expr: kube_persistentvolume_status_phase{phase=~"Failed|Pending"} > 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "PersistentVolume Error (PV: {{ $labels.persistentvolume }})"
+          description: "Persistent volume {{ $labels.persistentvolume }} is in Failed or Pending state.\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
+
+      - alert: KubernetesVolumeOutOfDiskSpace
+        expr: kubelet_volume_stats_available_bytes / kubelet_volume_stats_capacity_bytes * 100 < 10
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Volume Out of Disk Space (Namespace: {{ $labels.namespace }}, PVC: {{ $labels.persistentvolumeclaim }})"
+          description: "Volume {{ $labels.persistentvolumeclaim }} in namespace {{ $labels.namespace }} is almost full (< 10% left).\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
+
+      - alert: KubernetesAPIServerErrors
+        expr: cluster:apiserver_request_error:rate2m > 5
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Kubernetes API Server Errors"
+          description: "Kubernetes API server is experiencing high error rate (> 5%).\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
+
+      - alert: KubernetesAPIClientErrors
+        expr: cluster:rest_client_request_error:rate2m > 3
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Kubernetes API Client Errors"
+          description: "Kubernetes API client is experiencing high error rate (> 3%).\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
+
+      - alert: KubernetesClientCertificateExpiresSoon
+        expr: histogram_quantile(0.01, sum by (le) (rate(apiserver_client_certificate_expiration_seconds_bucket[5m]))) < 24*60*60
         for: 5m
-        labels: {severity: critical}
+        labels:
+          severity: critical
+        annotations:
+          summary: "Kubernetes Client Certificate Expires Soon"
+          description: "A client certificate used to authenticate to the apiserver is expiring in less than 24 hours.\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
+
+      - alert: KubernetesContainerOomKiller
+        expr: increase(kube_pod_container_status_restarts_total[10m]) >= 2
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Container OOM Killer / Restart (Namespace: {{ $labels.namespace }}, Pod: {{ $labels.pod }}, Container: {{ $labels.container }})"
+          description: "Container {{ $labels.container }} in pod {{ $labels.pod }} (namespace {{ $labels.namespace }}) has been restarted 2 or more times in the last 10 minutes (OOM/CrashLoop).\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
+
+      - alert: KubernetesDeploymentReplicasMismatch
+        expr: kube_deployment_spec_replicas != kube_deployment_status_replicas_available
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Deployment Replicas Mismatch (Namespace: {{ $labels.namespace }}, Deployment: {{ $labels.deployment }})"
+          description: "Deployment {{ $labels.deployment }} in namespace {{ $labels.namespace }} has a replica mismatch.\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
+
+      - alert: KubernetesStatefulSetReplicasMismatch
+        expr: kube_statefulset_status_replicas_ready != kube_statefulset_status_replicas
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "StatefulSet Replicas Mismatch (Namespace: {{ $labels.namespace }}, StatefulSet: {{ $labels.statefulset }})"
+          description: "StatefulSet {{ $labels.statefulset }} in namespace {{ $labels.namespace }} has a replica mismatch.\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
+
+      - alert: KubernetesDaemonSetRolloutStuck
+        expr: kube_daemonset_status_number_ready / kube_daemonset_status_desired_number_scheduled < 1
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "DaemonSet Rollout Stuck (Namespace: {{ $labels.namespace }}, DaemonSet: {{ $labels.daemonset }})"
+          description: "DaemonSet {{ $labels.daemonset }} in namespace {{ $labels.namespace }} rollout is stuck.\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
+
+      - alert: KubernetesPersistentVolumeClaimPending
+        expr: kube_persistentvolumeclaim_status_phase{phase="Pending"} == 1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "PVC Pending (Namespace: {{ $labels.namespace }}, PVC: {{ $labels.persistentvolumeclaim }})"
+          description: "PersistentVolumeClaim {{ $labels.persistentvolumeclaim }} in namespace {{ $labels.namespace }} is stuck in Pending state.\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
+
+      # - alert: KubernetesAPIServerLatency
+      #   expr: histogram_quantile(0.99, sum(rate(apiserver_request_duration_seconds_bucket[10m])) by (le)) > 1
+      #   for: 5m
+      #   labels:
+      #     severity: warning
+      #   annotations:
+      #     summary: "Kubernetes API Server High Latency"
+      #     description: "Kubernetes API server has a 99th percentile latency > 1 second.\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
