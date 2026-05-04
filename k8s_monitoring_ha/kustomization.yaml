@@ -1,0 +1,63 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# [1. Namespace chung]
+# Toàn bộ resources sẽ tự động được đưa vào namespace này
+namespace: monitoring
+
+# [2. Labels & Annotations chung]
+# Gắn nhãn nhận diện cho toàn bộ hệ thống
+commonLabels:
+  env: production
+  project: vnpost-monitoring
+  managed-by: kustomize
+
+commonAnnotations:
+  kustomize/applied-at: "2024"
+
+# [3. Thành phần (Bases)]
+# Các thư mục con chứa định nghĩa của từng thành phần
+resources:
+  - alert_manager
+  - grafana
+  - kube_state_metrics
+  - node_exporter
+  - prometheus
+
+# [4. Scale Replicas (HA)]
+# Quản lý số lượng bản sao tập trung. Rất tiện lợi khi triển khai cho các môi trường khác nhau.
+replicas:
+  - name: prometheus
+    count: 2  # Chạy 2 bản sao Prometheus để đảm bảo HA
+  - name: alertmanager
+    count: 3  # Chạy 3 bản sao Alertmanager (Quorum)
+  - name: grafana
+    count: 2  # Chạy 2 bản sao Grafana
+  - name: kube-state-metrics
+    count: 2  # Chạy 2 bản sao KSM
+
+# [5. Quản lý Phiên bản (Images)]
+# Thay vì sửa thủ công trong từng file StatefulSet/Deployment, bạn định nghĩa version ở đây.
+images:
+  - name: prom/prometheus
+    newTag: v2.51.2
+  - name: prom/alertmanager
+    newTag: v0.27.0
+  - name: grafana/grafana
+    newTag: "13.0"
+  - name: registry.k8s.io/kube-state-metrics/kube-state-metrics
+    newTag: v2.12.0
+
+# [6. Ghi đè cấu hình (Patches) - Tùy chọn]
+# Ví dụ: Tăng tài nguyên RAM cho Prometheus trên môi trường Production mà không sửa file gốc.
+patches:
+  - target:
+      kind: StatefulSet
+      name: prometheus
+    patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/requests/memory
+        value: "2Gi"
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/limits/memory
+        value: "4Gi"

@@ -1,0 +1,13 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# [1. Danh sách Resources]
+resources:
+  - grafana-ingress.yaml
+  - grafana-pdb.yaml
+  - grafana-provisioning.yaml
+  - grafana-secret.yaml
+  - grafana-sts.yaml
+  - grafana-svc.yaml
+  - postgres-ha.yaml
+  - postgres-sts.yaml
