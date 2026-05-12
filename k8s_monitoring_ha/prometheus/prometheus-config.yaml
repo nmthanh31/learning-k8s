@@ -8,6 +8,11 @@ data:
     global:
       scrape_interval: 30s
       evaluation_interval: 15s
+      external_labels:
+        cluster: production
+        env: prod
+        prometheus: monitoring/prometheus
+        prometheus_replica: prometheus-0
 
     rule_files:
       - /etc/prometheus/recording.rules.yml
@@ -46,10 +51,15 @@ data:
 
           - replacement: production
             target_label: cluster
+          - replacement: prod
+            target_label: env
         metric_relabel_configs:
           - source_labels: [__name__]
             action: keep
             regex: 'node_cpu_seconds_total|node_memory_MemAvailable_bytes|node_memory_MemTotal_bytes|node_filesystem_avail_bytes|node_filesystem_size_bytes|node_filesystem_files_free|node_filesystem_files|node_filesystem_readonly|node_vmstat_oom_kill|node_nf_conntrack_entries|node_nf_conntrack_entries_limit|up'
+          - source_labels: [fstype]
+            action: drop
+            regex: '^(autofs|binfmt_misc|bpf|cgroup2?|configfs|debugfs|devpts|devtmpfs|fuse.*|hugetlbfs|mqueue|nsfs|overlay|proc|pstore|rpc_pipefs|securityfs|selinuxfs|squashfs|sysfs|tracefs|tmpfs)$'
 
       # Job 2: Kube State Metrics - Chắt lọc metrics logic
       - job_name: 'kube-state-metrics'
@@ -58,10 +68,12 @@ data:
         relabel_configs:
           - replacement: production
             target_label: cluster
+          - replacement: prod
+            target_label: env
         metric_relabel_configs:
           - source_labels: [__name__]
             action: keep
-            regex: 'kube_node_status_condition|kube_pod_status_phase|kube_node_status_allocatable|kube_node_status_capacity|kube_pod_container_status_waiting_reason|kube_pod_container_status_restarts_total|kube_pod_container_status_last_terminated_reason|kube_node_info|kube_pod_info|kube_pod_container_resource_limits|kube_persistentvolumeclaim_info|kube_persistentvolumeclaim_status_phase|kube_persistentvolume_info|kube_persistentvolume_status_phase|kube_pod_container_status_terminated_reason_total|kube_deployment_status_observed_generation|kube_deployment_metadata_generation|kube_statefulset_status_observed_generation|kube_statefulset_metadata_generation|kube_deployment_spec_replicas|kube_deployment_status_replicas_available|kube_statefulset_status_replicas_ready|kube_statefulset_status_replicas|kube_daemonset_status_number_ready|kube_daemonset_status_desired_number_scheduled|kube_namespace_labels|kube_namespace_created|up'
+            regex: 'kube_node_status_condition|kube_pod_status_phase|kube_node_status_allocatable|kube_pod_container_status_restarts_total|kube_pod_info|kube_pod_container_resource_limits|kube_persistentvolumeclaim_info|kube_persistentvolumeclaim_status_phase|kube_persistentvolume_status_phase|kube_deployment_status_observed_generation|kube_deployment_metadata_generation|kube_deployment_spec_replicas|kube_deployment_status_replicas_available|kube_statefulset_status_observed_generation|kube_statefulset_metadata_generation|kube_statefulset_status_replicas_ready|kube_statefulset_status_replicas|kube_daemonset_status_number_ready|kube_daemonset_status_desired_number_scheduled|kube_namespace_created|up'
 
       # Job 3: Kubelet - Metric hiệu năng và Volume
       - job_name: 'kubelet'
@@ -80,6 +92,8 @@ data:
             target_label: node
           - replacement: production
             target_label: cluster
+          - replacement: prod
+            target_label: env
         metric_relabel_configs:
           - source_labels: [__name__]
             action: keep
@@ -97,9 +111,6 @@ data:
         bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
 
         relabel_configs:
-          - action: labelmap
-            regex: __meta_kubernetes_node_label_(.+)
-
           - target_label: __address__
             replacement: kubernetes.default.svc:443
 
@@ -113,10 +124,39 @@ data:
 
           - target_label: cluster
             replacement: production
+          - target_label: env
+            replacement: prod
         metric_relabel_configs:
+          # Rancher UI Compatibility: Chuẩn hóa label namespace, pod và container
+          - source_labels: [pod_namespace]
+            target_label: namespace
+            regex: (.+)
+            action: replace
+          - source_labels: [pod_name]
+            target_label: pod
+            regex: (.+)
+            action: replace
+          - source_labels: [container_name]
+            target_label: container
+            regex: (.+)
+            action: replace
+          - source_labels: [container_label_io_kubernetes_pod_namespace]
+            target_label: namespace
+            regex: (.+)
+            action: replace
+          - source_labels: [container_label_io_kubernetes_pod_name]
+            target_label: pod
+            regex: (.+)
+            action: replace
+          - source_labels: [container_label_io_kubernetes_container_name]
+            target_label: container
+            regex: (.+)
+            action: replace
           - source_labels: [__name__]
-            regex: 'container_cpu_usage_seconds_total|container_memory_working_set_bytes|container_network_receive_bytes_total|container_network_transmit_bytes_total|container_fs_usage_bytes'
+            regex: 'container_cpu_usage_seconds_total|container_memory_working_set_bytes|container_network_receive_bytes_total|container_network_transmit_bytes_total'
             action: keep
+          - action: labelkeep
+            regex: '__name__|cluster|env|job|instance|node|namespace|pod|container|interface'
 
       # Job 5: API Server
       - job_name: 'kubernetes-apiservers'
@@ -130,10 +170,14 @@ data:
             regex: default;kubernetes;https
           - replacement: production
             target_label: cluster
+          - replacement: prod
+            target_label: env
         metric_relabel_configs:
           - source_labels: [__name__]
             action: keep
             regex: 'apiserver_request_total|apiserver_request_duration_seconds_bucket|apiserver_client_certificate_expiration_seconds_bucket|up'
+          - action: labelkeep
+            regex: '__name__|cluster|env|job|instance|code|le'
 
       # Job 6: Prometheus Self
       - job_name: 'prometheus'
@@ -141,6 +185,8 @@ data:
         relabel_configs:
           - replacement: production
             target_label: cluster
+          - replacement: prod
+            target_label: env
         metric_relabel_configs:
           - source_labels: [__name__]
             action: keep
@@ -156,8 +202,16 @@ data:
           - source_labels: [__meta_kubernetes_pod_ip]
             target_label: __address__
             replacement: ${1}:9153
+          - source_labels: [__meta_kubernetes_namespace]
+            target_label: namespace
+          - source_labels: [__meta_kubernetes_pod_name]
+            target_label: pod
+          - source_labels: [__meta_kubernetes_pod_node_name]
+            target_label: node
           - replacement: production
             target_label: cluster
+          - replacement: prod
+            target_label: env
         metric_relabel_configs:
           - source_labels: [__name__]
             action: keep
@@ -173,8 +227,16 @@ data:
           - source_labels: [__meta_kubernetes_pod_ip]
             target_label: __address__
             replacement: ${1}:10249
+          - source_labels: [__meta_kubernetes_namespace]
+            target_label: namespace
+          - source_labels: [__meta_kubernetes_pod_name]
+            target_label: pod
+          - source_labels: [__meta_kubernetes_pod_node_name]
+            target_label: node
           - replacement: production
             target_label: cluster
+          - replacement: prod
+            target_label: env
         metric_relabel_configs:
           - source_labels: [__name__]
             action: keep
@@ -203,43 +265,43 @@ data:
 
           # --- Cluster level ---
           - record: cluster:cpu_usage:cores
-            expr: sum(rate(container_cpu_usage_seconds_total{job="kubelet-cadvisor", container!="", image!=""}[5m]))
+            expr: sum by (cluster) (rate(container_cpu_usage_seconds_total{job="kubelet-cadvisor", container!="", pod!=""}[5m]))
           
           - record: cluster:memory_usage:bytes
-            expr: sum(container_memory_working_set_bytes{job="kubelet-cadvisor", container!="", image!=""})
+            expr: sum by (cluster) (container_memory_working_set_bytes{job="kubelet-cadvisor", container!="", pod!=""})
 
           - record: cluster:pods_capacity:total
-            expr: sum(kube_node_status_allocatable{job="kube-state-metrics", resource="pods"})
+            expr: sum by (cluster) (kube_node_status_allocatable{job="kube-state-metrics", resource="pods"})
           
           - record: cluster:pods_usage:total
-            expr: sum(kube_pod_status_phase{job="kube-state-metrics", phase=~"Running|Pending"})
+            expr: sum by (cluster) (kube_pod_status_phase{job="kube-state-metrics", phase=~"Running|Pending"})
 
           - record: cluster:apiserver:up
-            expr: avg(up{job="kubernetes-apiservers"})
+            expr: avg by (cluster) (up{job="kubernetes-apiservers"})
 
           # --- Namespace level ---
           - record: namespace:cpu_usage:cores
-            expr: sum by (cluster, namespace) (rate(container_cpu_usage_seconds_total{job="kubelet-cadvisor", container!="", image!=""}[5m]))
+            expr: sum by (cluster, namespace) (rate(container_cpu_usage_seconds_total{job="kubelet-cadvisor", container!="", pod!=""}[5m]))
 
           - record: namespace:memory_usage:bytes
-            expr: sum by (cluster, namespace) (container_memory_working_set_bytes{job="kubelet-cadvisor", container!="", image!=""})
+            expr: sum by (cluster, namespace) (container_memory_working_set_bytes{job="kubelet-cadvisor", container!="", pod!=""})
 
           # --- Pod level ---
           - record: pod:cpu_usage:cores
-            expr: sum by (cluster, namespace, pod) (rate(container_cpu_usage_seconds_total{job="kubelet-cadvisor", container!="", image!=""}[5m]))
+            expr: sum by (cluster, namespace, pod) (rate(container_cpu_usage_seconds_total{job="kubelet-cadvisor", container!="", pod!=""}[5m]))
 
           - record: pod:memory_usage:bytes
-            expr: sum by (cluster, namespace, pod) (container_memory_working_set_bytes{job="kubelet-cadvisor", container!="", image!=""})
+            expr: sum by (cluster, namespace, pod) (container_memory_working_set_bytes{job="kubelet-cadvisor", container!="", pod!=""})
 
           # --- API Server performance ---
           - record: cluster:apiserver_request_duration_seconds:99quantile
             expr: histogram_quantile(0.99, sum by (le, cluster) (rate(apiserver_request_duration_seconds_bucket[5m])))
 
           - record: cluster:apiserver_request_error:rate2m
-            expr: sum(rate(apiserver_request_total{code=~"5.."}[2m])) / sum(rate(apiserver_request_total[2m])) * 100
+            expr: sum by (cluster) (rate(apiserver_request_total{code=~"5.."}[2m])) / sum by (cluster) (rate(apiserver_request_total[2m])) * 100
 
           - record: cluster:rest_client_request_error:rate2m
-            expr: sum(rate(rest_client_requests_total{code=~"(4|5).."}[2m])) / sum(rate(rest_client_requests_total[2m])) * 100
+            expr: sum by (cluster) (rate(rest_client_requests_total{code=~"(4|5).."}[2m])) / sum by (cluster) (rate(rest_client_requests_total[2m])) * 100
 
 
   alert.rules.yml: |
@@ -256,7 +318,7 @@ data:
           description: "A Prometheus job has disappeared\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
 
       - alert: PrometheusTargetMissing
-        expr: up == 0 unless on(job) (sum by (job) (up) == 0)
+        expr: up == 0 unless on(cluster, job) (sum by (cluster, job) (up) == 0)
         for: 1m
         labels:
           severity: critical
@@ -412,7 +474,7 @@ data:
           description: "Node {{ $labels.node }} network is unavailable.\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
 
       - alert: KubernetesPodNotHealthy
-        expr: sum by (namespace, pod) (kube_pod_status_phase{phase=~"Pending|Unknown|Failed"}) > 0
+        expr: sum by (cluster, namespace, pod) (kube_pod_status_phase{phase=~"Pending|Unknown|Failed"}) > 0
         for: 15m
         labels:
           severity: critical
@@ -475,7 +537,7 @@ data:
           description: "Kubernetes API client is experiencing high error rate (> 3%).\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
 
       - alert: KubernetesClientCertificateExpiresSoon
-        expr: histogram_quantile(0.01, sum by (le) (rate(apiserver_client_certificate_expiration_seconds_bucket[5m]))) < 24*60*60
+        expr: histogram_quantile(0.01, sum by (cluster, le) (rate(apiserver_client_certificate_expiration_seconds_bucket[5m]))) < 24*60*60
         for: 5m
         labels:
           severity: critical

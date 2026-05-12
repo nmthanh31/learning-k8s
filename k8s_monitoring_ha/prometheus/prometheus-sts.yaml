@@ -50,7 +50,8 @@ spec:
             - "--storage.tsdb.path=/prometheus"              # Nơi lưu trữ DB (Timeseries Database)
             - "--storage.tsdb.retention.time=15d"            # Thời gian lưu dữ liệu (15 ngày) trước khi bị xóa cuốn chiếu
             - "--web.enable-lifecycle"                       # Quan trọng: Cho phép reload cấu hình mà không cần restart Pod (Dùng lệnh curl -X POST)
- 
+            - "--enable-feature=remote-write-receiver"       # Kích hoạt tính năng remote write receiver
+            - "--web.enable-remote-write-receiver"          # Cho phép Prometheus nhận dữ liệu từ các nguồn bên ngoài qua remote write
           ports:
             - name: web
               containerPort: 9090 # Cổng giao diện chính

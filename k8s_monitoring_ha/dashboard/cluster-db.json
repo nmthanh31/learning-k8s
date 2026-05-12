@@ -43,7 +43,7 @@
                     "spec": {
                       "editorMode": "code",
                       "exemplar": false,
-                      "expr": "sum(kube_node_status_condition{condition=\"Ready\"})",
+                      "expr": "sum(kube_node_status_condition{cluster=~\"$cluster\", condition=\"Ready\"})",
                       "format": "table",
                       "instant": true,
                       "legendFormat": "Total Nodes",
@@ -67,7 +67,7 @@
                     "spec": {
                       "editorMode": "code",
                       "exemplar": false,
-                      "expr": "sum(kube_node_status_condition{condition=\"Ready\", status=\"true\"})",
+                      "expr": "sum(kube_node_status_condition{cluster=~\"$cluster\", condition=\"Ready\", status=\"true\"})",
                       "format": "table",
                       "instant": true,
                       "legendFormat": "Ready",
@@ -91,7 +91,7 @@
                     "spec": {
                       "editorMode": "code",
                       "exemplar": false,
-                      "expr": "sum(kube_node_status_condition{condition=\"Ready\", status!=\"true\"})",
+                      "expr": "sum(kube_node_status_condition{cluster=~\"$cluster\", condition=\"Ready\", status!=\"true\"})",
                       "format": "table",
                       "instant": true,
                       "legendFormat": "NotReady",
@@ -206,7 +206,7 @@
                     "group": "prometheus",
                     "kind": "DataQuery",
                     "spec": {
-                      "expr": "sum(kube_node_status_allocatable{resource='pods'})",
+                      "expr": "sum(kube_node_status_allocatable{cluster=~\"$cluster\", resource=\"pods\"})",
                       "legendFormat": "Capacity"
                     },
                     "version": "v0"
@@ -225,7 +225,7 @@
                     "group": "prometheus",
                     "kind": "DataQuery",
                     "spec": {
-                      "expr": "sum(kube_pod_status_phase{phase='Running'})",
+                      "expr": "sum(kube_pod_status_phase{cluster=~\"$cluster\", phase=\"Running\"})",
                       "legendFormat": "Running"
                     },
                     "version": "v0"
@@ -244,7 +244,7 @@
                     "group": "prometheus",
                     "kind": "DataQuery",
                     "spec": {
-                      "expr": "sum(kube_pod_status_phase{phase='Pending'})",
+                      "expr": "sum(kube_pod_status_phase{cluster=~\"$cluster\", phase=\"Pending\"})",
                       "legendFormat": "Pending"
                     },
                     "version": "v0"
@@ -329,7 +329,7 @@
                     "spec": {
                       "editorMode": "code",
                       "exemplar": false,
-                      "expr": "sum by (persistentvolumeclaim) (kubelet_volume_stats_capacity_bytes{job=\"kubelet\"})",
+                      "expr": "sum by (persistentvolumeclaim) (kubelet_volume_stats_capacity_bytes{cluster=~\"$cluster\", job=\"kubelet\"})",
                       "format": "table",
                       "instant": true,
                       "range": false
@@ -351,7 +351,7 @@
                     "kind": "DataQuery",
                     "spec": {
                       "editorMode": "code",
-                      "expr": "sum by (persistentvolumeclaim) (kubelet_volume_stats_used_bytes{job=\"kubelet\"})",
+                      "expr": "sum by (persistentvolumeclaim) (kubelet_volume_stats_used_bytes{cluster=~\"$cluster\", job=\"kubelet\"})",
                       "format": "table",
                       "range": true
                     },
@@ -372,7 +372,7 @@
                     "kind": "DataQuery",
                     "spec": {
                       "editorMode": "code",
-                      "expr": "(\r\n  sum by (persistentvolumeclaim) (kubelet_volume_stats_used_bytes{job=\"kubelet\"})\r\n/\r\n  sum by (persistentvolumeclaim) (kubelet_volume_stats_capacity_bytes{job=\"kubelet\"})\r\n) * 100",
+                      "expr": "(\r\n  sum by (persistentvolumeclaim) (kubelet_volume_stats_used_bytes{cluster=~\"$cluster\", job=\"kubelet\"})\r\n/\r\n  sum by (persistentvolumeclaim) (kubelet_volume_stats_capacity_bytes{cluster=~\"$cluster\", job=\"kubelet\"})\r\n) * 100",
                       "format": "table",
                       "range": true
                     },
@@ -581,7 +581,7 @@
                     "spec": {
                       "editorMode": "code",
                       "exemplar": false,
-                      "expr": "count(kube_namespace_created)",
+                      "expr": "count(kube_namespace_created{cluster=~\"$cluster\"})",
                       "format": "time_series",
                       "instant": false,
                       "legendFormat": "Namespace",
@@ -605,7 +605,7 @@
                     "spec": {
                       "editorMode": "code",
                       "exemplar": false,
-                      "expr": "count(kube_persistentvolumeclaim_info)",
+                      "expr": "count(kube_persistentvolumeclaim_info{cluster=~\"$cluster\"})",
                       "format": "time_series",
                       "instant": false,
                       "legendFormat": "PVC",
@@ -704,7 +704,7 @@
                     "spec": {
                       "editorMode": "code",
                       "exemplar": false,
-                      "expr": "max by(namespace,pod) (kube_pod_info)",
+                      "expr": "max by(namespace,pod) (kube_pod_info{cluster=~\"$cluster\"})",
                       "format": "table",
                       "instant": true,
                       "legendFormat": "__auto",
@@ -728,7 +728,7 @@
                     "spec": {
                       "editorMode": "code",
                       "exemplar": false,
-                      "expr": "sum by (pod, phase) (kube_pod_status_phase{phase=~\"Running|Pending|Failed|Succeeded\"} == 1)",
+                      "expr": "sum by (pod, phase) (kube_pod_status_phase{cluster=~\"$cluster\", phase=~\"Running|Pending|Failed|Succeeded\"} == 1)",
                       "format": "table",
                       "instant": true,
                       "legendFormat": "__auto",
@@ -751,7 +751,7 @@
                     "kind": "DataQuery",
                     "spec": {
                       "editorMode": "code",
-                      "expr": "sum by(namespace,pod)(\r\n  rate(container_cpu_usage_seconds_total{\r\n    container!=\"\",\r\n    pod!=\"\"\r\n  }[$__range])\r\n)",
+                      "expr": "sum by(namespace,pod)(\r\n  rate(container_cpu_usage_seconds_total{\r\n    cluster=~\"$cluster\",\r\n    container!=\"\",\r\n    pod!=\"\"\r\n  }[$__range])\r\n)",
                       "format": "table",
                       "instant": false,
                       "legendFormat": "__auto",
@@ -775,7 +775,7 @@
                     "spec": {
                       "editorMode": "code",
                       "exemplar": false,
-                      "expr": "sum by(namespace,pod)(\r\n  container_memory_working_set_bytes{\r\n    container!=\"\",\r\n    pod!=\"\"\r\n  }\r\n) / 1024^3",
+                      "expr": "sum by(namespace,pod)(\r\n  container_memory_working_set_bytes{\r\n    cluster=~\"$cluster\",\r\n    container!=\"\",\r\n    pod!=\"\"\r\n  }\r\n) / 1024^3",
                       "format": "table",
                       "instant": true,
                       "legendFormat": "__auto",
@@ -799,7 +799,7 @@
                     "spec": {
                       "editorMode": "code",
                       "exemplar": false,
-                      "expr": "sum by(namespace,pod)(\r\n  kube_pod_container_resource_limits{resource=\"cpu\"}\r\n) * 1000",
+                      "expr": "sum by(namespace,pod)(\r\n  kube_pod_container_resource_limits{cluster=~\"$cluster\", resource=\"cpu\"}\r\n) * 1000",
                       "format": "table",
                       "instant": true,
                       "legendFormat": "__auto",
@@ -823,7 +823,7 @@
                     "spec": {
                       "editorMode": "code",
                       "exemplar": false,
-                      "expr": "sum by(namespace,pod)(\r\n  kube_pod_container_resource_limits{resource=\"memory\"}\r\n) / (1024^3)",
+                      "expr": "sum by(namespace,pod)(\r\n  kube_pod_container_resource_limits{cluster=~\"$cluster\", resource=\"memory\"}\r\n) / (1024^3)",
                       "format": "table",
                       "instant": true,
                       "legendFormat": "__auto",
@@ -1042,7 +1042,7 @@
                           },
                           {
                             "color": "green",
-                            "value": 1e-7
+                            "value": 1e-07
                           }
                         ]
                       }
@@ -1145,7 +1145,7 @@
                     "kind": "DataQuery",
                     "spec": {
                       "editorMode": "code",
-                      "expr": "sum(rate(container_network_receive_bytes_total{pod!=\"\"}[$__range]))",
+                      "expr": "sum(rate(container_network_receive_bytes_total{cluster=~\"$cluster\", pod!=\"\"}[$__range]))",
                       "legendFormat": "__auto",
                       "range": true
                     },
@@ -1166,7 +1166,7 @@
                     "kind": "DataQuery",
                     "spec": {
                       "editorMode": "code",
-                      "expr": "sum(rate(container_network_transmit_bytes_total{pod!=\"\"}[$__range]))",
+                      "expr": "sum(rate(container_network_transmit_bytes_total{cluster=~\"$cluster\", pod!=\"\"}[$__range]))",
                       "instant": false,
                       "legendFormat": "__auto",
                       "range": true
@@ -1287,7 +1287,7 @@
                     "spec": {
                       "editorMode": "code",
                       "exemplar": false,
-                      "expr": "topk(10,\r\n  sum by(pod, namespace)(\r\n    rate(container_network_receive_bytes_total{pod!=\"\"}[5m])\r\n  )\r\n)",
+                      "expr": "topk(10,\r\n  sum by(pod, namespace)(\r\n    rate(container_network_receive_bytes_total{cluster=~\"$cluster\", pod!=\"\"}[5m])\r\n  )\r\n)",
                       "format": "table",
                       "instant": true,
                       "legendFormat": "__auto",
@@ -1422,7 +1422,7 @@
                     "spec": {
                       "editorMode": "code",
                       "exemplar": false,
-                      "expr": "(\r\n  sum(node_nf_conntrack_entries)\r\n/\r\n  sum(node_nf_conntrack_entries_limit)\r\n) * 100",
+                      "expr": "(\r\n  sum(node_nf_conntrack_entries{cluster=~\"$cluster\"})\r\n/\r\n  sum(node_nf_conntrack_entries_limit{cluster=~\"$cluster\"})\r\n) * 100",
                       "format": "table",
                       "instant": true,
                       "legendFormat": "__auto",
@@ -1520,7 +1520,7 @@
                     "group": "prometheus",
                     "kind": "DataQuery",
                     "spec": {
-                      "expr": "(sum(rate(node_cpu_seconds_total{mode!='idle'}[5m])) / sum(rate(node_cpu_seconds_total[5m]))) * 100",
+                      "expr": "(sum(rate(node_cpu_seconds_total{cluster=~\"$cluster\", mode!=\"idle\"}[5m])) / sum(rate(node_cpu_seconds_total{cluster=~\"$cluster\"}[5m]))) * 100",
                       "legendFormat": "Utilised %"
                     },
                     "version": "v0"
@@ -1621,7 +1621,7 @@
                     "group": "prometheus",
                     "kind": "DataQuery",
                     "spec": {
-                      "expr": "(sum(node_memory_MemTotal_bytes) - sum(node_memory_MemAvailable_bytes)) / sum(node_memory_MemTotal_bytes) * 100",
+                      "expr": "(sum(node_memory_MemTotal_bytes{cluster=~\"$cluster\"}) - sum(node_memory_MemAvailable_bytes{cluster=~\"$cluster\"})) / sum(node_memory_MemTotal_bytes{cluster=~\"$cluster\"}) * 100",
                       "legendFormat": "Utilised %"
                     },
                     "version": "v0"
@@ -1722,7 +1722,7 @@
                     "group": "prometheus",
                     "kind": "DataQuery",
                     "spec": {
-                      "expr": "count(kube_namespace_created)",
+                      "expr": "count(kube_namespace_created{cluster=~\"$cluster\"})",
                       "legendFormat": "Namespaces"
                     },
                     "version": "v0"
@@ -1741,7 +1741,7 @@
                     "group": "prometheus",
                     "kind": "DataQuery",
                     "spec": {
-                      "expr": "count(kube_persistentvolumeclaim_info)",
+                      "expr": "count(kube_persistentvolumeclaim_info{cluster=~\"$cluster\"})",
                       "legendFormat": "Total PVCs"
                     },
                     "version": "v0"
@@ -1760,7 +1760,7 @@
                     "group": "prometheus",
                     "kind": "DataQuery",
                     "spec": {
-                      "expr": "sum(kube_persistentvolumeclaim_status_phase{phase='Bound'})",
+                      "expr": "sum(kube_persistentvolumeclaim_status_phase{cluster=~\"$cluster\", phase=\"Bound\"})",
                       "legendFormat": "Bound"
                     },
                     "version": "v0"
@@ -1779,7 +1779,7 @@
                     "group": "prometheus",
                     "kind": "DataQuery",
                     "spec": {
-                      "expr": "sum(kube_persistentvolumeclaim_status_phase{phase='Pending'})",
+                      "expr": "sum(kube_persistentvolumeclaim_status_phase{cluster=~\"$cluster\", phase=\"Pending\"})",
                       "legendFormat": "Pending"
                     },
                     "version": "v0"
@@ -1860,7 +1860,7 @@
                     "spec": {
                       "editorMode": "code",
                       "exemplar": false,
-                      "expr": "kube_node_status_condition{condition=\"Ready\", status=\"true\"}",
+                      "expr": "kube_node_status_condition{cluster=~\"$cluster\", condition=\"Ready\", status=\"true\"}",
                       "format": "table",
                       "instant": false,
                       "legendFormat": "{{node}}",
@@ -1884,7 +1884,7 @@
                     "spec": {
                       "editorMode": "code",
                       "exemplar": false,
-                      "expr": "avg_over_time(\r\n  sum by(node)(\r\n    rate(node_cpu_seconds_total{mode!=\"idle\"}[5m])\r\n  )[${__range}:]\r\n)",
+                      "expr": "avg_over_time(\r\n  sum by(node)(\r\n    rate(node_cpu_seconds_total{cluster=~\"$cluster\", mode!=\"idle\"}[5m])\r\n  )[${__range}:]\r\n)",
                       "format": "table",
                       "instant": false,
                       "legendFormat": "{{node}}",
@@ -1908,7 +1908,7 @@
                     "spec": {
                       "editorMode": "code",
                       "exemplar": false,
-                      "expr": "sum by(node) (\r\n  kube_node_status_allocatable{resource=\"cpu\"}\r\n)",
+                      "expr": "sum by(node) (\r\n  kube_node_status_allocatable{cluster=~\"$cluster\", resource=\"cpu\"}\r\n)",
                       "format": "table",
                       "instant": true,
                       "legendFormat": "__auto",
@@ -1932,7 +1932,7 @@
                     "spec": {
                       "editorMode": "code",
                       "exemplar": false,
-                      "expr": "(\r\n  avg_over_time(\r\n    sum by(node)(\r\n      rate(node_cpu_seconds_total{mode!=\"idle\"}[5m])\r\n    )[${__range}:]\r\n  )\r\n/\r\n  sum by(node)(\r\n    kube_node_status_allocatable{resource=\"cpu\"}\r\n  )\r\n) * 100",
+                      "expr": "(\r\n  avg_over_time(\r\n    sum by(node)(\r\n      rate(node_cpu_seconds_total{cluster=~\"$cluster\", mode!=\"idle\"}[5m])\r\n    )[${__range}:]\r\n  )\r\n/\r\n  sum by(node)(\r\n    kube_node_status_allocatable{cluster=~\"$cluster\", resource=\"cpu\"}\r\n  )\r\n) * 100",
                       "format": "table",
                       "instant": false,
                       "legendFormat": "__auto",
@@ -1956,7 +1956,7 @@
                     "spec": {
                       "editorMode": "code",
                       "exemplar": false,
-                      "expr": "last_over_time(\r\n  sum by(node)(\r\n    node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes\r\n  )[${__range}:]\r\n) / 1024^3",
+                      "expr": "last_over_time(\r\n  sum by(node)(\r\n    node_memory_MemTotal_bytes{cluster=~\"$cluster\"} - node_memory_MemAvailable_bytes{cluster=~\"$cluster\"}\r\n  )[${__range}:]\r\n) / 1024^3",
                       "format": "table",
                       "instant": false,
                       "legendFormat": "__auto",
@@ -1980,7 +1980,7 @@
                     "spec": {
                       "editorMode": "code",
                       "exemplar": false,
-                      "expr": "sum by(node) (\r\n  node_memory_MemTotal_bytes\r\n) / 1024^3",
+                      "expr": "sum by(node) (\r\n  node_memory_MemTotal_bytes{cluster=~\"$cluster\"}\r\n) / 1024^3",
                       "format": "table",
                       "instant": true,
                       "legendFormat": "__auto",
@@ -2004,7 +2004,7 @@
                     "spec": {
                       "editorMode": "code",
                       "exemplar": false,
-                      "expr": "(\r\n  sum by(node) (\r\n    node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes\r\n  )\r\n/\r\n  sum by(node) (\r\n    node_memory_MemTotal_bytes\r\n  )\r\n) * 100",
+                      "expr": "(\r\n  sum by(node) (\r\n    node_memory_MemTotal_bytes{cluster=~\"$cluster\"} - node_memory_MemAvailable_bytes{cluster=~\"$cluster\"}\r\n  )\r\n/\r\n  sum by(node) (\r\n    node_memory_MemTotal_bytes{cluster=~\"$cluster\"}\r\n  )\r\n) * 100",
                       "format": "table",
                       "instant": false,
                       "legendFormat": "__auto",
@@ -2028,7 +2028,7 @@
                     "spec": {
                       "editorMode": "code",
                       "exemplar": false,
-                      "expr": "last_over_time(\r\n  sum by(node)(\r\n    node_filesystem_size_bytes{fstype!~\"tmpfs|overlay\",mountpoint=\"/\"}\r\n    -\r\n    node_filesystem_avail_bytes{fstype!~\"tmpfs|overlay\",mountpoint=\"/\"}\r\n  )[${__range}:]\r\n) / 1024^3",
+                      "expr": "last_over_time(\r\n  sum by(node)(\r\n    node_filesystem_size_bytes{cluster=~\"$cluster\", fstype!~\"tmpfs|overlay\", mountpoint=\"/\"}\r\n    -\r\n    node_filesystem_avail_bytes{cluster=~\"$cluster\", fstype!~\"tmpfs|overlay\", mountpoint=\"/\"}\r\n  )[${__range}:]\r\n) / 1024^3",
                       "format": "table",
                       "instant": false,
                       "legendFormat": "__auto",
@@ -2052,7 +2052,7 @@
                     "spec": {
                       "editorMode": "code",
                       "exemplar": false,
-                      "expr": "sum by(node) (\r\n  node_filesystem_size_bytes{\r\n    fstype!~\"tmpfs|overlay\",\r\n    mountpoint=\"/\"\r\n  }\r\n) / 1024^3",
+                      "expr": "sum by(node) (\r\n  node_filesystem_size_bytes{\r\n    cluster=~\"$cluster\",\r\n    fstype!~\"tmpfs|overlay\",\r\n    mountpoint=\"/\"\r\n  }\r\n) / 1024^3",
                       "format": "table",
                       "instant": true,
                       "legendFormat": "__auto",
@@ -2076,7 +2076,7 @@
                     "spec": {
                       "editorMode": "code",
                       "exemplar": false,
-                      "expr": "(\r\n  sum by(node) (\r\n    node_filesystem_size_bytes{\r\n      fstype!~\"tmpfs|overlay\",\r\n      mountpoint=\"/\"\r\n    }\r\n  -\r\n    node_filesystem_avail_bytes{\r\n      fstype!~\"tmpfs|overlay\",\r\n      mountpoint=\"/\"\r\n    }\r\n  )\r\n/\r\n  sum by(node) (\r\n    node_filesystem_size_bytes{\r\n      fstype!~\"tmpfs|overlay\",\r\n      mountpoint=\"/\"\r\n    }\r\n  )\r\n) * 100",
+                      "expr": "(\r\n  sum by(node) (\r\n    node_filesystem_size_bytes{\r\n      cluster=~\"$cluster\",\r\n      fstype!~\"tmpfs|overlay\",\r\n      mountpoint=\"/\"\r\n    }\r\n  -\r\n    node_filesystem_avail_bytes{\r\n      cluster=~\"$cluster\",\r\n      fstype!~\"tmpfs|overlay\",\r\n      mountpoint=\"/\"\r\n    }\r\n  )\r\n/\r\n  sum by(node) (\r\n    node_filesystem_size_bytes{\r\n      cluster=~\"$cluster\",\r\n      fstype!~\"tmpfs|overlay\",\r\n      mountpoint=\"/\"\r\n    }\r\n  )\r\n) * 100",
                       "format": "table",
                       "instant": false,
                       "legendFormat": "__auto",
@@ -2501,7 +2501,7 @@
                     "kind": "DataQuery",
                     "spec": {
                       "editorMode": "code",
-                      "expr": "sum by(phase) (kube_pod_status_phase)",
+                      "expr": "sum by(phase) (kube_pod_status_phase{cluster=~\"$cluster\"})",
                       "legendFormat": "{{phase}}",
                       "range": true
                     },
@@ -2584,7 +2584,7 @@
                     "kind": "DataQuery",
                     "spec": {
                       "editorMode": "code",
-                      "expr": "count by(namespace) (kube_pod_info)",
+                      "expr": "count by(namespace) (kube_pod_info{cluster=~\"$cluster\"})",
                       "format": "table",
                       "instant": true,
                       "legendFormat": "{{namespace}}"
@@ -2605,7 +2605,7 @@
                     "group": "prometheus",
                     "kind": "DataQuery",
                     "spec": {
-                      "expr": "sum by(namespace) (kube_pod_status_phase{phase='Running'})",
+                      "expr": "sum by(namespace) (kube_pod_status_phase{cluster=~\"$cluster\", phase=\"Running\"})",
                       "format": "table",
                       "instant": true,
                       "legendFormat": "{{namespace}}"
@@ -2627,7 +2627,7 @@
                     "kind": "DataQuery",
                     "spec": {
                       "editorMode": "code",
-                      "expr": "sum by(namespace) (kube_pod_status_phase{phase='Pending'})",
+                      "expr": "sum by(namespace) (kube_pod_status_phase{cluster=~\"$cluster\", phase=\"Pending\"})",
                       "format": "table",
                       "instant": true,
                       "legendFormat": "{{namespace}}"
@@ -2650,7 +2650,7 @@
                     "spec": {
                       "editorMode": "code",
                       "exemplar": false,
-                      "expr": "sum by(namespace)(\r\n  rate(container_cpu_usage_seconds_total{\r\n    container!=\"\",\r\n    pod!=\"\"\r\n  }[5m])\r\n)",
+                      "expr": "sum by(namespace)(\r\n  rate(container_cpu_usage_seconds_total{\r\n    cluster=~\"$cluster\",\r\n    container!=\"\",\r\n    pod!=\"\"\r\n  }[5m])\r\n)",
                       "format": "table",
                       "instant": true,
                       "legendFormat": "__auto",
@@ -2674,7 +2674,7 @@
                     "spec": {
                       "editorMode": "code",
                       "exemplar": false,
-                      "expr": "sum by(namespace)(\r\n  container_memory_working_set_bytes{\r\n    container!=\"\",\r\n    pod!=\"\"\r\n  }\r\n) / 1024^3",
+                      "expr": "sum by(namespace)(\r\n  container_memory_working_set_bytes{\r\n    cluster=~\"$cluster\",\r\n    container!=\"\",\r\n    pod!=\"\"\r\n  }\r\n) / 1024^3",
                       "format": "table",
                       "instant": true,
                       "legendFormat": "__auto",
@@ -2697,7 +2697,7 @@
                     "kind": "DataQuery",
                     "spec": {
                       "editorMode": "code",
-                      "expr": "sum by(namespace) (kube_persistentvolumeclaim_info)",
+                      "expr": "sum by(namespace) (kube_persistentvolumeclaim_info{cluster=~\"$cluster\"})",
                       "format": "table",
                       "instant": true,
                       "legendFormat": "{{namespace}}"
@@ -2980,12 +2980,809 @@
           "version": "13.0.1"
         }
       }
+    },
+    "panel-3001": {
+      "kind": "Panel",
+      "spec": {
+        "data": {
+          "kind": "QueryGroup",
+          "spec": {
+            "queries": [
+              {
+                "kind": "PanelQuery",
+                "spec": {
+                  "hidden": false,
+                  "query": {
+                    "datasource": {
+                      "name": "P5F3E870C62180F52"
+                    },
+                    "group": "prometheus",
+                    "kind": "DataQuery",
+                    "spec": {
+                      "editorMode": "code",
+                      "expr": "count(count by(cluster) (up{cluster!=\"\"}))",
+                      "legendFormat": "Clusters",
+                      "range": false,
+                      "format": "table",
+                      "instant": true
+                    },
+                    "version": "v0"
+                  },
+                  "refId": "A"
+                }
+              },
+              {
+                "kind": "PanelQuery",
+                "spec": {
+                  "hidden": false,
+                  "query": {
+                    "datasource": {
+                      "name": "P5F3E870C62180F52"
+                    },
+                    "group": "prometheus",
+                    "kind": "DataQuery",
+                    "spec": {
+                      "editorMode": "code",
+                      "expr": "sum by(cluster) (kube_node_status_condition{condition=\"Ready\", status=\"true\"})",
+                      "legendFormat": "{{cluster}} Ready nodes",
+                      "range": false,
+                      "format": "table",
+                      "instant": true
+                    },
+                    "version": "v0"
+                  },
+                  "refId": "B"
+                }
+              },
+              {
+                "kind": "PanelQuery",
+                "spec": {
+                  "hidden": false,
+                  "query": {
+                    "datasource": {
+                      "name": "P5F3E870C62180F52"
+                    },
+                    "group": "prometheus",
+                    "kind": "DataQuery",
+                    "spec": {
+                      "editorMode": "code",
+                      "expr": "sum by(cluster) (kube_node_status_condition{condition=\"Ready\", status!=\"true\"})",
+                      "legendFormat": "{{cluster}} NotReady nodes",
+                      "range": false,
+                      "format": "table",
+                      "instant": true
+                    },
+                    "version": "v0"
+                  },
+                  "refId": "C"
+                }
+              }
+            ],
+            "queryOptions": {},
+            "transformations": []
+          }
+        },
+        "description": "",
+        "id": 3001,
+        "links": [],
+        "title": "Clusters",
+        "transparent": true,
+        "vizConfig": {
+          "group": "stat",
+          "kind": "VizConfig",
+          "spec": {
+            "fieldConfig": {
+              "defaults": {
+                "color": {
+                  "mode": "palette-classic"
+                },
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": 0
+                    }
+                  ]
+                }
+              },
+              "overrides": []
+            },
+            "options": {
+              "colorMode": "value",
+              "graphMode": "none",
+              "justifyMode": "auto",
+              "orientation": "horizontal",
+              "percentChangeColorMode": "standard",
+              "reduceOptions": {
+                "calcs": [
+                  "lastNotNull"
+                ],
+                "fields": "",
+                "values": false
+              },
+              "showPercentChange": false,
+              "textMode": "value_and_name",
+              "wideLayout": true
+            }
+          },
+          "version": "13.0.1"
+        }
+      }
+    },
+    "panel-3002": {
+      "kind": "Panel",
+      "spec": {
+        "data": {
+          "kind": "QueryGroup",
+          "spec": {
+            "queries": [
+              {
+                "kind": "PanelQuery",
+                "spec": {
+                  "hidden": false,
+                  "query": {
+                    "datasource": {
+                      "name": "P5F3E870C62180F52"
+                    },
+                    "group": "prometheus",
+                    "kind": "DataQuery",
+                    "spec": {
+                      "editorMode": "code",
+                      "expr": "sum by(cluster) (kube_node_status_condition{condition=\"Ready\"})",
+                      "legendFormat": "__auto",
+                      "range": false,
+                      "format": "table",
+                      "instant": true
+                    },
+                    "version": "v0"
+                  },
+                  "refId": "A"
+                }
+              },
+              {
+                "kind": "PanelQuery",
+                "spec": {
+                  "hidden": false,
+                  "query": {
+                    "datasource": {
+                      "name": "P5F3E870C62180F52"
+                    },
+                    "group": "prometheus",
+                    "kind": "DataQuery",
+                    "spec": {
+                      "editorMode": "code",
+                      "expr": "sum by(cluster) (kube_node_status_condition{condition=\"Ready\", status=\"true\"})",
+                      "legendFormat": "__auto",
+                      "range": false,
+                      "format": "table",
+                      "instant": true
+                    },
+                    "version": "v0"
+                  },
+                  "refId": "B"
+                }
+              },
+              {
+                "kind": "PanelQuery",
+                "spec": {
+                  "hidden": false,
+                  "query": {
+                    "datasource": {
+                      "name": "P5F3E870C62180F52"
+                    },
+                    "group": "prometheus",
+                    "kind": "DataQuery",
+                    "spec": {
+                      "editorMode": "code",
+                      "expr": "sum by(cluster) (kube_node_status_condition{condition=\"Ready\", status!=\"true\"})",
+                      "legendFormat": "__auto",
+                      "range": false,
+                      "format": "table",
+                      "instant": true
+                    },
+                    "version": "v0"
+                  },
+                  "refId": "C"
+                }
+              },
+              {
+                "kind": "PanelQuery",
+                "spec": {
+                  "hidden": false,
+                  "query": {
+                    "datasource": {
+                      "name": "P5F3E870C62180F52"
+                    },
+                    "group": "prometheus",
+                    "kind": "DataQuery",
+                    "spec": {
+                      "editorMode": "code",
+                      "expr": "sum by(cluster) (kube_pod_status_phase{phase=\"Running\"})",
+                      "legendFormat": "__auto",
+                      "range": false,
+                      "format": "table",
+                      "instant": true
+                    },
+                    "version": "v0"
+                  },
+                  "refId": "D"
+                }
+              },
+              {
+                "kind": "PanelQuery",
+                "spec": {
+                  "hidden": false,
+                  "query": {
+                    "datasource": {
+                      "name": "P5F3E870C62180F52"
+                    },
+                    "group": "prometheus",
+                    "kind": "DataQuery",
+                    "spec": {
+                      "editorMode": "code",
+                      "expr": "sum by(cluster) (kube_pod_status_phase{phase=\"Pending\"})",
+                      "legendFormat": "__auto",
+                      "range": false,
+                      "format": "table",
+                      "instant": true
+                    },
+                    "version": "v0"
+                  },
+                  "refId": "E"
+                }
+              }
+            ],
+            "queryOptions": {},
+            "transformations": [
+              {
+                "group": "joinByField",
+                "kind": "Transformation",
+                "spec": {
+                  "options": {
+                    "byField": "cluster",
+                    "mode": "outer"
+                  }
+                }
+              },
+              {
+                "group": "organize",
+                "kind": "Transformation",
+                "spec": {
+                  "options": {
+                    "excludeByName": {
+                      "Time 1": true,
+                      "Time 2": true,
+                      "Time 3": true,
+                      "Time 4": true,
+                      "Time 5": true
+                    },
+                    "includeByName": {},
+                    "indexByName": {},
+                    "renameByName": {
+                      "cluster": "Cluster",
+                      "Value #A": "Nodes",
+                      "Value #B": "Ready Nodes",
+                      "Value #C": "NotReady Nodes",
+                      "Value #D": "Running Pods",
+                      "Value #E": "Pending Pods"
+                    }
+                  }
+                }
+              },
+              {
+                "group": "sortBy",
+                "kind": "Transformation",
+                "spec": {
+                  "options": {
+                    "fields": {},
+                    "sort": [
+                      {
+                        "field": "Cluster"
+                      }
+                    ]
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "description": "",
+        "id": 3002,
+        "links": [],
+        "title": "Cluster Health",
+        "transparent": true,
+        "vizConfig": {
+          "group": "table",
+          "kind": "VizConfig",
+          "spec": {
+            "fieldConfig": {
+              "defaults": {
+                "color": {
+                  "mode": "thresholds"
+                },
+                "custom": {
+                  "align": "auto",
+                  "cellOptions": {
+                    "type": "auto"
+                  },
+                  "footer": {
+                    "reducers": []
+                  },
+                  "inspect": false
+                },
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": 0
+                    },
+                    {
+                      "color": "red",
+                      "value": 80
+                    }
+                  ]
+                }
+              },
+              "overrides": []
+            },
+            "options": {
+              "cellHeight": "sm",
+              "showHeader": true
+            }
+          },
+          "version": "13.0.1"
+        }
+      }
+    },
+    "panel-3003": {
+      "kind": "Panel",
+      "spec": {
+        "data": {
+          "kind": "QueryGroup",
+          "spec": {
+            "queries": [
+              {
+                "kind": "PanelQuery",
+                "spec": {
+                  "hidden": false,
+                  "query": {
+                    "datasource": {
+                      "name": "P5F3E870C62180F52"
+                    },
+                    "group": "prometheus",
+                    "kind": "DataQuery",
+                    "spec": {
+                      "editorMode": "code",
+                      "expr": "(sum by(cluster) (rate(node_cpu_seconds_total{mode!=\"idle\"}[5m])) / sum by(cluster) (rate(node_cpu_seconds_total[5m]))) * 100",
+                      "legendFormat": "{{cluster}}",
+                      "range": true,
+                      "format": "time_series",
+                      "instant": false
+                    },
+                    "version": "v0"
+                  },
+                  "refId": "A"
+                }
+              }
+            ],
+            "queryOptions": {},
+            "transformations": []
+          }
+        },
+        "description": "",
+        "id": 3003,
+        "links": [],
+        "title": "CPU by Cluster",
+        "transparent": true,
+        "vizConfig": {
+          "group": "barchart",
+          "kind": "VizConfig",
+          "spec": {
+            "fieldConfig": {
+              "defaults": {
+                "color": {
+                  "mode": "thresholds"
+                },
+                "max": 100,
+                "min": 0,
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": 0
+                    },
+                    {
+                      "color": "orange",
+                      "value": 75
+                    },
+                    {
+                      "color": "red",
+                      "value": 90
+                    }
+                  ]
+                },
+                "unit": "percent"
+              },
+              "overrides": []
+            },
+            "options": {
+              "legend": {
+                "calcs": [],
+                "displayMode": "list",
+                "placement": "bottom",
+                "showLegend": true
+              },
+              "tooltip": {
+                "hideZeros": false,
+                "mode": "single",
+                "sort": "none"
+              }
+            }
+          },
+          "version": "13.0.1"
+        }
+      }
+    },
+    "panel-3004": {
+      "kind": "Panel",
+      "spec": {
+        "data": {
+          "kind": "QueryGroup",
+          "spec": {
+            "queries": [
+              {
+                "kind": "PanelQuery",
+                "spec": {
+                  "hidden": false,
+                  "query": {
+                    "datasource": {
+                      "name": "P5F3E870C62180F52"
+                    },
+                    "group": "prometheus",
+                    "kind": "DataQuery",
+                    "spec": {
+                      "editorMode": "code",
+                      "expr": "((sum by(cluster) (node_memory_MemTotal_bytes) - sum by(cluster) (node_memory_MemAvailable_bytes)) / sum by(cluster) (node_memory_MemTotal_bytes)) * 100",
+                      "legendFormat": "{{cluster}}",
+                      "range": true,
+                      "format": "time_series",
+                      "instant": false
+                    },
+                    "version": "v0"
+                  },
+                  "refId": "A"
+                }
+              }
+            ],
+            "queryOptions": {},
+            "transformations": []
+          }
+        },
+        "description": "",
+        "id": 3004,
+        "links": [],
+        "title": "Memory by Cluster",
+        "transparent": true,
+        "vizConfig": {
+          "group": "barchart",
+          "kind": "VizConfig",
+          "spec": {
+            "fieldConfig": {
+              "defaults": {
+                "color": {
+                  "mode": "thresholds"
+                },
+                "max": 100,
+                "min": 0,
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": 0
+                    },
+                    {
+                      "color": "orange",
+                      "value": 75
+                    },
+                    {
+                      "color": "red",
+                      "value": 90
+                    }
+                  ]
+                },
+                "unit": "percent"
+              },
+              "overrides": []
+            },
+            "options": {
+              "legend": {
+                "calcs": [],
+                "displayMode": "list",
+                "placement": "bottom",
+                "showLegend": true
+              },
+              "tooltip": {
+                "hideZeros": false,
+                "mode": "single",
+                "sort": "none"
+              }
+            }
+          },
+          "version": "13.0.1"
+        }
+      }
+    },
+    "panel-3005": {
+      "kind": "Panel",
+      "spec": {
+        "data": {
+          "kind": "QueryGroup",
+          "spec": {
+            "queries": [
+              {
+                "kind": "PanelQuery",
+                "spec": {
+                  "hidden": false,
+                  "query": {
+                    "datasource": {
+                      "name": "P5F3E870C62180F52"
+                    },
+                    "group": "prometheus",
+                    "kind": "DataQuery",
+                    "spec": {
+                      "editorMode": "code",
+                      "expr": "time() - max by(cluster) (timestamp(up{cluster!=\"\"}))",
+                      "legendFormat": "__auto",
+                      "range": false,
+                      "format": "table",
+                      "instant": true
+                    },
+                    "version": "v0"
+                  },
+                  "refId": "A"
+                }
+              },
+              {
+                "kind": "PanelQuery",
+                "spec": {
+                  "hidden": false,
+                  "query": {
+                    "datasource": {
+                      "name": "P5F3E870C62180F52"
+                    },
+                    "group": "prometheus",
+                    "kind": "DataQuery",
+                    "spec": {
+                      "editorMode": "code",
+                      "expr": "count by(cluster) ({cluster!=\"\"})",
+                      "legendFormat": "__auto",
+                      "range": false,
+                      "format": "table",
+                      "instant": true
+                    },
+                    "version": "v0"
+                  },
+                  "refId": "B"
+                }
+              }
+            ],
+            "queryOptions": {},
+            "transformations": [
+              {
+                "group": "joinByField",
+                "kind": "Transformation",
+                "spec": {
+                  "options": {
+                    "byField": "cluster",
+                    "mode": "outer"
+                  }
+                }
+              },
+              {
+                "group": "organize",
+                "kind": "Transformation",
+                "spec": {
+                  "options": {
+                    "excludeByName": {
+                      "Time 1": true,
+                      "Time 2": true
+                    },
+                    "includeByName": {},
+                    "indexByName": {},
+                    "renameByName": {
+                      "cluster": "Cluster",
+                      "Value #A": "Sample Age (s)",
+                      "Value #B": "Series"
+                    }
+                  }
+                }
+              },
+              {
+                "group": "sortBy",
+                "kind": "Transformation",
+                "spec": {
+                  "options": {
+                    "fields": {},
+                    "sort": [
+                      {
+                        "field": "Sample Age (s)"
+                      }
+                    ]
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "description": "",
+        "id": 3005,
+        "links": [],
+        "title": "Remote Write Freshness",
+        "transparent": true,
+        "vizConfig": {
+          "group": "table",
+          "kind": "VizConfig",
+          "spec": {
+            "fieldConfig": {
+              "defaults": {
+                "color": {
+                  "mode": "thresholds"
+                },
+                "custom": {
+                  "align": "auto",
+                  "cellOptions": {
+                    "type": "auto"
+                  },
+                  "footer": {
+                    "reducers": []
+                  },
+                  "inspect": false
+                },
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": 0
+                    },
+                    {
+                      "color": "red",
+                      "value": 80
+                    }
+                  ]
+                }
+              },
+              "overrides": [
+                {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "Sample Age (s)"
+                  },
+                  "properties": [
+                    {
+                      "id": "unit",
+                      "value": "s"
+                    }
+                  ]
+                }
+              ]
+            },
+            "options": {
+              "cellHeight": "sm",
+              "showHeader": true
+            }
+          },
+          "version": "13.0.1"
+        }
+      }
     }
   },
   "layout": {
     "kind": "RowsLayout",
     "spec": {
       "rows": [
+        {
+          "kind": "RowsLayoutRow",
+          "spec": {
+            "collapse": false,
+            "fillScreen": true,
+            "hideHeader": false,
+            "conditionalRendering": {
+              "kind": "ConditionalRenderingGroup",
+              "spec": {
+                "visibility": "show",
+                "condition": "and",
+                "items": [
+                  {
+                    "kind": "ConditionalRenderingVariable",
+                    "spec": {
+                      "variable": "cluster",
+                      "operator": "equals",
+                      "value": ".*"
+                    }
+                  }
+                ]
+              }
+            },
+            "layout": {
+              "kind": "GridLayout",
+              "spec": {
+                "items": [
+                  {
+                    "kind": "GridLayoutItem",
+                    "spec": {
+                      "element": {
+                        "kind": "ElementReference",
+                        "name": "panel-3001"
+                      },
+                      "height": 6,
+                      "width": 8,
+                      "x": 0,
+                      "y": 0
+                    }
+                  },
+                  {
+                    "kind": "GridLayoutItem",
+                    "spec": {
+                      "element": {
+                        "kind": "ElementReference",
+                        "name": "panel-3003"
+                      },
+                      "height": 6,
+                      "width": 8,
+                      "x": 8,
+                      "y": 0
+                    }
+                  },
+                  {
+                    "kind": "GridLayoutItem",
+                    "spec": {
+                      "element": {
+                        "kind": "ElementReference",
+                        "name": "panel-3004"
+                      },
+                      "height": 6,
+                      "width": 8,
+                      "x": 16,
+                      "y": 0
+                    }
+                  },
+                  {
+                    "kind": "GridLayoutItem",
+                    "spec": {
+                      "element": {
+                        "kind": "ElementReference",
+                        "name": "panel-3002"
+                      },
+                      "height": 9,
+                      "width": 16,
+                      "x": 0,
+                      "y": 6
+                    }
+                  },
+                  {
+                    "kind": "GridLayoutItem",
+                    "spec": {
+                      "element": {
+                        "kind": "ElementReference",
+                        "name": "panel-3005"
+                      },
+                      "height": 9,
+                      "width": 8,
+                      "x": 16,
+                      "y": 6
+                    }
+                  }
+                ]
+              }
+            },
+            "title": "Multi-Cluster Overview"
+          }
+        },
         {
           "kind": "RowsLayoutRow",
           "spec": {
@@ -3064,7 +3861,24 @@
                 ]
               }
             },
-            "title": "Overview Cluster"
+            "title": "Overview Cluster",
+            "conditionalRendering": {
+              "kind": "ConditionalRenderingGroup",
+              "spec": {
+                "visibility": "show",
+                "condition": "and",
+                "items": [
+                  {
+                    "kind": "ConditionalRenderingVariable",
+                    "spec": {
+                      "variable": "cluster",
+                      "operator": "notEquals",
+                      "value": ".*"
+                    }
+                  }
+                ]
+              }
+            }
           }
         },
         {
@@ -3091,7 +3905,24 @@
                 ]
               }
             },
-            "title": "Node Resource Details"
+            "title": "Node Resource Details",
+            "conditionalRendering": {
+              "kind": "ConditionalRenderingGroup",
+              "spec": {
+                "visibility": "show",
+                "condition": "and",
+                "items": [
+                  {
+                    "kind": "ConditionalRenderingVariable",
+                    "spec": {
+                      "variable": "cluster",
+                      "operator": "notEquals",
+                      "value": ".*"
+                    }
+                  }
+                ]
+              }
+            }
           }
         },
         {
@@ -3131,7 +3962,24 @@
                 ]
               }
             },
-            "title": "Pod Overview"
+            "title": "Pod Overview",
+            "conditionalRendering": {
+              "kind": "ConditionalRenderingGroup",
+              "spec": {
+                "visibility": "show",
+                "condition": "and",
+                "items": [
+                  {
+                    "kind": "ConditionalRenderingVariable",
+                    "spec": {
+                      "variable": "cluster",
+                      "operator": "notEquals",
+                      "value": ".*"
+                    }
+                  }
+                ]
+              }
+            }
           }
         },
         {
@@ -3158,7 +4006,24 @@
                 ]
               }
             },
-            "title": "Namespace Overview"
+            "title": "Namespace Overview",
+            "conditionalRendering": {
+              "kind": "ConditionalRenderingGroup",
+              "spec": {
+                "visibility": "show",
+                "condition": "and",
+                "items": [
+                  {
+                    "kind": "ConditionalRenderingVariable",
+                    "spec": {
+                      "variable": "cluster",
+                      "operator": "notEquals",
+                      "value": ".*"
+                    }
+                  }
+                ]
+              }
+            }
           }
         },
         {
@@ -3184,7 +4049,24 @@
                 "rowHeightMode": "standard"
               }
             },
-            "title": "Alert Manager"
+            "title": "Alert Manager",
+            "conditionalRendering": {
+              "kind": "ConditionalRenderingGroup",
+              "spec": {
+                "visibility": "show",
+                "condition": "and",
+                "items": [
+                  {
+                    "kind": "ConditionalRenderingVariable",
+                    "spec": {
+                      "variable": "cluster",
+                      "operator": "notEquals",
+                      "value": ".*"
+                    }
+                  }
+                ]
+              }
+            }
           }
         },
         {
@@ -3224,7 +4106,24 @@
                 ]
               }
             },
-            "title": "PVC Storage Usage"
+            "title": "PVC Storage Usage",
+            "conditionalRendering": {
+              "kind": "ConditionalRenderingGroup",
+              "spec": {
+                "visibility": "show",
+                "condition": "and",
+                "items": [
+                  {
+                    "kind": "ConditionalRenderingVariable",
+                    "spec": {
+                      "variable": "cluster",
+                      "operator": "notEquals",
+                      "value": ".*"
+                    }
+                  }
+                ]
+              }
+            }
           }
         },
         {
@@ -3268,7 +4167,24 @@
                 "rowHeightMode": "standard"
               }
             },
-            "title": "Cluster Network Overview"
+            "title": "Cluster Network Overview",
+            "conditionalRendering": {
+              "kind": "ConditionalRenderingGroup",
+              "spec": {
+                "visibility": "show",
+                "condition": "and",
+                "items": [
+                  {
+                    "kind": "ConditionalRenderingVariable",
+                    "spec": {
+                      "variable": "cluster",
+                      "operator": "notEquals",
+                      "value": ".*"
+                    }
+                  }
+                ]
+              }
+            }
           }
         }
       ]
@@ -3303,5 +4219,39 @@
     "to": "now"
   },
   "title": "K8s Cluster Overview (Detailed)",
-  "variables": []
+  "variables": [
+    {
+      "kind": "QueryVariable",
+      "spec": {
+        "name": "cluster",
+        "label": "Cluster",
+        "description": "Filter dashboard data by Kubernetes cluster label.",
+        "current": {
+          "text": "All",
+          "value": ".*"
+        },
+        "hide": "dontHide",
+        "includeAll": true,
+        "allValue": ".*",
+        "multi": false,
+        "options": [],
+        "query": {
+          "datasource": {
+            "name": "P5F3E870C62180F52"
+          },
+          "group": "prometheus",
+          "kind": "DataQuery",
+          "spec": {
+            "query": "label_values(up, cluster)",
+            "refId": "ClusterVariable"
+          },
+          "version": "v0"
+        },
+        "refresh": "onDashboardLoad",
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": "alphabeticalAsc"
+      }
+    }
+  ]
 }
