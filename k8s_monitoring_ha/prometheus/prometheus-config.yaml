@@ -252,7 +252,7 @@ data:
       - job_name: 'policy-reporter'
         scrape_interval: 30s
         metrics_path: /metrics
-        static_configs:  [{targets: ['policy-reporter.default.svc.cluster.local:808']}]
+        static_configs:  [{targets: ['policy-reporter.policy-reporter.svc.cluster.local:8080']}]
   
   recording.rules.yml: |
     groups:
